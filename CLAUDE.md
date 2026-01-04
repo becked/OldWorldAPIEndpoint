@@ -18,19 +18,29 @@ The deploy script copies `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll`
 
 ## Testing
 
-### GUI Mode
+**Always use headless testing to verify API changes.** This is the primary testing method.
+
+```bash
+# Test with 2 turns (enough to verify data and see changes between turns)
+./test-headless.sh /tmp/APITestSave.zip 2
+```
+
+The script builds, deploys, starts a TCP listener, runs Old World headless, and captures all JSON output with pretty-printing. Use this to verify:
+- New fields appear in the JSON output
+- Values are correct format (whole numbers, proper signs, correct keys)
+- No errors in the game log
+
+### GUI Mode (Manual)
+Only use GUI mode when you need to:
+- Debug issues that don't reproduce in headless mode
+- Test with a specific game state that requires manual setup
+- Verify behavior during active gameplay
+
+Steps:
 1. Launch Old World and enable the mod in Mod Manager
 2. Start or load a game
 3. Connect: `nc localhost 9876`
 4. End a turn to see JSON output
-
-### Headless Mode (Automated)
-```bash
-# Run 5 turns with TCP capture and pretty-printed JSON output
-./test-headless.sh /tmp/APITestSave.zip 5
-```
-
-The script builds, deploys, starts a TCP listener, runs Old World headless, and captures all JSON output.
 
 ## Architecture
 

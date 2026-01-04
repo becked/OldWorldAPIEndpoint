@@ -129,59 +129,102 @@ Team-to-team diplomacy state with comprehensive data.
 - Alliances are symmetric (stored per-team)
 - Uses game type strings (DIPLOMACY_WAR, WARSTATE_WINNING, etc.)
 
----
-
-## Potential Future Slices
-
-### Data Expansion
-
-#### Slice 4e: Tribe Diplomacy
-Add tribe-to-team diplomacy state (separate system from team-to-team diplomacy).
+### Slice 4e: Tribe Diplomacy
+Tribe-to-team diplomacy state and tribe entity data (separate system from team-to-team diplomacy).
 
 **New arrays:**
 ```json
 {
+  "tribes": [
+    {
+      "tribeType": "TRIBE_GAULS",
+      "isAlive": true,
+      "isDead": false,
+      "hasDiplomacy": true,
+      "leaderId": 19,
+      "hasLeader": true,
+      "religion": null,
+      "hasReligion": false,
+      "allyPlayerId": null,
+      "allyTeam": null,
+      "hasPlayerAlly": false,
+      "numUnits": 3,
+      "numCities": 0,
+      "strength": 90,
+      "cityIds": [],
+      "settlementTileIds": [3160, 3525, 3740],
+      "numTribeImprovements": 3
+    }
+  ],
   "tribeDiplomacy": [
     {
-      "tribe": "TRIBE_GARAMANTES",
+      "tribe": "TRIBE_GAULS",
       "toTeam": 0,
-      "diplomacy": "DIPLOMACY_WAR",
-      "isHostile": true,
+      "diplomacy": "DIPLOMACY_TRUCE",
+      "isHostile": false,
       "isPeace": false,
-      "hasContact": true,
-      "warScore": 8,
-      "warState": "WARSTATE_LOSING",
-      "conflictTurn": 15,
-      "conflictNumTurns": 10,
-      "diplomacyTurn": 15,
-      "diplomacyNumTurns": 10,
-      "diplomacyBlockTurn": 30,
-      "diplomacyBlockTurns": 5
+      "hasContact": false,
+      "warScore": 0,
+      "warState": "WARSTATE_NEUTRAL",
+      "conflictTurn": 0,
+      "conflictNumTurns": 3,
+      "diplomacyTurn": 0,
+      "diplomacyNumTurns": 3,
+      "diplomacyBlockTurn": 0,
+      "diplomacyBlockTurns": 0
     }
   ],
   "tribeAlliances": [
-    { "tribe": "TRIBE_BLEMMYES", "allyPlayer": 2 }
+    { "tribe": "TRIBE_BLEMMYES", "allyPlayerId": 2, "allyTeam": 2 }
   ]
 }
 ```
 
-**Game APIs to explore:**
-- `game.getTribeDiplomacy(TribeType, TeamType)` - Diplomacy state
-- `game.getTribeWarScore(TribeType, TeamType)` - War score
-- `game.getTribeWarState(TribeType, TeamType, bool)` - War state
-- `game.isTribeContact(TribeType, TeamType)` - Contact status
-- `game.getTribeAlly(TribeType)` - Allied player
-- `game.hasTribeAlly(TribeType)` - Has alliance
-- `game.getTribeConflictTurn/NumTurns()` - Timing
-- `game.getTribeDiplomacyTurn/Block()` - Diplomacy change timing
+**Implementation notes:**
+- `tribes` array includes all tribes (alive and dead, diplomacy and non-diplomacy like TRIBE_BARBARIANS)
+- `tribeDiplomacy` filtered to tribes with `isDiplomacyTribeAlive()` (excludes raiders/barbarians)
+- `tribeAlliances` only includes tribes with active player alliances
+- Tribe diplomacy is asymmetric (tribe → team only, no team → tribe)
+- Uses `mzType` for all game type strings (TRIBE_GAULS, DIPLOMACY_TRUCE, etc.)
+
+### Slice 6: HTTP REST Endpoint
+HTTP server for on-demand queries via curl/scripts.
+
+**Port:** 9877 (separate from TCP 9876)
+
+**Endpoints:**
+```
+GET /state              Full game state (mirrors TCP broadcast)
+GET /players            All players array
+GET /player/{index}     Specific player by index
+GET /cities             All cities array
+GET /city/{id}          Specific city by ID
+GET /characters         All characters array
+GET /character/{id}     Specific character by ID
+GET /tribes             All tribes array
+GET /tribe/{type}       Specific tribe by type string (e.g., TRIBE_GAULS)
+GET /team-diplomacy     All team diplomacy relationships
+GET /team-alliances     All team alliances
+GET /tribe-diplomacy    All tribe diplomacy relationships
+GET /tribe-alliances    All tribe alliances
+```
+
+**Error handling:**
+- `200 OK` - Success with JSON data
+- `400 Bad Request` - Invalid ID format
+- `404 Not Found` - Entity not found or unknown endpoint
+- `503 Service Unavailable` - Game not loaded
 
 **Implementation notes:**
-- Tribes are independent factions (barbarians, city-states)
-- Tribe diplomacy is per tribe-team pair (not tribe-tribe)
-- Tribes can ally with a single player
-- Similar field structure to teamDiplomacy but with tribe identifier
+- Uses .NET's `HttpListener` class
+- CORS headers included for browser clients
+- Reuses same data builders as TCP broadcast
+- Game reference cached from main thread for HTTP thread safety
+- Headless testing uses TCP sync (wait for TCP data before testing HTTP)
 
 ---
+
+## Potential Future Slices
 
 ### Event Expansion
 
@@ -346,10 +389,11 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 **High value, low effort:**
 1. ~~Slice 4c (Per-turn rates)~~ - Done
 2. ~~Slice 4d (Diplomacy)~~ - Done
-3. Slice 9 (Connection status) - Simple, improves client experience
+3. ~~Slice 4e (Tribe Diplomacy)~~ - Done
+4. Slice 9 (Connection status) - Simple, improves client experience
 
 **High value, medium effort:**
-4. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
+5. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
 
 **Lower priority:**
-5. Slice 8 (WebSocket) - Nice to have for browser/web clients
+6. Slice 8 (WebSocket) - Nice to have for browser/web clients

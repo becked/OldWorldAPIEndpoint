@@ -1,0 +1,380 @@
+using System;
+using System.Net;
+using System.Text;
+using System.Threading;
+using Newtonsoft.Json;
+using TenCrowns.GameCore;
+using UnityEngine;
+
+namespace OldWorldAPIEndpoint
+{
+    /// <summary>
+    /// HTTP REST server that provides on-demand game state queries.
+    /// Complements the TCP broadcast server with pull-based access.
+    /// </summary>
+    public class HttpRestServer
+    {
+        private readonly int _port;
+        private HttpListener _listener;
+        private volatile bool _running;
+        private Thread _listenerThread;
+        private readonly Func<Game> _getGameFunc;
+        private readonly JsonSerializerSettings _jsonSettings;
+
+        public HttpRestServer(int port, Func<Game> getGameFunc, JsonSerializerSettings jsonSettings)
+        {
+            _port = port;
+            _getGameFunc = getGameFunc;
+            _jsonSettings = jsonSettings;
+        }
+
+        /// <summary>
+        /// Start the HTTP server and begin accepting requests.
+        /// </summary>
+        public void Start()
+        {
+            if (_running) return;
+
+            try
+            {
+                _listener = new HttpListener();
+                // Use both localhost and 127.0.0.1 for compatibility
+                _listener.Prefixes.Add($"http://localhost:{_port}/");
+                _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
+                _listener.Start();
+                _running = true;
+
+                _listenerThread = new Thread(ListenerLoop)
+                {
+                    IsBackground = true,
+                    Name = "APIEndpoint-HTTP"
+                };
+                _listenerThread.Start();
+
+                Debug.Log($"[APIEndpoint] HTTP server started on port {_port}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Failed to start HTTP server: {ex.Message}");
+                _running = false;
+            }
+        }
+
+        /// <summary>
+        /// Stop the HTTP server.
+        /// </summary>
+        public void Stop()
+        {
+            _running = false;
+
+            try
+            {
+                _listener?.Stop();
+                _listener?.Close();
+            }
+            catch { }
+
+            Debug.Log("[APIEndpoint] HTTP server stopped");
+        }
+
+        /// <summary>
+        /// Background thread that accepts incoming HTTP requests.
+        /// </summary>
+        private void ListenerLoop()
+        {
+            while (_running)
+            {
+                try
+                {
+                    var context = _listener.GetContext();
+                    ThreadPool.QueueUserWorkItem(_ => HandleRequest(context));
+                }
+                catch (HttpListenerException) when (!_running)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (_running)
+                    {
+                        Debug.LogError($"[APIEndpoint] HTTP listener error: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle an individual HTTP request.
+        /// </summary>
+        private void HandleRequest(HttpListenerContext context)
+        {
+            try
+            {
+                if (context.Request.HttpMethod != "GET")
+                {
+                    SendErrorResponse(context.Response, "Only GET requests supported", 405);
+                    return;
+                }
+
+                string path = context.Request.Url.AbsolutePath;
+                Debug.Log($"[APIEndpoint] HTTP GET {path}");
+
+                RouteRequest(context, path);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] HTTP request error: {ex.Message}");
+                try
+                {
+                    SendErrorResponse(context.Response, "Internal server error", 500);
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// Route the request to the appropriate handler.
+        /// </summary>
+        private void RouteRequest(HttpListenerContext context, string path)
+        {
+            var game = _getGameFunc();
+
+            if (game == null)
+            {
+                SendErrorResponse(context.Response, "Game not available", 503);
+                return;
+            }
+
+            path = path.Trim('/').ToLowerInvariant();
+            var segments = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (segments.Length == 0)
+            {
+                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
+                return;
+            }
+
+            switch (segments[0])
+            {
+                case "state":
+                    HandleStateRequest(context, game);
+                    break;
+
+                case "players":
+                    HandlePlayersRequest(context, game);
+                    break;
+
+                case "player":
+                    if (segments.Length > 1 && int.TryParse(segments[1], out int playerIndex))
+                        HandlePlayerRequest(context, game, playerIndex);
+                    else
+                        SendErrorResponse(context.Response, "Invalid player index. Use /player/{index}", 400);
+                    break;
+
+                case "cities":
+                    HandleCitiesRequest(context, game);
+                    break;
+
+                case "city":
+                    if (segments.Length > 1 && int.TryParse(segments[1], out int cityId))
+                        HandleCityRequest(context, game, cityId);
+                    else
+                        SendErrorResponse(context.Response, "Invalid city ID. Use /city/{id}", 400);
+                    break;
+
+                case "characters":
+                    HandleCharactersRequest(context, game);
+                    break;
+
+                case "character":
+                    if (segments.Length > 1 && int.TryParse(segments[1], out int charId))
+                        HandleCharacterRequest(context, game, charId);
+                    else
+                        SendErrorResponse(context.Response, "Invalid character ID. Use /character/{id}", 400);
+                    break;
+
+                case "tribes":
+                    HandleTribesRequest(context, game);
+                    break;
+
+                case "tribe":
+                    if (segments.Length > 1)
+                        HandleTribeRequest(context, game, segments[1]);
+                    else
+                        SendErrorResponse(context.Response, "Missing tribe type. Use /tribe/{TRIBE_TYPE}", 400);
+                    break;
+
+                case "team-diplomacy":
+                    HandleTeamDiplomacyRequest(context, game);
+                    break;
+
+                case "team-alliances":
+                    HandleTeamAlliancesRequest(context, game);
+                    break;
+
+                case "tribe-diplomacy":
+                    HandleTribeDiplomacyRequest(context, game);
+                    break;
+
+                case "tribe-alliances":
+                    HandleTribeAlliancesRequest(context, game);
+                    break;
+
+                default:
+                    SendErrorResponse(context.Response, $"Unknown endpoint: /{path}", 404);
+                    break;
+            }
+        }
+
+        #region Request Handlers
+
+        private void HandleStateRequest(HttpListenerContext context, Game game)
+        {
+            var state = new
+            {
+                turn = game.getTurn(),
+                year = game.getYear(),
+                currentPlayer = (int)game.getPlayerTurn(),
+                players = APIEndpoint.BuildPlayersObject(game),
+                characters = APIEndpoint.BuildCharactersObject(game),
+                cities = APIEndpoint.BuildCitiesObject(game),
+                teamDiplomacy = APIEndpoint.BuildTeamDiplomacyObject(game),
+                teamAlliances = APIEndpoint.BuildTeamAlliancesObject(game),
+                tribes = APIEndpoint.BuildTribesObject(game),
+                tribeDiplomacy = APIEndpoint.BuildTribeDiplomacyObject(game),
+                tribeAlliances = APIEndpoint.BuildTribeAlliancesObject(game)
+            };
+            SendJsonResponse(context.Response, state);
+        }
+
+        private void HandlePlayersRequest(HttpListenerContext context, Game game)
+        {
+            var players = APIEndpoint.BuildPlayersObject(game);
+            SendJsonResponse(context.Response, players);
+        }
+
+        private void HandlePlayerRequest(HttpListenerContext context, Game game, int index)
+        {
+            var player = APIEndpoint.GetPlayerByIndex(game, index);
+            if (player != null)
+                SendJsonResponse(context.Response, player);
+            else
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+        }
+
+        private void HandleCitiesRequest(HttpListenerContext context, Game game)
+        {
+            var cities = APIEndpoint.BuildCitiesObject(game);
+            SendJsonResponse(context.Response, cities);
+        }
+
+        private void HandleCityRequest(HttpListenerContext context, Game game, int cityId)
+        {
+            var city = APIEndpoint.GetCityById(game, cityId);
+            if (city != null)
+                SendJsonResponse(context.Response, city);
+            else
+                SendErrorResponse(context.Response, $"City not found: {cityId}", 404);
+        }
+
+        private void HandleCharactersRequest(HttpListenerContext context, Game game)
+        {
+            var characters = APIEndpoint.BuildCharactersObject(game);
+            SendJsonResponse(context.Response, characters);
+        }
+
+        private void HandleCharacterRequest(HttpListenerContext context, Game game, int charId)
+        {
+            var character = APIEndpoint.GetCharacterById(game, charId);
+            if (character != null)
+                SendJsonResponse(context.Response, character);
+            else
+                SendErrorResponse(context.Response, $"Character not found: {charId}", 404);
+        }
+
+        private void HandleTribesRequest(HttpListenerContext context, Game game)
+        {
+            var tribes = APIEndpoint.BuildTribesObject(game);
+            SendJsonResponse(context.Response, tribes);
+        }
+
+        private void HandleTribeRequest(HttpListenerContext context, Game game, string tribeType)
+        {
+            var tribe = APIEndpoint.GetTribeByType(game, tribeType);
+            if (tribe != null)
+                SendJsonResponse(context.Response, tribe);
+            else
+                SendErrorResponse(context.Response, $"Tribe not found: {tribeType}", 404);
+        }
+
+        private void HandleTeamDiplomacyRequest(HttpListenerContext context, Game game)
+        {
+            var diplomacy = APIEndpoint.BuildTeamDiplomacyObject(game);
+            SendJsonResponse(context.Response, diplomacy);
+        }
+
+        private void HandleTeamAlliancesRequest(HttpListenerContext context, Game game)
+        {
+            var alliances = APIEndpoint.BuildTeamAlliancesObject(game);
+            SendJsonResponse(context.Response, alliances);
+        }
+
+        private void HandleTribeDiplomacyRequest(HttpListenerContext context, Game game)
+        {
+            var diplomacy = APIEndpoint.BuildTribeDiplomacyObject(game);
+            SendJsonResponse(context.Response, diplomacy);
+        }
+
+        private void HandleTribeAlliancesRequest(HttpListenerContext context, Game game)
+        {
+            var alliances = APIEndpoint.BuildTribeAlliancesObject(game);
+            SendJsonResponse(context.Response, alliances);
+        }
+
+        #endregion
+
+        #region Response Helpers
+
+        private void SendJsonResponse(HttpListenerResponse response, object data, int statusCode = 200)
+        {
+            string json = JsonConvert.SerializeObject(data, _jsonSettings);
+            byte[] buffer = Encoding.UTF8.GetBytes(json);
+
+            response.StatusCode = statusCode;
+            response.ContentType = "application/json";
+            response.ContentLength64 = buffer.Length;
+
+            // CORS headers for browser clients
+            response.AddHeader("Access-Control-Allow-Origin", "*");
+            response.AddHeader("Access-Control-Allow-Methods", "GET");
+
+            response.OutputStream.Write(buffer, 0, buffer.Length);
+            response.Close();
+        }
+
+        private void SendErrorResponse(HttpListenerResponse response, string error, int statusCode)
+        {
+            var errorObj = new
+            {
+                error = error,
+                code = statusCode
+            };
+
+            string json = JsonConvert.SerializeObject(errorObj, _jsonSettings);
+            byte[] buffer = Encoding.UTF8.GetBytes(json);
+
+            response.StatusCode = statusCode;
+            response.ContentType = "application/json";
+            response.ContentLength64 = buffer.Length;
+
+            // CORS headers for browser clients
+            response.AddHeader("Access-Control-Allow-Origin", "*");
+            response.AddHeader("Access-Control-Allow-Methods", "GET");
+
+            response.OutputStream.Write(buffer, 0, buffer.Length);
+            response.Close();
+        }
+
+        #endregion
+    }
+}

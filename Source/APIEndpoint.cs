@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -15,8 +16,12 @@ namespace OldWorldAPIEndpoint
     public class APIEndpoint : ModEntryPointAdapter
     {
         private static TcpBroadcastServer _server;
+        private static HttpRestServer _httpServer;
         private static ModSettings _modSettings;
         private static int _initCount = 0;
+
+        // Cached game reference for HTTP access (updated from main thread)
+        private static Game _cachedGame;
 
         // JSON serializer settings
         // Note: We use DefaultContractResolver to preserve exact game type strings (e.g., YIELD_GROWTH)
@@ -99,9 +104,13 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Try multiple paths to get the Game instance.
+        /// Returns cached game for thread-safe access from HTTP requests.
         /// </summary>
         private static Game GetGame()
         {
+            // Return cached game if available (for HTTP thread safety)
+            if (_cachedGame != null) return _cachedGame;
+
             try
             {
                 InitializeReflection();
@@ -173,7 +182,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build list of player objects for JSON serialization.
         /// </summary>
-        private static List<object> BuildPlayersObject(Game game)
+        public static List<object> BuildPlayersObject(Game game)
         {
             Player[] players = game.getPlayers();
             Infos infos = game.infos();
@@ -216,7 +225,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build list of city objects for JSON serialization.
         /// </summary>
-        private static List<object> BuildCitiesObject(Game game)
+        public static List<object> BuildCitiesObject(Game game)
         {
             Infos infos = game.infos();
             var cityList = new List<object>();
@@ -248,7 +257,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build a single city object with all field groups.
         /// </summary>
-        private static object BuildCityObject(City city, Game game, Infos infos)
+        public static object BuildCityObject(City city, Game game, Infos infos)
         {
             var tile = city.tile();
 
@@ -530,7 +539,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build list of character objects for JSON serialization.
         /// </summary>
-        private static List<object> BuildCharactersObject(Game game)
+        public static List<object> BuildCharactersObject(Game game)
         {
             Infos infos = game.infos();
             var characterList = new List<object>();
@@ -562,7 +571,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build a single character object with all field groups.
         /// </summary>
-        private static object BuildCharacterObject(Character character, Game game, Infos infos)
+        public static object BuildCharacterObject(Character character, Game game, Infos infos)
         {
             return new
             {
@@ -694,7 +703,7 @@ namespace OldWorldAPIEndpoint
         /// Build list of team diplomacy relationships for JSON serialization.
         /// Each entry represents a directed relationship from one team to another.
         /// </summary>
-        private static List<object> BuildTeamDiplomacyObject(Game game)
+        public static List<object> BuildTeamDiplomacyObject(Game game)
         {
             Infos infos = game.infos();
             var diplomacyList = new List<object>();
@@ -756,7 +765,7 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build list of team alliances for JSON serialization.
         /// </summary>
-        private static List<object> BuildTeamAlliancesObject(Game game)
+        public static List<object> BuildTeamAlliancesObject(Game game)
         {
             var allianceList = new List<object>();
             int numTeams = (int)game.getNumTeams();
@@ -785,6 +794,262 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Tribe Diplomacy Methods
+
+        /// <summary>
+        /// Build list of tribe objects for JSON serialization.
+        /// Includes all tribes that exist in the game (alive or dead).
+        /// </summary>
+        public static List<object> BuildTribesObject(Game game)
+        {
+            Infos infos = game.infos();
+            var tribeList = new List<object>();
+            int numTribes = (int)infos.tribesNum();
+
+            for (int t = 0; t < numTribes; t++)
+            {
+                var tribeType = (TribeType)t;
+                var tribe = game.tribe(tribeType);
+                if (tribe == null) continue;
+
+                try
+                {
+                    var infoTribe = infos.tribe(tribeType);
+                    tribeList.Add(new
+                    {
+                        tribeType = infoTribe.mzType,
+                        isAlive = tribe.isAlive(),
+                        isDead = tribe.isDead(),
+                        hasDiplomacy = infoTribe.mbDiplomacy,
+                        leaderId = tribe.hasLeader() ? (int?)tribe.getLeaderID() : null,
+                        hasLeader = tribe.hasLeader(),
+                        religion = tribe.isReligion() ? infos.religion(tribe.getReligion())?.mzType : null,
+                        hasReligion = tribe.isReligion(),
+                        allyPlayerId = tribe.hasPlayerAlly() ? (int?)tribe.getPlayerAlly() : null,
+                        allyTeam = tribe.hasPlayerAlly() ? (int?)tribe.getTeamAlly() : null,
+                        hasPlayerAlly = tribe.hasPlayerAlly(),
+                        numUnits = tribe.getNumUnits(),
+                        numCities = tribe.getNumCities(),
+                        strength = tribe.calculateStrength(),
+                        cityIds = tribe.getCities().ToList(),
+                        settlementTileIds = tribe.getSettlements().ToList(),
+                        numTribeImprovements = tribe.getNumTribeImprovements()
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[APIEndpoint] Error building tribe {t}: {ex.Message}");
+                }
+            }
+            return tribeList;
+        }
+
+        /// <summary>
+        /// Build list of tribe diplomacy relationships for JSON serialization.
+        /// Each entry represents a directed relationship from one tribe to a team.
+        /// </summary>
+        public static List<object> BuildTribeDiplomacyObject(Game game)
+        {
+            Infos infos = game.infos();
+            var diplomacyList = new List<object>();
+            int numTribes = (int)infos.tribesNum();
+            int numTeams = (int)game.getNumTeams();
+
+            for (int t = 0; t < numTribes; t++)
+            {
+                var tribeType = (TribeType)t;
+                if (!game.isDiplomacyTribeAlive(tribeType)) continue;
+
+                var infoTribe = infos.tribe(tribeType);
+
+                for (int team = 0; team < numTeams; team++)
+                {
+                    var teamType = (TeamType)team;
+                    if (!game.isTeamAlive(teamType)) continue;
+
+                    try
+                    {
+                        var diplomacyInfo = game.tribeDiplomacy(tribeType, teamType);
+                        var warStateInfo = game.tribeWarState(tribeType, teamType);
+
+                        diplomacyList.Add(new
+                        {
+                            tribe = infoTribe.mzType,
+                            toTeam = team,
+                            diplomacy = diplomacyInfo?.mzType,
+                            isHostile = diplomacyInfo?.mbHostile ?? false,
+                            isPeace = diplomacyInfo?.mbPeace ?? false,
+                            hasContact = game.isTribeContact(tribeType, teamType),
+                            warScore = game.getTribeWarScore(tribeType, teamType),
+                            warState = warStateInfo?.mzType,
+                            conflictTurn = game.getTribeConflictTurn(tribeType, teamType),
+                            conflictNumTurns = game.getTribeConflictNumTurns(tribeType, teamType),
+                            diplomacyTurn = game.getTribeDiplomacyTurn(tribeType, teamType),
+                            diplomacyNumTurns = game.getTribeDiplomacyNumTurns(tribeType, teamType),
+                            diplomacyBlockTurn = game.getTribeDiplomacyBlock(tribeType, teamType),
+                            diplomacyBlockTurns = game.getTribeDiplomacyBlockTurns(tribeType, teamType)
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building tribe diplomacy {t}->{team}: {ex.Message}");
+                    }
+                }
+            }
+            return diplomacyList;
+        }
+
+        /// <summary>
+        /// Build list of tribe alliances for JSON serialization.
+        /// </summary>
+        public static List<object> BuildTribeAlliancesObject(Game game)
+        {
+            Infos infos = game.infos();
+            var allianceList = new List<object>();
+            int numTribes = (int)infos.tribesNum();
+
+            for (int t = 0; t < numTribes; t++)
+            {
+                var tribeType = (TribeType)t;
+                if (!game.isDiplomacyTribeAlive(tribeType)) continue;
+                if (!game.hasTribeAlly(tribeType)) continue;
+
+                try
+                {
+                    var infoTribe = infos.tribe(tribeType);
+                    allianceList.Add(new
+                    {
+                        tribe = infoTribe.mzType,
+                        allyPlayerId = (int)game.getTribeAlly(tribeType),
+                        allyTeam = (int)game.getTribeAllyTeam(tribeType)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[APIEndpoint] Error building tribe alliance for tribe {t}: {ex.Message}");
+                }
+            }
+            return allianceList;
+        }
+
+        #endregion
+
+        #region Single Entity Lookup Methods
+
+        /// <summary>
+        /// Get a specific player by index.
+        /// </summary>
+        public static object GetPlayerByIndex(Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+                return null;
+
+            var player = players[index];
+            Infos infos = game.infos();
+            int yieldCount = (int)infos.yieldsNum();
+
+            var stockpiles = new Dictionary<string, int>();
+            var rates = new Dictionary<string, int>();
+            for (int y = 0; y < yieldCount; y++)
+            {
+                var yieldType = (YieldType)y;
+                string yieldName = infos.yield(yieldType).mzType;
+                stockpiles[yieldName] = player.getYieldStockpileWhole(yieldType);
+                rates[yieldName] = player.calculateYieldAfterUnits(yieldType, false) / 10;
+            }
+
+            return new
+            {
+                index = index,
+                team = (int)player.getTeam(),
+                nation = infos.nation(player.getNation()).mzType,
+                leaderId = player.hasFounder() ? (int?)player.getFounderID() : null,
+                cities = player.getNumCities(),
+                units = player.getNumUnits(),
+                legitimacy = player.getLegitimacy(),
+                stockpiles = stockpiles,
+                rates = rates
+            };
+        }
+
+        /// <summary>
+        /// Get a specific city by ID.
+        /// </summary>
+        public static object GetCityById(Game game, int cityId)
+        {
+            var cities = game.getCities();
+            Infos infos = game.infos();
+
+            foreach (var city in cities)
+            {
+                if (city != null && city.getID() == cityId)
+                    return BuildCityObject(city, game, infos);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get a specific character by ID.
+        /// </summary>
+        public static object GetCharacterById(Game game, int characterId)
+        {
+            var characters = game.getCharacters();
+            Infos infos = game.infos();
+
+            foreach (var character in characters)
+            {
+                if (character != null && character.getID() == characterId)
+                    return BuildCharacterObject(character, game, infos);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get a specific tribe by type string (e.g., "TRIBE_GAULS").
+        /// </summary>
+        public static object GetTribeByType(Game game, string tribeTypeStr)
+        {
+            Infos infos = game.infos();
+            int numTribes = (int)infos.tribesNum();
+
+            for (int t = 0; t < numTribes; t++)
+            {
+                var tribeType = (TribeType)t;
+                var infoTribe = infos.tribe(tribeType);
+
+                if (infoTribe.mzType.Equals(tribeTypeStr, StringComparison.OrdinalIgnoreCase))
+                {
+                    var tribe = game.tribe(tribeType);
+                    if (tribe == null) return null;
+
+                    return new
+                    {
+                        tribeType = infoTribe.mzType,
+                        isAlive = tribe.isAlive(),
+                        isDead = tribe.isDead(),
+                        hasDiplomacy = infoTribe.mbDiplomacy,
+                        leaderId = tribe.hasLeader() ? (int?)tribe.getLeaderID() : null,
+                        hasLeader = tribe.hasLeader(),
+                        religion = tribe.isReligion() ? infos.religion(tribe.getReligion())?.mzType : null,
+                        hasReligion = tribe.isReligion(),
+                        allyPlayerId = tribe.hasPlayerAlly() ? (int?)tribe.getPlayerAlly() : null,
+                        allyTeam = tribe.hasPlayerAlly() ? (int?)tribe.getTeamAlly() : null,
+                        hasPlayerAlly = tribe.hasPlayerAlly(),
+                        numUnits = tribe.getNumUnits(),
+                        numCities = tribe.getNumCities(),
+                        strength = tribe.calculateStrength(),
+                        cityIds = tribe.getCities().ToList(),
+                        settlementTileIds = tribe.getSettlements().ToList(),
+                        numTribeImprovements = tribe.getNumTribeImprovements()
+                    };
+                }
+            }
+            return null;
+        }
+
+        #endregion
+
         public override void Initialize(ModSettings modSettings)
         {
             base.Initialize(modSettings);
@@ -793,6 +1058,9 @@ namespace OldWorldAPIEndpoint
 
             Debug.Log($"[APIEndpoint] Initialize() called (count={_initCount})");
 
+            // Initialize reflection FIRST so GetGame() works
+            InitializeReflection();
+
             // Start TCP server if not already running
             if (_server == null)
             {
@@ -800,7 +1068,12 @@ namespace OldWorldAPIEndpoint
                 _server.Start();
             }
 
-            InitializeReflection();
+            // Start HTTP server if not already running
+            if (_httpServer == null)
+            {
+                _httpServer = new HttpRestServer(9877, GetGame, _jsonSettings);
+                _httpServer.Start();
+            }
         }
 
         public override void Shutdown()
@@ -813,7 +1086,30 @@ namespace OldWorldAPIEndpoint
         {
             try
             {
-                var game = GetGame();
+                // Get game and cache it for HTTP thread access
+                InitializeReflection();
+                var appMain = GetAppMain();
+                Game game = null;
+
+                // Try to get game directly from main thread and cache it
+                if (appMain != null && _getLocalGameServerMethod != null)
+                {
+                    var gameServer = _getLocalGameServerMethod.Invoke(appMain, null);
+                    if (gameServer != null)
+                    {
+                        var localGameProp = gameServer.GetType().GetProperty("LocalGame",
+                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (localGameProp != null)
+                            game = localGameProp.GetValue(gameServer) as Game;
+                    }
+                }
+
+                // Fallback to standard GetGame if above failed
+                if (game == null) game = GetGame();
+
+                // Cache for HTTP access
+                _cachedGame = game;
+
                 string json;
 
                 if (game != null)
@@ -831,7 +1127,10 @@ namespace OldWorldAPIEndpoint
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),
                         teamDiplomacy = BuildTeamDiplomacyObject(game),
-                        teamAlliances = BuildTeamAlliancesObject(game)
+                        teamAlliances = BuildTeamAlliancesObject(game),
+                        tribes = BuildTribesObject(game),
+                        tribeDiplomacy = BuildTribeDiplomacyObject(game),
+                        tribeAlliances = BuildTribeAlliancesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 
@@ -855,7 +1154,30 @@ namespace OldWorldAPIEndpoint
         {
             try
             {
-                var game = GetGame();
+                // Get game and cache it for HTTP thread access
+                InitializeReflection();
+                var appMain = GetAppMain();
+                Game game = null;
+
+                // Try to get game directly from main thread and cache it
+                if (appMain != null && _getLocalGameServerMethod != null)
+                {
+                    var gameServer = _getLocalGameServerMethod.Invoke(appMain, null);
+                    if (gameServer != null)
+                    {
+                        var localGameProp = gameServer.GetType().GetProperty("LocalGame",
+                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (localGameProp != null)
+                            game = localGameProp.GetValue(gameServer) as Game;
+                    }
+                }
+
+                // Fallback to standard GetGame if above failed
+                if (game == null) game = GetGame();
+
+                // Cache for HTTP access
+                _cachedGame = game;
+
                 string json;
 
                 if (game != null)
@@ -872,7 +1194,10 @@ namespace OldWorldAPIEndpoint
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),
                         teamDiplomacy = BuildTeamDiplomacyObject(game),
-                        teamAlliances = BuildTeamAlliancesObject(game)
+                        teamAlliances = BuildTeamAlliancesObject(game),
+                        tribes = BuildTribesObject(game),
+                        tribeDiplomacy = BuildTribeDiplomacyObject(game),
+                        tribeAlliances = BuildTribeAlliancesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 

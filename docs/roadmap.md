@@ -88,39 +88,98 @@ Net income/expense rates per yield for each player.
 - All 14 yield types included (YIELD_GROWTH, YIELD_CIVICS, YIELD_TRAINING, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DISCONTENT, YIELD_SCIENCE, YIELD_MONEY, YIELD_MAINTENANCE, YIELD_ORDERS, YIELD_FOOD, YIELD_IRON, YIELD_STONE, YIELD_WOOD)
 - City-only yields (GROWTH, CULTURE, HAPPINESS) return 0 at player level
 
+### Slice 4d: Team Diplomacy
+Team-to-team diplomacy state with comprehensive data.
+
+**New arrays:**
+```json
+{
+  "teamDiplomacy": [
+    {
+      "fromTeam": 0,
+      "toTeam": 1,
+      "diplomacy": "DIPLOMACY_WAR",
+      "isHostile": true,
+      "isPeace": false,
+      "hasContact": true,
+      "warScore": 15,
+      "warState": "WARSTATE_WINNING",
+      "conflictTurn": 42,
+      "conflictNumTurns": 8,
+      "diplomacyTurn": 42,
+      "diplomacyNumTurns": 8,
+      "diplomacyBlockTurn": 52,
+      "diplomacyBlockTurns": 2
+    }
+  ],
+  "teamAlliances": [
+    { "team": 2, "allyTeam": 3 }
+  ]
+}
+```
+
+**Player enhancement:**
+- `team` field added to each player object to link players to teams
+
+**Implementation notes:**
+- Diplomacy is tracked between **teams**, not individual players
+- One entry per directed relationship (fromTeam → toTeam)
+- War score is **asymmetric** - each direction has its own value
+- Contact (`hasContact`) is unidirectional
+- Alliances are symmetric (stored per-team)
+- Uses game type strings (DIPLOMACY_WAR, WARSTATE_WINNING, etc.)
+
 ---
 
 ## Potential Future Slices
 
 ### Data Expansion
 
-#### Slice 4d: Diplomacy State
-Add relationships between nations.
+#### Slice 4e: Tribe Diplomacy
+Add tribe-to-team diplomacy state (separate system from team-to-team diplomacy).
 
-**New structure:**
+**New arrays:**
 ```json
 {
-  "diplomacy": [
+  "tribeDiplomacy": [
     {
-      "player1": 0,
-      "player2": 1,
-      "state": "WAR",
-      "warScore": 15
-    },
-    {
-      "player1": 0,
-      "player2": 2,
-      "state": "PEACE",
-      "opinion": 50
+      "tribe": "TRIBE_GARAMANTES",
+      "toTeam": 0,
+      "diplomacy": "DIPLOMACY_WAR",
+      "isHostile": true,
+      "isPeace": false,
+      "hasContact": true,
+      "warScore": 8,
+      "warState": "WARSTATE_LOSING",
+      "conflictTurn": 15,
+      "conflictNumTurns": 10,
+      "diplomacyTurn": 15,
+      "diplomacyNumTurns": 10,
+      "diplomacyBlockTurn": 30,
+      "diplomacyBlockTurns": 5
     }
+  ],
+  "tribeAlliances": [
+    { "tribe": "TRIBE_BLEMMYES", "allyPlayer": 2 }
   ]
 }
 ```
 
 **Game APIs to explore:**
-- `game.getTeamWarState(team1, team2)` - War state
-- `game.getTeamDiplomacy(team1, team2)` - Diplomatic relationship
-- `game.getTeamWarScore(team1, team2)` - War score
+- `game.getTribeDiplomacy(TribeType, TeamType)` - Diplomacy state
+- `game.getTribeWarScore(TribeType, TeamType)` - War score
+- `game.getTribeWarState(TribeType, TeamType, bool)` - War state
+- `game.isTribeContact(TribeType, TeamType)` - Contact status
+- `game.getTribeAlly(TribeType)` - Allied player
+- `game.hasTribeAlly(TribeType)` - Has alliance
+- `game.getTribeConflictTurn/NumTurns()` - Timing
+- `game.getTribeDiplomacyTurn/Block()` - Diplomacy change timing
+
+**Implementation notes:**
+- Tribes are independent factions (barbarians, city-states)
+- Tribe diplomacy is per tribe-team pair (not tribe-tribe)
+- Tribes can ally with a single player
+- Similar field structure to teamDiplomacy but with tribe identifier
 
 ---
 
@@ -286,11 +345,11 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 **High value, low effort:**
 1. ~~Slice 4c (Per-turn rates)~~ - Done
-2. Slice 9 (Connection status) - Simple, improves client experience
+2. ~~Slice 4d (Diplomacy)~~ - Done
+3. Slice 9 (Connection status) - Simple, improves client experience
 
 **High value, medium effort:**
-3. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
-4. Slice 4d (Diplomacy) - Important for understanding game state
+4. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
 
 **Lower priority:**
 5. Slice 8 (WebSocket) - Nice to have for browser/web clients

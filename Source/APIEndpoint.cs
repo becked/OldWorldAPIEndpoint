@@ -199,6 +199,7 @@ namespace OldWorldAPIEndpoint
                 playerList.Add(new
                 {
                     index = i,
+                    team = (int)player.getTeam(),
                     nation = infos.nation(player.getNation()).mzType,
                     leaderId = player.hasFounder() ? (int?)player.getFounderID() : null,
                     cities = player.getNumCities(),
@@ -687,6 +688,103 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Team Diplomacy Methods
+
+        /// <summary>
+        /// Build list of team diplomacy relationships for JSON serialization.
+        /// Each entry represents a directed relationship from one team to another.
+        /// </summary>
+        private static List<object> BuildTeamDiplomacyObject(Game game)
+        {
+            Infos infos = game.infos();
+            var diplomacyList = new List<object>();
+            int numTeams = (int)game.getNumTeams();
+
+            for (int fromTeam = 0; fromTeam < numTeams; fromTeam++)
+            {
+                var fromTeamType = (TeamType)fromTeam;
+                if (!game.isTeamAlive(fromTeamType)) continue;
+
+                for (int toTeam = 0; toTeam < numTeams; toTeam++)
+                {
+                    if (fromTeam == toTeam) continue;
+                    var toTeamType = (TeamType)toTeam;
+                    if (!game.isTeamAlive(toTeamType)) continue;
+
+                    try
+                    {
+                        diplomacyList.Add(BuildTeamDiplomacyEntry(game, infos, fromTeamType, toTeamType));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building diplomacy {fromTeam}->{toTeam}: {ex.Message}");
+                    }
+                }
+            }
+            return diplomacyList;
+        }
+
+        /// <summary>
+        /// Build a single team diplomacy entry.
+        /// </summary>
+        private static object BuildTeamDiplomacyEntry(Game game, Infos infos, TeamType fromTeam, TeamType toTeam)
+        {
+            var diplomacyType = game.getTeamDiplomacy(fromTeam, toTeam);
+            var diplomacyInfo = infos.diplomacy(diplomacyType);
+            var warStateType = game.getTeamWarState(fromTeam, toTeam);
+            var warStateInfo = infos.warState(warStateType);
+
+            return new
+            {
+                fromTeam = (int)fromTeam,
+                toTeam = (int)toTeam,
+                diplomacy = diplomacyInfo?.mzType,
+                isHostile = diplomacyInfo?.mbHostile ?? false,
+                isPeace = diplomacyInfo?.mbPeace ?? false,
+                hasContact = game.isTeamContact(fromTeam, toTeam),
+                warScore = game.getTeamWarScore(fromTeam, toTeam),
+                warState = warStateInfo?.mzType,
+                conflictTurn = game.getTeamConflictTurn(fromTeam, toTeam),
+                conflictNumTurns = game.getTeamConflictNumTurns(fromTeam, toTeam),
+                diplomacyTurn = game.getTeamDiplomacyTurn(fromTeam, toTeam),
+                diplomacyNumTurns = game.getTeamDiplomacyNumTurns(fromTeam, toTeam),
+                diplomacyBlockTurn = game.getTeamDiplomacyBlock(fromTeam, toTeam),
+                diplomacyBlockTurns = game.getTeamDiplomacyBlockTurns(fromTeam, toTeam)
+            };
+        }
+
+        /// <summary>
+        /// Build list of team alliances for JSON serialization.
+        /// </summary>
+        private static List<object> BuildTeamAlliancesObject(Game game)
+        {
+            var allianceList = new List<object>();
+            int numTeams = (int)game.getNumTeams();
+
+            for (int team = 0; team < numTeams; team++)
+            {
+                var teamType = (TeamType)team;
+                if (!game.isTeamAlive(teamType)) continue;
+                if (!game.hasTeamAlliance(teamType)) continue;
+
+                try
+                {
+                    allianceList.Add(new
+                    {
+                        team = team,
+                        allyTeam = (int)game.getTeamAlliance(teamType)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[APIEndpoint] Error building alliance for team {team}: {ex.Message}");
+                }
+            }
+            return allianceList;
+        }
+
+        #endregion
+
         public override void Initialize(ModSettings modSettings)
         {
             base.Initialize(modSettings);
@@ -731,7 +829,9 @@ namespace OldWorldAPIEndpoint
                         currentPlayer = (int)game.getPlayerTurn(),
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
-                        cities = BuildCitiesObject(game)
+                        cities = BuildCitiesObject(game),
+                        teamDiplomacy = BuildTeamDiplomacyObject(game),
+                        teamAlliances = BuildTeamAlliancesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 
@@ -770,7 +870,9 @@ namespace OldWorldAPIEndpoint
                         year = year,
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
-                        cities = BuildCitiesObject(game)
+                        cities = BuildCitiesObject(game),
+                        teamDiplomacy = BuildTeamDiplomacyObject(game),
+                        teamAlliances = BuildTeamAlliancesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 

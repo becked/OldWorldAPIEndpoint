@@ -187,11 +187,13 @@ namespace OldWorldAPIEndpoint
                 if (player == null) continue;
 
                 var stockpiles = new Dictionary<string, int>();
+                var rates = new Dictionary<string, int>();
                 for (int y = 0; y < yieldCount; y++)
                 {
                     var yieldType = (YieldType)y;
                     string yieldName = infos.yield(yieldType).mzType;
                     stockpiles[yieldName] = player.getYieldStockpileWhole(yieldType);
+                    rates[yieldName] = player.calculateYieldAfterUnits(yieldType, false) / 10;
                 }
 
                 playerList.Add(new
@@ -202,7 +204,8 @@ namespace OldWorldAPIEndpoint
                     cities = player.getNumCities(),
                     units = player.getNumUnits(),
                     legitimacy = player.getLegitimacy(),
-                    stockpiles = stockpiles
+                    stockpiles = stockpiles,
+                    rates = rates
                 });
             }
 

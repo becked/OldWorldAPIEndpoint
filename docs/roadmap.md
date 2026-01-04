@@ -65,14 +65,8 @@ Comprehensive character information at top level with ~40 fields per character.
 - Includes both living and dead characters
 - Uses `mzType` for all game type strings (TRAIT_COMMANDER_ARCHETYPE, etc.)
 
----
-
-## Potential Future Slices
-
-### Data Expansion
-
-#### Slice 4c: Per-Turn Rates
-Add income/expense rates per yield.
+### Slice 4c: Per-Turn Rates
+Net income/expense rates per yield for each player.
 
 **New fields:**
 ```json
@@ -81,15 +75,24 @@ Add income/expense rates per yield.
     "rates": {
       "YIELD_FOOD": 15,
       "YIELD_CIVICS": -5,
-      "YIELD_MONEY": 10
+      "YIELD_MONEY": 10,
+      ...
     }
   }]
 }
 ```
 
-**Game APIs to explore:**
-- `player.getYieldRateHistory(YieldType)` - Historical rates
-- `player.getTurnYieldRate(turn, YieldType)` - Rate for specific turn
+**Implementation notes:**
+- Uses `player.calculateYieldAfterUnits(yieldType, false)` for canonical rate (matches game history)
+- Values divided by 10 (YIELDS_MULTIPLIER) to return whole numbers
+- All 14 yield types included (YIELD_GROWTH, YIELD_CIVICS, YIELD_TRAINING, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DISCONTENT, YIELD_SCIENCE, YIELD_MONEY, YIELD_MAINTENANCE, YIELD_ORDERS, YIELD_FOOD, YIELD_IRON, YIELD_STONE, YIELD_WOOD)
+- City-only yields (GROWTH, CULTURE, HAPPINESS) return 0 at player level
+
+---
+
+## Potential Future Slices
+
+### Data Expansion
 
 #### Slice 4d: Diplomacy State
 Add relationships between nations.
@@ -282,7 +285,7 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 ## Priority Recommendations
 
 **High value, low effort:**
-1. Slice 4c (Per-turn rates) - Small change, very useful data
+1. ~~Slice 4c (Per-turn rates)~~ - Done
 2. Slice 9 (Connection status) - Simple, improves client experience
 
 **High value, medium effort:**

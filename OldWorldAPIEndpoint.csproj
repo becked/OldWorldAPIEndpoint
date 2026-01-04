@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>OldWorldAPIEndpoint</AssemblyName>
+    <RootNamespace>OldWorldAPIEndpoint</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin/</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Source/**/*.cs" />
+  </ItemGroup>
+
+  <!-- Reference Old World assemblies -->
+  <ItemGroup>
+    <Reference Include="TenCrowns.GameCore">
+      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/TenCrowns.GameCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

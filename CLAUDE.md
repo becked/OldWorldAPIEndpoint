@@ -42,6 +42,13 @@ Old World explicitly blocks mods from referencing `Assembly-CSharp.dll`. To acce
 
 Types in `TenCrowns.GameCore.dll` (Game, Player, Infos, etc.) can be referenced directly.
 
+### Game Source Reference
+
+Decompiled game source code is available at:
+`$OLDWORLD_PATH/Reference/`
+
+Use this to understand game internals, discover available methods, and find the correct property/method signatures.
+
 ### Components
 
 - **APIEndpoint.cs** - Mod entry point extending `ModEntryPointAdapter`. Hooks `OnNewTurnServer` and `OnGameServerReady` to broadcast game state. Uses reflection to access Game instance.

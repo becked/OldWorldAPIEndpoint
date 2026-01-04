@@ -198,6 +198,7 @@ namespace OldWorldAPIEndpoint
                 {
                     index = i,
                     nation = infos.nation(player.getNation()).mzType,
+                    leaderId = player.hasFounder() ? (int?)player.getFounderID() : null,
                     cities = player.getNumCities(),
                     units = player.getNumUnits(),
                     legitimacy = player.getLegitimacy(),
@@ -520,6 +521,169 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Character Methods
+
+        /// <summary>
+        /// Build list of character objects for JSON serialization.
+        /// </summary>
+        private static List<object> BuildCharactersObject(Game game)
+        {
+            Infos infos = game.infos();
+            var characterList = new List<object>();
+
+            try
+            {
+                var characters = game.getCharacters();
+                foreach (var character in characters)
+                {
+                    if (character == null) continue;
+                    try
+                    {
+                        characterList.Add(BuildCharacterObject(character, game, infos));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building character {character.getID()}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error getting characters: {ex.Message}");
+            }
+
+            return characterList;
+        }
+
+        /// <summary>
+        /// Build a single character object with all field groups.
+        /// </summary>
+        private static object BuildCharacterObject(Character character, Game game, Infos infos)
+        {
+            return new
+            {
+                // 1. Identity
+                id = character.getID(),
+                name = character.getFirstName(),
+                suffix = character.getSuffix(),
+                gender = character.getGender().ToString(),
+                age = character.getAge(),
+                characterType = character.hasCharacter() ? infos.character(character.getCharacter())?.mzType : null,
+
+                // 2. Player & Nation
+                playerId = character.hasPlayer() ? (int?)character.getPlayer() : null,
+                nation = character.hasNation() ? infos.nation(character.getNation())?.mzType : null,
+                tribe = character.isTribe() ? infos.tribe(character.getTribe())?.mzType : null,
+
+                // 3. Status
+                isAlive = character.isAlive(),
+                isDead = character.isDead(),
+                isRoyal = character.isRoyal(),
+                isAdult = character.isAdult(),
+                isTemporary = character.isTemporary(),
+
+                // 4. Leadership & Succession
+                isLeader = character.isLeader(),
+                isHeir = character.isHeir(),
+                isSuccessor = character.isSuccessor(),
+                isLeaderSpouse = character.isLeaderSpouse(),
+                isHeirSpouse = character.isHeirSpouse(),
+                isRegent = character.isRegent(),
+
+                // 5. Jobs & Positions
+                job = character.isJob() ? infos.job(character.getJob())?.mzType : null,
+                council = character.isCouncil() ? infos.council(character.getCouncil())?.mzType : null,
+                courtier = character.isCourtier() ? infos.courtier(character.getCourtier())?.mzType : null,
+
+                // 6. Governor/Agent
+                isCityGovernor = character.isCityGovernor(),
+                cityGovernorId = character.isCityGovernor() ? (int?)character.getCityGovernorID() : null,
+                isCityAgent = character.isCityAgent(),
+                cityAgentId = character.isCityAgent() ? (int?)character.getCityAgentID() : null,
+
+                // 7. Military
+                hasUnit = character.hasUnit(),
+                unitId = character.hasUnit() ? (int?)character.getUnitID() : null,
+                isGeneral = character.isUnitGeneral(),
+
+                // 8. Family
+                family = character.hasFamily() ? infos.family(character.getFamily())?.mzType : null,
+                familyClass = character.hasFamily() ? infos.familyClass(character.getFamilyClass())?.mzType : null,
+                isFamilyHead = character.isFamilyHead(),
+
+                // 9. Religion
+                religion = character.hasReligion() ? infos.religion(character.getReligion())?.mzType : null,
+                isReligionHead = character.isReligionHead(),
+
+                // 10. Parents
+                fatherId = character.hasFather() ? (int?)character.getFatherID() : null,
+                motherId = character.hasMother() ? (int?)character.getMotherID() : null,
+
+                // 11. Traits
+                archetype = GetCharacterArchetype(character, infos),
+                traits = GetCharacterTraits(character, infos),
+
+                // 12. Ratings (stats)
+                ratings = GetCharacterRatings(character, infos),
+
+                // 13. XP & Level
+                xp = character.getXP(),
+                level = character.getLevel()
+            };
+        }
+
+        #endregion
+
+        #region Character Helper Methods
+
+        private static string GetCharacterArchetype(Character character, Infos infos)
+        {
+            try
+            {
+                var archetype = character.getArchetype();
+                if (archetype != TraitType.NONE)
+                    return infos.trait(archetype)?.mzType;
+            }
+            catch { }
+            return null;
+        }
+
+        private static List<string> GetCharacterTraits(Character character, Infos infos)
+        {
+            var traits = new List<string>();
+            try
+            {
+                var traitList = character.getTraits();
+                foreach (var traitType in traitList)
+                {
+                    var traitName = infos.trait(traitType)?.mzType;
+                    if (traitName != null)
+                        traits.Add(traitName);
+                }
+            }
+            catch { }
+            return traits;
+        }
+
+        private static Dictionary<string, int> GetCharacterRatings(Character character, Infos infos)
+        {
+            var ratings = new Dictionary<string, int>();
+            try
+            {
+                int count = (int)infos.ratingsNum();
+                for (int r = 0; r < count; r++)
+                {
+                    var ratingType = (RatingType)r;
+                    string name = infos.rating(ratingType).mzType;
+                    ratings[name] = character.getRating(ratingType);
+                }
+            }
+            catch { }
+            return ratings;
+        }
+
+        #endregion
+
         public override void Initialize(ModSettings modSettings)
         {
             base.Initialize(modSettings);
@@ -563,6 +727,7 @@ namespace OldWorldAPIEndpoint
                         year = year,
                         currentPlayer = (int)game.getPlayerTurn(),
                         players = BuildPlayersObject(game),
+                        characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
@@ -601,6 +766,7 @@ namespace OldWorldAPIEndpoint
                         turn = turn,
                         year = year,
                         players = BuildPlayersObject(game),
+                        characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game)
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);

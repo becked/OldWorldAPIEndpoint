@@ -77,11 +77,19 @@ _gAppField = _appMainType.GetField("gApp", BindingFlags.Public | BindingFlags.St
 _clientProperty = _appMainType.GetProperty("Client", BindingFlags.Public | BindingFlags.Instance);
 // ...
 
-// Access game instance
+// Access game instance (GUI mode)
 var appMain = _gAppField.GetValue(null);        // AppMain.gApp
 var client = _clientProperty.GetValue(appMain); // gApp.Client
 var game = _gameProperty.GetValue(client);      // Client.Game
+
+// Access game instance (Headless mode - also works in GUI)
+var gameServer = _getLocalGameServerMethod.Invoke(appMain, null);
+var localGameProp = gameServer.GetType().GetProperty("LocalGame",
+    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+var game = localGameProp.GetValue(gameServer);  // Works in both modes
 ```
+
+**Important:** `LocalGame` is a non-public property, requiring `BindingFlags.NonPublic`.
 
 ### Accessible via TenCrowns.GameCore.dll
 
@@ -234,8 +242,10 @@ This copies files to:
 - This allows clients to stay connected when loading saves or starting new games
 
 ### Headless Mode
-- `OnNewTurnServer` does NOT fire during headless `-autorunturns` batch mode
-- This is a game limitation, not a mod issue
+- All mod hooks (`OnNewTurnServer`, `Initialize`, etc.) fire normally in headless mode
+- Game access requires `GetLocalGameServer().LocalGame` path (see below)
+- `Client.Game` returns null in headless mode
+- Use `test-headless.sh` for automated headless testing with TCP capture
 
 ### Data Availability
 - Game instance may be null during menu screens
@@ -248,12 +258,36 @@ OldWorldAPIEndpoint/
 ├── OldWorldAPIEndpoint.csproj  # Project file
 ├── ModInfo.xml                 # Mod metadata for Old World
 ├── deploy.sh                   # Build and deploy script
+├── test-headless.sh            # Automated headless testing with TCP capture
+├── CLAUDE.md                   # Claude Code project instructions
 ├── Source/
 │   ├── APIEndpoint.cs          # Main entry point
 │   └── TcpBroadcastServer.cs   # TCP server implementation
-├── bin/                        # Build output
+├── bin/                        # Build output (gitignored)
 │   └── OldWorldAPIEndpoint.dll
 └── docs/                       # Documentation
     ├── technical-overview.md   # This file
+    ├── headless-mode-investigation.md  # Headless mode reference
     └── roadmap.md              # Future development ideas
 ```
+
+## Testing
+
+### GUI Mode
+```bash
+./deploy.sh
+# Launch Old World, enable mod, start game
+nc localhost 9876
+# End a turn to see JSON output
+```
+
+### Headless Mode
+```bash
+./test-headless.sh /path/to/save.zip 5
+```
+
+This script:
+1. Builds and deploys the mod
+2. Starts a TCP client with retry loop
+3. Runs Old World in headless mode for N turns
+4. Captures and pretty-prints all JSON output

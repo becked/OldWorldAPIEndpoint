@@ -47,32 +47,46 @@ Comprehensive city information at top level with ~80 fields per city.
 ### Data Expansion
 
 #### Slice 4b: Leader & Character Info
-Add ruler and heir information.
+Add characters at top level (mirrors game structure), with player references.
 
-**New fields:**
+**New structure:**
 ```json
 {
   "players": [{
-    "leader": {
+    "index": 0,
+    "leaderId": 456,
+    "heirId": 789,
+    ...
+  }],
+  "characters": [
+    {
       "id": 456,
       "name": "Augustus",
       "age": 45,
+      "playerId": 0,
+      "isLeader": true,
+      "isHeir": false,
       "traits": ["TRAIT_BUILDER", "TRAIT_DIPLOMAT"]
     },
-    "heir": {
+    {
       "id": 789,
       "name": "Tiberius",
-      "age": 22
+      "age": 22,
+      "playerId": 0,
+      "isLeader": false,
+      "isHeir": true,
+      "traits": []
     }
-  }]
+  ]
 }
 ```
 
 **Game APIs to explore:**
 - `player.getFounderID()` - Ruler character ID
-- `game.character(id)` - Get character by ID
+- `game.getCharacters()` - All characters
 - `character.getName()` - Character name
 - `character.getAge()` - Character age
+- `character.getPlayer()` - Owning player
 
 #### Slice 4c: Per-Turn Rates
 Add income/expense rates per yield.

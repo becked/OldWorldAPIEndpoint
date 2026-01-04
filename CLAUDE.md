@@ -73,6 +73,14 @@ Key points:
 
 See `docs/headless-mode-investigation.md` for details.
 
+## API Design Principles
+
+When adding new data to the API, follow these principles (see `docs/api-design-principles.md` for full details):
+
+1. **Mirror Game Data Structures** - Model entities as the game does (e.g., cities at top level with `ownerId`, not nested under players)
+2. **Expose All Available Data** - Don't assume what clients need; expose complete field sets
+3. **Use Game Type Strings** - Use exact game identifiers like `NATION_ROME`, `YIELD_FOOD`, `IMPROVEMENT_FARM` (from `mzType` fields)
+
 ## Game API Patterns
 
 Access player data via `Game` and `Infos`:

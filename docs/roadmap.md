@@ -40,53 +40,36 @@ Comprehensive city information at top level with ~80 fields per city.
 - Uses Newtonsoft.Json for serialization
 - Preserves exact game type strings (YIELD_GROWTH, IMPROVEMENT_FARM, etc.)
 
+### Slice 4b: Character Data
+Comprehensive character information at top level with ~40 fields per character.
+
+**Key data groups:**
+- Identity (id, name, suffix, gender, age, characterType)
+- Player & Nation (playerId, nation, tribe)
+- Status (isAlive, isDead, isRoyal, isAdult, isTemporary)
+- Leadership & Succession (isLeader, isHeir, isSuccessor, isLeaderSpouse, isHeirSpouse, isRegent)
+- Jobs & Positions (job, council, courtier)
+- Governor/Agent (isCityGovernor, cityGovernorId, isCityAgent, cityAgentId)
+- Military (hasUnit, unitId, isGeneral)
+- Family (family, familyClass, isFamilyHead, fatherId, motherId)
+- Religion (religion, isReligionHead)
+- Traits (archetype, traits[])
+- Ratings (RATING_WISDOM, RATING_CHARISMA, RATING_COURAGE, RATING_DISCIPLINE)
+- XP & Level (xp, level)
+
+**Player additions:**
+- `leaderId` - References the player's current leader character
+
+**Implementation notes:**
+- Characters at top level (mirrors game data structure)
+- Includes both living and dead characters
+- Uses `mzType` for all game type strings (TRAIT_COMMANDER_ARCHETYPE, etc.)
+
 ---
 
 ## Potential Future Slices
 
 ### Data Expansion
-
-#### Slice 4b: Leader & Character Info
-Add characters at top level (mirrors game structure), with player references.
-
-**New structure:**
-```json
-{
-  "players": [{
-    "index": 0,
-    "leaderId": 456,
-    "heirId": 789,
-    ...
-  }],
-  "characters": [
-    {
-      "id": 456,
-      "name": "Augustus",
-      "age": 45,
-      "playerId": 0,
-      "isLeader": true,
-      "isHeir": false,
-      "traits": ["TRAIT_BUILDER", "TRAIT_DIPLOMAT"]
-    },
-    {
-      "id": 789,
-      "name": "Tiberius",
-      "age": 22,
-      "playerId": 0,
-      "isLeader": false,
-      "isHeir": true,
-      "traits": []
-    }
-  ]
-}
-```
-
-**Game APIs to explore:**
-- `player.getFounderID()` - Ruler character ID
-- `game.getCharacters()` - All characters
-- `character.getName()` - Character name
-- `character.getAge()` - Character age
-- `character.getPlayer()` - Owning player
 
 #### Slice 4c: Per-Turn Rates
 Add income/expense rates per yield.
@@ -304,7 +287,7 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 **High value, medium effort:**
 3. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
-4. Slice 4b (Leader info) - Key game data, moderate API exploration
+4. Slice 4d (Diplomacy) - Important for understanding game state
 
 **Lower priority:**
 5. Slice 8 (WebSocket) - Nice to have for browser/web clients

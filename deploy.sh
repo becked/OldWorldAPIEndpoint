@@ -16,6 +16,15 @@ mkdir -p "$MOD_DIR"
 cp ModInfo.xml "$MOD_DIR/"
 cp bin/OldWorldAPIEndpoint.dll "$MOD_DIR/"
 
+# Copy Newtonsoft.Json.dll (required dependency)
+NEWTONSOFT_DLL=$(find ~/.nuget/packages/newtonsoft.json/13.0.3 -name "Newtonsoft.Json.dll" -path "*net45*" | head -1)
+if [ -n "$NEWTONSOFT_DLL" ]; then
+    cp "$NEWTONSOFT_DLL" "$MOD_DIR/"
+    echo "Copied Newtonsoft.Json.dll"
+else
+    echo "WARNING: Newtonsoft.Json.dll not found!"
+fi
+
 echo ""
 echo "=== Deployed successfully ==="
 ls -la "$MOD_DIR"

@@ -28,6 +28,13 @@
       <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Mohawk.SystemCore">
+      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/Mohawk.SystemCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>

@@ -18,38 +18,33 @@
 - Legitimacy scores
 - Full resource stockpiles (Food, Wood, Stone, Iron, Civics, Training, Money, Orders, etc.)
 
+### Slice 4a: City Data
+Comprehensive city information at top level with ~80 fields per city.
+
+**Key data groups:**
+- Identity & Location (id, name, ownerId, tileId, x, y, nation)
+- Status Flags (isCapital, isConnected, isTribe, isIdle)
+- Population & Growth (citizens, citizensTotal, growthCount)
+- Military & Defense (hp, hpMax, strength, damage)
+- Governor (governorId, hasGovernor, isGoverned)
+- Family & Faction (family, familyClass, isFamilySeat, familyOpinion)
+- Culture (culture, cultureStep)
+- Religion (religions[], religionCount, holyCity[], hasStateReligion)
+- Production & Build Queue (currentBuild, buildQueue[])
+- Yields per type (perTurn, progress, threshold, overflow, modifier)
+- Improvements & Projects (counts by type)
+- Trade & Happiness (tradeNetwork, luxuryCount, happinessLevel)
+
+**Implementation notes:**
+- Cities at top level (mirrors game data structure)
+- Uses Newtonsoft.Json for serialization
+- Preserves exact game type strings (YIELD_GROWTH, IMPROVEMENT_FARM, etc.)
+
 ---
 
 ## Potential Future Slices
 
 ### Data Expansion
-
-#### Slice 4a: City Data
-Add city information for each player.
-
-**New fields:**
-```json
-{
-  "players": [{
-    "cities": [
-      {
-        "id": 123,
-        "name": "Rome",
-        "population": 5,
-        "culture": 100,
-        "production": "UNIT_WARRIOR",
-        "turnsLeft": 3
-      }
-    ]
-  }]
-}
-```
-
-**Game APIs to explore:**
-- `game.getCities()` - All cities
-- `city.getName()` - City name
-- `city.getPopulation()` - Population level
-- `city.getCurrentBuild()` - Production queue
 
 #### Slice 4b: Leader & Character Info
 Add ruler and heir information.
@@ -267,10 +262,11 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 **Include:** CLI test script (Python) for ad-hoc TCP testing since `nc` won't display length-prefixed messages cleanly.
 
-### JSON Serialization
-Currently using string interpolation. Consider:
-- `System.Text.Json` for proper escaping
-- Better handling of special characters in names
+### JSON Serialization ✓
+~~Currently using string interpolation.~~ Now using Newtonsoft.Json with:
+- Anonymous objects for type-safe serialization
+- `DefaultContractResolver` to preserve exact game type strings
+- Proper escaping and null handling
 
 ### Error Handling
 - More granular error messages
@@ -295,7 +291,6 @@ Currently using string interpolation. Consider:
 **High value, medium effort:**
 3. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
 4. Slice 4b (Leader info) - Key game data, moderate API exploration
-5. Slice 4a (City data) - Important for companion apps
 
 **Lower priority:**
-6. Slice 8 (WebSocket) - Nice to have for browser/web clients
+5. Slice 8 (WebSocket) - Nice to have for browser/web clients

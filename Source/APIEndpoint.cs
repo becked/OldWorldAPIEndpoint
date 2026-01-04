@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using TenCrowns.AppCore;
 using TenCrowns.GameCore;
 using UnityEngine;
@@ -15,6 +17,16 @@ namespace OldWorldAPIEndpoint
         private static TcpBroadcastServer _server;
         private static ModSettings _modSettings;
         private static int _initCount = 0;
+
+        // JSON serializer settings
+        // Note: We use DefaultContractResolver to preserve exact game type strings (e.g., YIELD_GROWTH)
+        // Property names in anonymous objects are already camelCase as defined
+        private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver(),
+            NullValueHandling = NullValueHandling.Include,
+            Formatting = Formatting.None
+        };
 
         // Cached reflection info for AppMain.gApp.Client.Game
         private static Type _appMainType;
@@ -159,52 +171,354 @@ namespace OldWorldAPIEndpoint
         }
 
         /// <summary>
-        /// Build JSON array of all players with their data and stockpiles.
+        /// Build list of player objects for JSON serialization.
         /// </summary>
-        private static string BuildPlayersJson(Game game)
+        private static List<object> BuildPlayersObject(Game game)
         {
-            var sb = new StringBuilder();
-            sb.Append("[");
-
             Player[] players = game.getPlayers();
             Infos infos = game.infos();
             int yieldCount = (int)infos.yieldsNum();
 
-            bool first = true;
+            var playerList = new List<object>();
+
             for (int i = 0; i < players.Length; i++)
             {
                 var player = players[i];
                 if (player == null) continue;
 
-                if (!first) sb.Append(",");
-                first = false;
-
-                string nationName = infos.nation(player.getNation()).mzType;
-
-                sb.Append("{");
-                sb.Append($"\"index\":{i},");
-                sb.Append($"\"nation\":\"{nationName}\",");
-                sb.Append($"\"cities\":{player.getNumCities()},");
-                sb.Append($"\"units\":{player.getNumUnits()},");
-                sb.Append($"\"legitimacy\":{player.getLegitimacy()},");
-
-                sb.Append("\"stockpiles\":{");
+                var stockpiles = new Dictionary<string, int>();
                 for (int y = 0; y < yieldCount; y++)
                 {
-                    if (y > 0) sb.Append(",");
                     var yieldType = (YieldType)y;
                     string yieldName = infos.yield(yieldType).mzType;
-                    int amount = player.getYieldStockpileWhole(yieldType);
-                    sb.Append($"\"{yieldName}\":{amount}");
+                    stockpiles[yieldName] = player.getYieldStockpileWhole(yieldType);
                 }
-                sb.Append("}");
 
-                sb.Append("}");
+                playerList.Add(new
+                {
+                    index = i,
+                    nation = infos.nation(player.getNation()).mzType,
+                    cities = player.getNumCities(),
+                    units = player.getNumUnits(),
+                    legitimacy = player.getLegitimacy(),
+                    stockpiles = stockpiles
+                });
             }
 
-            sb.Append("]");
-            return sb.ToString();
+            return playerList;
         }
+
+        /// <summary>
+        /// Build list of city objects for JSON serialization.
+        /// </summary>
+        private static List<object> BuildCitiesObject(Game game)
+        {
+            Infos infos = game.infos();
+            var cityList = new List<object>();
+
+            try
+            {
+                var cities = game.getCities();
+                foreach (var city in cities)
+                {
+                    if (city == null) continue;
+                    try
+                    {
+                        cityList.Add(BuildCityObject(city, game, infos));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building city {city.getID()}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error getting cities: {ex.Message}");
+            }
+
+            return cityList;
+        }
+
+        /// <summary>
+        /// Build a single city object with all field groups.
+        /// </summary>
+        private static object BuildCityObject(City city, Game game, Infos infos)
+        {
+            var tile = city.tile();
+
+            return new
+            {
+                // 1. Identity & Location
+                id = city.getID(),
+                name = city.getName(),
+                ownerId = (int)city.getPlayer(),
+                tileId = city.getTileID(),
+                x = tile.getX(),
+                y = tile.getY(),
+                nation = infos.nation(city.getNation())?.mzType,
+                team = (int)city.getTeam(),
+
+                // 2. Status Flags
+                isCapital = city.isCapital(),
+                isTribe = city.isTribe(),
+                isConnected = city.isConnected(),
+
+                // 3. Founding & History
+                foundedTurn = city.getFoundedTurn(),
+
+                // 4. Population & Growth
+                citizens = city.getCitizens(),
+
+                // 5. Military & Defense
+                hp = city.getHP(),
+                hpMax = city.getHPMax(),
+                damage = city.getDamage(),
+                strength = city.strength(),
+
+                // 6. Capture & Assimilation
+                captureTurns = city.getCaptureTurns(),
+                hasCapturePlayer = city.hasCapturePlayer(),
+                hasCaptureTribe = city.hasCaptureTribe(),
+                assimilateTurns = city.getAssimilateTurns(),
+
+                // 7. Governor
+                governorId = city.hasGovernor() ? (int?)city.getGovernorID() : null,
+                hasGovernor = city.hasGovernor(),
+
+                // 8. Family & Faction
+                family = city.hasFamily() ? infos.family(city.getFamily())?.mzType : null,
+                hasFamily = city.hasFamily(),
+                isFamilySeat = city.isFamilySeat(),
+
+                // 9. Culture
+                culture = infos.culture(city.getCulture())?.mzType,
+                cultureStep = city.getCultureStep(),
+
+                // 10. Religion
+                religions = GetCityReligions(city, infos),
+                religionCount = city.getReligionCount(),
+                hasStateReligion = city.hasStateReligion(),
+                holyCity = GetCityHolyCityReligions(city, infos),
+                isReligionHolyCityAny = city.isReligionHolyCityAny(),
+
+                // 11. Production & Build Queue
+                hasBuild = city.hasBuild(),
+                buildCount = city.getBuildCount(),
+                currentBuild = BuildQueueItemObject(city, city.getCurrentBuild(), infos),
+                buildQueue = GetBuildQueue(city, infos),
+
+                // 12. Yields
+                yields = GetCityYields(city, infos),
+
+                // 13. Specialists
+                specialistCount = city.getSpecialistCount(),
+
+                // 14. Improvements
+                improvements = GetCityImprovements(city, infos),
+                improvementClasses = GetCityImprovementClasses(city, infos),
+
+                // 15. Projects
+                projects = GetCityProjects(city, infos),
+
+                // 16. Trade & Connectivity
+                tradeNetwork = city.getTradeNetwork(),
+                luxuryCount = city.getLuxuryCount(),
+
+                // 17. Happiness
+                happinessLevel = city.getHappinessLevel(),
+
+                // 18. Cost Modifiers
+                improvementCostModifier = city.getImprovementCostModifier(),
+                specialistCostModifier = city.getSpecialistCostModifier(),
+                projectCostModifier = city.getProjectCostModifier(),
+
+                // 19. Territory
+                urbanTiles = city.getUrbanTiles(),
+                territoryTileCount = city.getTerritoryTiles().Count,
+
+                // 20. Misc
+                raidedTurn = city.getRaidedTurn(),
+                buyTileCount = city.getBuyTileCount()
+            };
+        }
+
+        #region City Helper Methods
+
+        private static List<string> GetCityReligions(City city, Infos infos)
+        {
+            var religions = new List<string>();
+            try
+            {
+                int count = (int)infos.religionsNum();
+                for (int r = 0; r < count; r++)
+                {
+                    var relType = (ReligionType)r;
+                    if (city.isReligion(relType))
+                        religions.Add(infos.religion(relType).mzType);
+                }
+            }
+            catch { }
+            return religions;
+        }
+
+        private static List<string> GetCityHolyCityReligions(City city, Infos infos)
+        {
+            var religions = new List<string>();
+            try
+            {
+                int count = (int)infos.religionsNum();
+                for (int r = 0; r < count; r++)
+                {
+                    var relType = (ReligionType)r;
+                    if (city.isReligionHolyCity(relType))
+                        religions.Add(infos.religion(relType).mzType);
+                }
+            }
+            catch { }
+            return religions;
+        }
+
+        private static Dictionary<string, object> GetCityYields(City city, Infos infos)
+        {
+            var yields = new Dictionary<string, object>();
+            try
+            {
+                int count = (int)infos.yieldsNum();
+                for (int y = 0; y < count; y++)
+                {
+                    var yieldType = (YieldType)y;
+                    string name = infos.yield(yieldType).mzType;
+                    yields[name] = new
+                    {
+                        perTurn = city.calculateCurrentYield(yieldType, true, true),
+                        progress = city.getYieldProgress(yieldType),
+                        threshold = city.getYieldThresholdWhole(yieldType),
+                        overflow = city.getYieldOverflow(yieldType)
+                    };
+                }
+            }
+            catch { }
+            return yields;
+        }
+
+        private static Dictionary<string, int> GetCityImprovements(City city, Infos infos)
+        {
+            var improvements = new Dictionary<string, int>();
+            try
+            {
+                int count = (int)infos.improvementsNum();
+                for (int i = 0; i < count; i++)
+                {
+                    var impType = (ImprovementType)i;
+                    int c = city.getImprovementCount(impType);
+                    if (c > 0)
+                        improvements[infos.improvement(impType).mzType] = c;
+                }
+            }
+            catch { }
+            return improvements;
+        }
+
+        private static Dictionary<string, int> GetCityImprovementClasses(City city, Infos infos)
+        {
+            var classes = new Dictionary<string, int>();
+            try
+            {
+                int count = (int)infos.improvementClassesNum();
+                for (int i = 0; i < count; i++)
+                {
+                    var classType = (ImprovementClassType)i;
+                    int c = city.getImprovementClassCount(classType);
+                    if (c > 0)
+                        classes[infos.improvementClass(classType).mzType] = c;
+                }
+            }
+            catch { }
+            return classes;
+        }
+
+        private static Dictionary<string, int> GetCityProjects(City city, Infos infos)
+        {
+            var projects = new Dictionary<string, int>();
+            try
+            {
+                int count = (int)infos.projectsNum();
+                for (int i = 0; i < count; i++)
+                {
+                    var projType = (ProjectType)i;
+                    int c = city.getProjectCount(projType);
+                    if (c > 0)
+                        projects[infos.project(projType).mzType] = c;
+                }
+            }
+            catch { }
+            return projects;
+        }
+
+        private static List<object> GetBuildQueue(City city, Infos infos)
+        {
+            var queue = new List<object>();
+            try
+            {
+                int count = city.getBuildCount();
+                for (int q = 0; q < count; q++)
+                {
+                    var item = city.getBuildQueueNode(q);
+                    var obj = BuildQueueItemObject(city, item, infos);
+                    if (obj != null) queue.Add(obj);
+                }
+            }
+            catch { }
+            return queue;
+        }
+
+        private static object BuildQueueItemObject(City city, CityQueueData build, Infos infos)
+        {
+            if (build == null) return null;
+
+            try
+            {
+                string buildType = "UNKNOWN";
+                string itemType = "UNKNOWN";
+
+                // Determine build type and item based on meBuild
+                var buildTypeValue = build.meBuild;
+
+                // Try to match against known build types
+                if (buildTypeValue == infos.Globals.UNIT_BUILD)
+                {
+                    buildType = "UNIT";
+                    itemType = infos.unit((UnitType)build.miType)?.mzType ?? "UNKNOWN";
+                }
+                else if (buildTypeValue == infos.Globals.PROJECT_BUILD)
+                {
+                    buildType = "PROJECT";
+                    itemType = infos.project((ProjectType)build.miType)?.mzType ?? "UNKNOWN";
+                }
+                else if (buildTypeValue == infos.Globals.SPECIALIST_BUILD)
+                {
+                    buildType = "SPECIALIST";
+                    itemType = infos.specialist((SpecialistType)build.miType)?.mzType ?? "UNKNOWN";
+                }
+
+                return new
+                {
+                    buildType = buildType,
+                    itemType = itemType,
+                    progress = city.getBuildProgress(build, true),
+                    threshold = city.getBuildThreshold(build),
+                    turnsLeft = city.getBuildTurnsLeft(build),
+                    hurried = build.mbHurried
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        #endregion
 
         public override void Initialize(ModSettings modSettings)
         {
@@ -241,18 +555,24 @@ namespace OldWorldAPIEndpoint
                 {
                     int turn = game.getTurn();
                     int year = game.getYear();
-                    int currentPlayer = (int)game.getPlayerTurn();
-                    string playersJson = BuildPlayersJson(game);
 
-                    json = $"{{\"event\":\"newTurn\",\"turn\":{turn},\"year\":{year}," +
-                           $"\"currentPlayer\":{currentPlayer},\"players\":{playersJson}}}";
+                    var message = new
+                    {
+                        @event = "newTurn",
+                        turn = turn,
+                        year = year,
+                        currentPlayer = (int)game.getPlayerTurn(),
+                        players = BuildPlayersObject(game),
+                        cities = BuildCitiesObject(game)
+                    };
+                    json = JsonConvert.SerializeObject(message, _jsonSettings);
 
                     Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}");
                 }
                 else
                 {
                     Debug.Log("[APIEndpoint] OnNewTurnServer: game=null");
-                    json = "{\"event\":\"newTurn\",\"error\":\"game not available\"}";
+                    json = JsonConvert.SerializeObject(new { @event = "newTurn", error = "game not available" }, _jsonSettings);
                 }
 
                 _server?.Broadcast(json);
@@ -274,17 +594,23 @@ namespace OldWorldAPIEndpoint
                 {
                     int turn = game.getTurn();
                     int year = game.getYear();
-                    string playersJson = BuildPlayersJson(game);
 
-                    json = $"{{\"event\":\"gameReady\",\"turn\":{turn},\"year\":{year}," +
-                           $"\"players\":{playersJson}}}";
+                    var message = new
+                    {
+                        @event = "gameReady",
+                        turn = turn,
+                        year = year,
+                        players = BuildPlayersObject(game),
+                        cities = BuildCitiesObject(game)
+                    };
+                    json = JsonConvert.SerializeObject(message, _jsonSettings);
 
                     Debug.Log($"[APIEndpoint] OnGameServerReady: turn={turn}, year={year}");
                 }
                 else
                 {
                     Debug.Log("[APIEndpoint] OnGameServerReady: game=null");
-                    json = "{\"event\":\"gameReady\",\"error\":\"game not available\"}";
+                    json = JsonConvert.SerializeObject(new { @event = "gameReady", error = "game not available" }, _jsonSettings);
                 }
 
                 _server?.Broadcast(json);

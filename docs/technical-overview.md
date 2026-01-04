@@ -96,8 +96,13 @@ var game = localGameProp.GetValue(gameServer);  // Works in both modes
 These types can be referenced directly (no reflection needed):
 - `Game` - Core game state
 - `Player` - Player data and stockpiles
+- `City` - City data, yields, production queues
 - `Infos` - Game metadata (nation names, yield types, etc.)
 - `InfoYield`, `InfoNation` - Type information with `mzType` string identifiers
+
+### JSON Serialization
+
+Uses Newtonsoft.Json with `DefaultContractResolver` to preserve exact game type strings (e.g., `YIELD_GROWTH`, `IMPROVEMENT_FARM`). See `docs/api-design-principles.md` for design philosophy.
 
 ## TCP Protocol
 
@@ -144,26 +149,34 @@ Broadcast at the start of each new turn.
       "legitimacy": 100,
       "stockpiles": {
         "YIELD_FOOD": 150,
-        "YIELD_WOOD": 80,
-        "YIELD_STONE": 45,
-        "YIELD_IRON": 20,
         "YIELD_CIVICS": 200,
-        "YIELD_TRAINING": 50,
-        "YIELD_MONEY": 100,
-        "YIELD_ORDERS": 5,
-        "YIELD_GROWTH": 0,
-        "YIELD_CULTURE": 0,
-        "YIELD_HAPPINESS": 0,
-        "YIELD_DISCONTENT": 0,
-        "YIELD_SCIENCE": 0,
-        "YIELD_MAINTENANCE": 0
+        ...
       }
+    }
+  ],
+  "cities": [
+    {
+      "id": 0,
+      "name": "Rome",
+      "ownerId": 0,
+      "nation": "NATION_ROME",
+      "isCapital": true,
+      "citizens": 3,
+      "yields": {
+        "YIELD_FOOD": {"perTurn": 11, "progress": 64, "threshold": 200, ...},
+        ...
+      },
+      "improvements": {"IMPROVEMENT_FARM": 2, ...},
+      "currentBuild": {"buildType": "UNIT", "itemType": "UNIT_WARRIOR", ...},
+      ...
     }
   ]
 }
 ```
 
 ### Field Reference
+
+**Top-level fields:**
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -172,12 +185,33 @@ Broadcast at the start of each new turn.
 | `year` | int | Current game year (1-based, not calendar year) |
 | `currentPlayer` | int | Index of player whose turn it is |
 | `players` | array | Array of player objects |
-| `players[].index` | int | Player index in game |
-| `players[].nation` | string | Nation type identifier (e.g., `NATION_ROME`) |
-| `players[].cities` | int | Number of cities owned |
-| `players[].units` | int | Number of units owned |
-| `players[].legitimacy` | int | Current legitimacy score |
-| `players[].stockpiles` | object | Resource stockpiles keyed by yield type |
+| `cities` | array | Array of city objects (all cities in game) |
+
+**Player fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `index` | int | Player index in game |
+| `nation` | string | Nation type identifier (e.g., `NATION_ROME`) |
+| `cities` | int | Number of cities owned |
+| `units` | int | Number of units owned |
+| `legitimacy` | int | Current legitimacy score |
+| `stockpiles` | object | Resource stockpiles keyed by yield type |
+
+**City fields (abbreviated - ~80 fields total):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | int | Unique city ID |
+| `name` | string | City name |
+| `ownerId` | int | Player index who owns this city |
+| `nation` | string | Nation type (e.g., `NATION_ROME`) |
+| `isCapital` | bool | Whether this is the player's capital |
+| `citizens` | int | Current citizen count |
+| `yields` | object | Per-yield data (perTurn, progress, threshold, etc.) |
+| `improvements` | object | Improvement counts by type |
+| `currentBuild` | object | Current production (buildType, itemType, progress, etc.) |
+| ... | ... | See `docs/roadmap.md` for complete field list |
 
 ### Yield Types
 
@@ -220,7 +254,8 @@ This copies files to:
 ```
 ~/Library/Application Support/OldWorld/Mods/OldWorldAPIEndpoint/
 ├── ModInfo.xml
-└── OldWorldAPIEndpoint.dll
+├── OldWorldAPIEndpoint.dll
+└── Newtonsoft.Json.dll
 ```
 
 ### Enable Mod
@@ -267,6 +302,7 @@ OldWorldAPIEndpoint/
 │   └── OldWorldAPIEndpoint.dll
 └── docs/                       # Documentation
     ├── technical-overview.md   # This file
+    ├── api-design-principles.md # API design philosophy
     ├── headless-mode-investigation.md  # Headless mode reference
     └── roadmap.md              # Future development ideas
 ```

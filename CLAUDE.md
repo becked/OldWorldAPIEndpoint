@@ -13,15 +13,24 @@ export OldWorldPath="$OLDWORLD_PATH"
 dotnet build -c Release
 ```
 
-The deploy script copies `ModInfo.xml` and the built DLL to:
+The deploy script copies `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to:
 `~/Library/Application Support/OldWorld/Mods/OldWorldAPIEndpoint/`
 
 ## Testing
 
+### GUI Mode
 1. Launch Old World and enable the mod in Mod Manager
 2. Start or load a game
 3. Connect: `nc localhost 9876`
 4. End a turn to see JSON output
+
+### Headless Mode (Automated)
+```bash
+# Run 5 turns with TCP capture and pretty-printed JSON output
+./test-headless.sh /tmp/APITestSave.zip 5
+```
+
+The script builds, deploys, starts a TCP listener, runs Old World headless, and captures all JSON output.
 
 ## Architecture
 
@@ -42,23 +51,19 @@ Types in `TenCrowns.GameCore.dll` (Game, Player, Infos, etc.) can be referenced 
 ### Data Flow
 
 ```
-Game Event (OnNewTurnServer) → GetGame() via reflection → BuildPlayersJson() → TcpBroadcastServer.Broadcast()
+Game Event (OnNewTurnServer) → GetGame() via reflection → Build JSON (players, cities) → TcpBroadcastServer.Broadcast()
 ```
+
+Uses Newtonsoft.Json with `DefaultContractResolver` to preserve exact game type strings.
 
 ### Important Behaviors
 
 - Server persists across game sessions (not stopped on `Shutdown()`) so clients stay connected
 - Game instance may be null during menu screens - handle gracefully
 
-### Headless Mode Testing
+### Headless Mode
 
-Old World supports headless/autorunturns mode for automated testing:
-
-```bash
-# macOS
-arch -x86_64 "/path/to/OldWorld.app/Contents/MacOS/OldWorld" \
-    /path/to/save.zip -batchmode -headless -autorunturns 5
-```
+Use `./test-headless.sh` for automated testing (see Testing section above).
 
 Key points:
 - Save file is a **positional argument** (not a flag)

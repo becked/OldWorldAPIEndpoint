@@ -10,6 +10,17 @@
     <OutputPath>bin/</OutputPath>
   </PropertyGroup>
 
+  <!-- Platform-specific paths to game assemblies -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <OldWorldManagedPath>$(OldWorldPath)\OldWorld_Data\Managed</OldWorldManagedPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <OldWorldManagedPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed</OldWorldManagedPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <OldWorldManagedPath>$(OldWorldPath)/OldWorld_Data/Managed</OldWorldManagedPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Source/**/*.cs" />
   </ItemGroup>
@@ -17,19 +28,19 @@
   <!-- Reference Old World assemblies -->
   <ItemGroup>
     <Reference Include="TenCrowns.GameCore">
-      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/TenCrowns.GameCore.dll</HintPath>
+      <HintPath>$(OldWorldManagedPath)/TenCrowns.GameCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/UnityEngine.dll</HintPath>
+      <HintPath>$(OldWorldManagedPath)/UnityEngine.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(OldWorldManagedPath)/UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Mohawk.SystemCore">
-      <HintPath>$(OldWorldPath)/OldWorld.app/Contents/Resources/Data/Managed/Mohawk.SystemCore.dll</HintPath>
+      <HintPath>$(OldWorldManagedPath)/Mohawk.SystemCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

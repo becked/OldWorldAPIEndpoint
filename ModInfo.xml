@@ -2,12 +2,24 @@
 <ModInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <displayName>Old World API Endpoint</displayName>
-  <description>Broadcasts game state over TCP for companion apps. Connect to localhost:9876 to receive turn updates.</description>
-  <author>Jeff</author>
-  <modversion>0.1.0</modversion>
+  <description>Exposes game state via TCP and HTTP APIs</description>
+  <modpicture>logo.png</modpicture>
+  <author>becked</author>
+  <modplatform>Modio</modplatform>
+  <modioID>0</modioID>
+  <modioFileID>0</modioFileID>
+  <workshopOwnerID>0</workshopOwnerID>
+  <workshopFileID>0</workshopFileID>
+  <modversion>0.0.1</modversion>
+  <modbuild>1.0.81098</modbuild>
+  <tags>GameInfo</tags>
   <singlePlayer>true</singlePlayer>
   <multiplayer>true</multiplayer>
   <scenario>false</scenario>
+  <scenarioToggle>false</scenarioToggle>
+  <blocksMods>false</blocksMods>
   <modDependencies />
   <modIncompatibilities />
+  <modWhitelist />
+  <gameContentRequired>NONE</gameContentRequired>
 </ModInfo>

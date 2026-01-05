@@ -10,7 +10,8 @@ cp .env.example .env
 # Edit .env with your Old World installation path
 
 # Build and deploy to Old World mods folder
-./deploy.sh
+./deploy.sh            # macOS/Linux
+.\deploy.ps1           # Windows (PowerShell)
 
 # Or build manually (after configuring .env)
 source .env
@@ -18,7 +19,9 @@ export OldWorldPath="$OLDWORLD_PATH"
 dotnet build -c Release
 ```
 
-The deploy script copies `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to the mods directory configured in `.env`.
+The deploy scripts copy `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to the mods directory configured in `.env`.
+
+**Windows notes:** The PowerShell script supports `%APPDATA%` expansion in paths. See `.env.example` for Windows path examples.
 
 ## Testing
 

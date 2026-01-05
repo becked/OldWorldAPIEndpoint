@@ -17,3 +17,6 @@ reference
 
 # Test output (save files, captured JSON, etc.)
 test/data/
+
+# Environment configuration (contains local paths)
+.env

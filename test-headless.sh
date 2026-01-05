@@ -4,6 +4,22 @@
 
 set -e
 
+# Load environment configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+else
+    echo "Error: .env file not found"
+    echo "Copy .env.example to .env and configure paths for your system"
+    exit 1
+fi
+
+# Validate required variables
+if [ -z "$OLDWORLD_PATH" ] || [ "$OLDWORLD_PATH" = "/path/to/Steam/steamapps/common/Old World" ]; then
+    echo "Error: OLDWORLD_PATH not configured in .env"
+    exit 1
+fi
+
 # Configuration
 SAVE_FILE="${1:-/tmp/APITestSave.zip}"
 TURNS="${2:-5}"

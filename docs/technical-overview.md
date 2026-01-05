@@ -240,8 +240,13 @@ Broadcast at the start of each new turn.
 
 ### Build
 ```bash
+# First-time setup: copy .env.example to .env and configure paths
+cp .env.example .env
+# Edit .env with your Old World installation path
+
+# Build
+source .env
 export OldWorldPath="$OLDWORLD_PATH"
-cd /path/to/OldWorldAPIEndpoint
 dotnet build -c Release
 ```
 

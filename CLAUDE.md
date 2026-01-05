@@ -5,16 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Deploy
 
 ```bash
-# Build and deploy to Old World mods folder (macOS)
+# First-time setup: copy .env.example to .env and configure paths
+cp .env.example .env
+# Edit .env with your Old World installation path
+
+# Build and deploy to Old World mods folder
 ./deploy.sh
 
-# Or build manually
+# Or build manually (after configuring .env)
+source .env
 export OldWorldPath="$OLDWORLD_PATH"
 dotnet build -c Release
 ```
 
-The deploy script copies `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to:
-`~/Library/Application Support/OldWorld/Mods/OldWorldAPIEndpoint/`
+The deploy script copies `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to the mods directory configured in `.env`.
 
 ## Testing
 
@@ -54,8 +58,7 @@ Types in `TenCrowns.GameCore.dll` (Game, Player, Infos, etc.) can be referenced 
 
 ### Game Source Reference
 
-Decompiled game source code is available at:
-`$OLDWORLD_PATH/Reference/`
+Decompiled game source code is available at `$OLDWORLD_PATH/Reference/` (where `$OLDWORLD_PATH` is configured in `.env`).
 
 Use this to understand game internals, discover available methods, and find the correct property/method signatures.
 

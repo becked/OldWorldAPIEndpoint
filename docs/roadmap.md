@@ -313,6 +313,44 @@ Allow port and other settings via mod options.
 - Use Old World's mod settings system
 - Read from ModSettings in Initialize()
 
+#### Slice 10: Historical Data
+Store and query game state history across turns.
+
+**Endpoints:**
+```
+GET /history                      All recorded turn snapshots
+GET /history/{turn}               State at specific turn
+GET /history/player/{index}       Player data across all turns
+GET /history/player/{index}/rates Rate trends for a player
+```
+
+**Example responses:**
+```json
+// GET /history/player/0/rates
+{
+  "nation": "NATION_ROME",
+  "turns": [
+    {"turn": 1, "YIELD_SCIENCE": 5, "YIELD_MONEY": 12},
+    {"turn": 2, "YIELD_SCIENCE": 7, "YIELD_MONEY": 15},
+    {"turn": 3, "YIELD_SCIENCE": 11, "YIELD_MONEY": 18}
+  ]
+}
+```
+
+**Implementation approach:**
+- Store snapshots in memory at each turn end (already have the data)
+- Configurable retention (last N turns, or all)
+- Optional: persist to file for cross-session history
+
+**Use cases:**
+- Track science/economy trends over time
+- Analyze diplomacy changes
+- Power graphs in companion apps
+
+**Implementation complexity:** Medium
+- Storage is straightforward (list of snapshots)
+- Need to consider memory limits for long games
+
 ---
 
 ### Quality of Life

@@ -1,5 +1,7 @@
 # Old World API Endpoint
 
+![Old World API Endpoint](logo.png)
+
 A mod for [Old World](https://store.steampowered.com/app/597180/Old_World/) that exposes game state via TCP and HTTP APIs, enabling companion apps, overlays, and external tools.
 
 ## Features

@@ -150,7 +150,7 @@ namespace OldWorldAPIEndpoint
 
             if (segments.Length == 0)
             {
-                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
+                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /character-events, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
                 return;
             }
 
@@ -191,6 +191,10 @@ namespace OldWorldAPIEndpoint
                         HandleCharacterRequest(context, game, charId);
                     else
                         SendErrorResponse(context.Response, "Invalid character ID. Use /character/{id}", 400);
+                    break;
+
+                case "character-events":
+                    HandleCharacterEventsRequest(context);
                     break;
 
                 case "tribes":
@@ -290,6 +294,12 @@ namespace OldWorldAPIEndpoint
                 SendJsonResponse(context.Response, character);
             else
                 SendErrorResponse(context.Response, $"Character not found: {charId}", 404);
+        }
+
+        private void HandleCharacterEventsRequest(HttpListenerContext context)
+        {
+            var events = APIEndpoint.GetLastCharacterEvents();
+            SendJsonResponse(context.Response, events);
         }
 
         private void HandleTribesRequest(HttpListenerContext context, Game game)

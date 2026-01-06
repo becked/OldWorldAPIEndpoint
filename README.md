@@ -27,7 +27,8 @@ Enable the mod in Old World's Mod Manager.
 - **Game**: Turn number, year, current player
 - **Players**: Nation, team, cities, units, legitimacy, resource stockpiles, per-turn rates
 - **Cities**: ~80 fields including population, production, yields, improvements, religion
-- **Characters**: ~40 fields including traits, ratings, family, jobs, military
+- **Characters**: ~75 fields including traits, ratings, family, jobs, military, spouses, children, opinions, relationships
+- **Character Events**: Births, deaths, marriages, leader changes, heir changes (detected via state diffing)
 - **Diplomacy**: Team-to-team and tribe-to-team relationships, alliances, war state
 - **Tribes**: Barbarians, minor civs with their units, settlements, alliances
 
@@ -47,6 +48,7 @@ GET /state              Full game state
 GET /players            All players
 GET /cities             All cities
 GET /characters         All characters
+GET /character-events   Character events from last turn
 GET /tribes             All tribes
 GET /team-diplomacy     Team diplomatic relationships
 GET /team-alliances     Team alliances
@@ -110,10 +112,19 @@ curl -s localhost:9877/cities | jq '.[] | select(.isCapital) | {name, nation}'
 curl -s localhost:9877/characters | jq '.[] | select(.isLeader and .isAlive) | {name, nation, age}'
 
 # Generals with their ratings
-curl -s localhost:9877/characters | jq '.[] | select(.isGeneral) | {name, courage: .RATING_COURAGE, discipline: .RATING_DISCIPLINE}'
+curl -s localhost:9877/characters | jq '.[] | select(.isGeneral) | {name, courage: .ratings.RATING_COURAGE, discipline: .ratings.RATING_DISCIPLINE}'
 
 # Characters by trait
 curl -s localhost:9877/characters | jq '.[] | select(.traits | index("TRAIT_WARRIOR")) | .name'
+
+# Character family tree (spouses and children)
+curl -s localhost:9877/characters | jq '.[] | select(.isLeader) | {name, spouseIds, childrenIds, numChildren}'
+
+# Characters with cognomens (e.g., "the Great")
+curl -s localhost:9877/characters | jq '.[] | select(.cognomen) | {name, cognomen}'
+
+# Character events from last turn (births, deaths, marriages)
+curl -s localhost:9877/character-events | jq
 ```
 
 ### Diplomacy

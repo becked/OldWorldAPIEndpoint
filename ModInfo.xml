@@ -6,12 +6,13 @@
 
 Connection Options:
 - TCP (port 9876): Persistent connection that receives push notifications on game events
-- HTTP (port 9877): REST API for on-demand queries (GET /state, /players, /cities, /characters, /tribes)
+- HTTP (port 9877): REST API for on-demand queries (GET /state, /players, /cities, /characters, /character-events, /tribes)
 
 Data Exposed:
 - Players: Nation, stockpiles, yield rates, legitimacy, city/unit counts
 - Cities: Yields, improvements, build queues, religion, culture, happiness, governor, family
-- Characters: Traits, ratings, jobs, family relationships, leadership status, XP/level
+- Characters: 75+ fields including traits, ratings, jobs, spouses, children, opinions, relationships, lifecycle timeline
+- Character Events: Births, deaths, marriages, leader changes, heir changes (detected between turns)
 - Diplomacy: Team relationships, war states, war scores, alliances, contact status
 - Tribes: Strength, cities, settlements, diplomacy with players, alliances
 
@@ -23,7 +24,7 @@ Source code: https://github.com/becked/OldWorldAPIEndpoint</description>
   <modioFileID>0</modioFileID>
   <workshopOwnerID>0</workshopOwnerID>
   <workshopFileID>0</workshopFileID>
-  <modversion>0.0.1</modversion>
+  <modversion>0.0.2</modversion>
   <modbuild>1.0.81098</modbuild>
   <tags>GameInfo</tags>
   <singlePlayer>true</singlePlayer>

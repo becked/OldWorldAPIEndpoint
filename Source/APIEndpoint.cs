@@ -628,7 +628,7 @@ namespace OldWorldAPIEndpoint
                 religion = character.hasReligion() ? infos.religion(character.getReligion())?.mzType : null,
                 isReligionHead = character.isReligionHead(),
 
-                // 10. Parents
+                // 10. Parents (adoptive)
                 fatherId = character.hasFather() ? (int?)character.getFatherID() : null,
                 motherId = character.hasMother() ? (int?)character.getMotherID() : null,
 
@@ -641,7 +641,67 @@ namespace OldWorldAPIEndpoint
 
                 // 13. XP & Level
                 xp = character.getXP(),
-                level = character.getLevel()
+                level = character.getLevel(),
+
+                // 14. Lifecycle Timeline (NEW)
+                birthTurn = character.getBirthTurn(),
+                deathTurn = character.getDeathTurn(),
+                leaderTurn = character.getLeaderTurn(),
+                abdicateTurn = character.getAbdicateTurn(),
+                regentTurn = character.getRegentTurn(),
+                safeTurn = character.getSafeTurn(),
+                nationTurn = character.getNationTurn(),
+
+                // 15. Extended Status Flags (NEW)
+                isInfertile = character.isInfertile(),
+                isRetired = character.isRetired(),
+                isAbdicated = character.isAbdicated(),
+                isOrWasLeader = character.isOrWasLeader(),
+                isOrWasRegent = character.isOrWasRegent(),
+                isOrWasLeaderSpouse = character.isOrWasLeaderSpouse(),
+                isSafe = character.isSafe(),
+
+                // 16. Biological Parents (NEW - distinct from adoptive)
+                birthFatherId = character.hasBirthFather() ? (int?)character.getBirthFatherID() : null,
+                birthMotherId = character.hasBirthMother() ? (int?)character.getBirthMotherID() : null,
+
+                // 17. Birth Location (NEW)
+                birthCityId = character.hasBirthCity() ? (int?)character.getBirthCityID() : null,
+
+                // 18. Spouse & Marriage Data (NEW)
+                spouseIds = GetCharacterSpouseIds(character),
+                numSpouses = character.getNumSpouses(),
+                spousesAlive = character.countSpousesAlive(),
+                hasSpouseAlive = character.hasSpouseAlive(),
+                hasSpouseForeign = character.hasSpouseForeign(),
+                hasSpouseTribe = character.hasSpouseTribe(),
+
+                // 19. Children Data (NEW)
+                childrenIds = GetCharacterChildrenIds(character),
+                numChildren = character.getNumChildren(),
+
+                // 20. Former Positions (NEW)
+                wasReligionHead = character.getWasReligionHead() != ReligionType.NONE
+                    ? infos.religion(character.getWasReligionHead())?.mzType : null,
+                wasFamilyHead = character.getWasFamilyHead() != FamilyType.NONE
+                    ? infos.family(character.getWasFamilyHead())?.mzType : null,
+
+                // 21. Death Info (NEW)
+                deadCouncil = character.getDeadCouncil() != CouncilType.NONE
+                    ? infos.council(character.getDeadCouncil())?.mzType : null,
+                deathReason = character.getDeathReason() != TextType.NONE
+                    ? infos.text(character.getDeathReason())?.mzType : null,
+
+                // 22. Title & Cognomen (NEW)
+                title = character.hasTitle() ? infos.title(character.getTitle())?.mzType : null,
+                cognomen = character.hasCognomen() ? infos.cognomen(character.getCognomen())?.mzType : null,
+                nickname = character.hasNickname() ? character.getNicknameText() : null,
+
+                // 23. Relationships (NEW)
+                relationships = GetCharacterRelationships(character, infos),
+
+                // 24. Opinions towards players (NEW)
+                opinions = GetCharacterOpinions(character, game, infos)
             };
         }
 
@@ -693,6 +753,271 @@ namespace OldWorldAPIEndpoint
             }
             catch { }
             return ratings;
+        }
+
+        private static List<int> GetCharacterSpouseIds(Character character)
+        {
+            var spouseIds = new List<int>();
+            try
+            {
+                for (int i = 0; i < character.getNumSpouses(); i++)
+                {
+                    var spouse = character.getSpouseAtIndex(i);
+                    if (spouse != null)
+                        spouseIds.Add(spouse.getID());
+                }
+            }
+            catch { }
+            return spouseIds;
+        }
+
+        private static List<int> GetCharacterChildrenIds(Character character)
+        {
+            var childrenIds = new List<int>();
+            try
+            {
+                var children = character.getChildren();
+                if (children != null)
+                {
+                    childrenIds.AddRange(children);
+                }
+            }
+            catch { }
+            return childrenIds;
+        }
+
+        private static List<object> GetCharacterRelationships(Character character, Infos infos)
+        {
+            var relationships = new List<object>();
+            try
+            {
+                var relationshipList = character.getRelationshipList();
+                if (relationshipList != null)
+                {
+                    foreach (var rel in relationshipList)
+                    {
+                        relationships.Add(new
+                        {
+                            type = infos.relationship(rel.meType)?.mzType,
+                            characterId = rel.miCharacterID
+                        });
+                    }
+                }
+            }
+            catch { }
+            return relationships;
+        }
+
+        private static Dictionary<int, object> GetCharacterOpinions(Character character, Game game, Infos infos)
+        {
+            var opinions = new Dictionary<int, object>();
+            try
+            {
+                int numPlayers = (int)game.getNumPlayers();
+                for (int p = 0; p < numPlayers; p++)
+                {
+                    var playerType = (PlayerType)p;
+                    var opinion = character.getOpinion(playerType);
+                    var rate = character.getOpinionRate(playerType);
+                    if (opinion != OpinionCharacterType.NONE || rate != 0)
+                    {
+                        opinions[p] = new
+                        {
+                            opinion = opinion != OpinionCharacterType.NONE
+                                ? infos.opinionCharacter(opinion)?.mzType : null,
+                            rate = rate
+                        };
+                    }
+                }
+            }
+            catch { }
+            return opinions;
+        }
+
+        #endregion
+
+        #region Character Events
+
+        // Snapshot class for storing previous turn's character state (used for event detection)
+        private class CharacterSnapshot
+        {
+            public int Id;
+            public bool IsAlive;
+            public bool IsDead;
+            public bool IsLeader;
+            public bool IsHeir;
+            public bool IsRegent;
+            public int NumSpouses;
+            public List<int> SpouseIds;
+            public int PlayerId;  // -1 if none
+        }
+
+        // Storage for previous turn's character state
+        private static Dictionary<int, CharacterSnapshot> _previousCharacters = new Dictionary<int, CharacterSnapshot>();
+        private static int _previousTurn = -1;
+        private static List<object> _lastCharacterEvents = new List<object>();
+
+        /// <summary>
+        /// Detect character events by diffing current state against previous turn's state.
+        /// Returns list of event objects (births, deaths, marriages, leader changes, heir changes).
+        /// </summary>
+        public static List<object> DetectCharacterEvents(Game game, Infos infos)
+        {
+            var events = new List<object>();
+            int currentTurn = game.getTurn();
+
+            // Skip event detection on first turn or if turn hasn't changed
+            if (_previousTurn < 0 || currentTurn <= _previousTurn)
+            {
+                UpdateCharacterSnapshots(game);
+                _previousTurn = currentTurn;
+                _lastCharacterEvents = events;
+                return events;
+            }
+
+            var currentCharacters = game.getCharacters();
+
+            foreach (var character in currentCharacters)
+            {
+                if (character == null) continue;
+                int id = character.getID();
+
+                if (!_previousCharacters.TryGetValue(id, out var prev))
+                {
+                    // New character = birth
+                    var parentIds = new List<int>();
+                    if (character.hasFather())
+                        parentIds.Add(character.getFatherID());
+                    if (character.hasMother())
+                        parentIds.Add(character.getMotherID());
+
+                    events.Add(new
+                    {
+                        eventType = "characterBorn",
+                        characterId = id,
+                        parentIds = parentIds
+                    });
+                }
+                else
+                {
+                    // Check for death
+                    if (character.isDead() && !prev.IsDead)
+                    {
+                        events.Add(new
+                        {
+                            eventType = "characterDied",
+                            characterId = id,
+                            deathReason = character.getDeathReason() != TextType.NONE
+                                ? infos.text(character.getDeathReason())?.mzType : null
+                        });
+                    }
+
+                    // Check for new leadership
+                    if (character.isLeader() && !prev.IsLeader)
+                    {
+                        // Find old leader for this player
+                        int? oldLeaderId = null;
+                        int playerId = character.hasPlayer() ? (int)character.getPlayer() : -1;
+                        foreach (var kvp in _previousCharacters)
+                        {
+                            if (kvp.Value.IsLeader && kvp.Value.PlayerId == playerId)
+                            {
+                                oldLeaderId = kvp.Key;
+                                break;
+                            }
+                        }
+
+                        events.Add(new
+                        {
+                            eventType = "leaderChanged",
+                            playerId = playerId,
+                            newLeaderId = id,
+                            oldLeaderId = oldLeaderId
+                        });
+                    }
+
+                    // Check for marriage (new spouse)
+                    var currentSpouseIds = GetCharacterSpouseIds(character);
+                    foreach (var spouseId in currentSpouseIds)
+                    {
+                        if (!prev.SpouseIds.Contains(spouseId))
+                        {
+                            // Only emit once per marriage (from lower ID character)
+                            if (id < spouseId)
+                            {
+                                events.Add(new
+                                {
+                                    eventType = "characterMarried",
+                                    character1Id = id,
+                                    character2Id = spouseId
+                                });
+                            }
+                        }
+                    }
+
+                    // Check for heir change
+                    if (character.isHeir() && !prev.IsHeir)
+                    {
+                        int playerId = character.hasPlayer() ? (int)character.getPlayer() : -1;
+                        int? oldHeirId = null;
+                        foreach (var kvp in _previousCharacters)
+                        {
+                            if (kvp.Value.IsHeir && kvp.Value.PlayerId == playerId)
+                            {
+                                oldHeirId = kvp.Key;
+                                break;
+                            }
+                        }
+
+                        events.Add(new
+                        {
+                            eventType = "heirChanged",
+                            playerId = playerId,
+                            newHeirId = id,
+                            oldHeirId = oldHeirId
+                        });
+                    }
+                }
+            }
+
+            // Update snapshots for next turn
+            UpdateCharacterSnapshots(game);
+            _previousTurn = currentTurn;
+            _lastCharacterEvents = events;
+
+            return events;
+        }
+
+        /// <summary>
+        /// Update the character snapshots for the next turn comparison.
+        /// </summary>
+        private static void UpdateCharacterSnapshots(Game game)
+        {
+            _previousCharacters.Clear();
+            foreach (var character in game.getCharacters())
+            {
+                if (character == null) continue;
+                _previousCharacters[character.getID()] = new CharacterSnapshot
+                {
+                    Id = character.getID(),
+                    IsAlive = character.isAlive(),
+                    IsDead = character.isDead(),
+                    IsLeader = character.isLeader(),
+                    IsHeir = character.isHeir(),
+                    IsRegent = character.isRegent(),
+                    NumSpouses = character.getNumSpouses(),
+                    SpouseIds = GetCharacterSpouseIds(character),
+                    PlayerId = character.hasPlayer() ? (int)character.getPlayer() : -1
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get the last detected character events (for HTTP endpoint).
+        /// </summary>
+        public static List<object> GetLastCharacterEvents()
+        {
+            return _lastCharacterEvents;
         }
 
         #endregion
@@ -1116,6 +1441,10 @@ namespace OldWorldAPIEndpoint
                 {
                     int turn = game.getTurn();
                     int year = game.getYear();
+                    Infos infos = game.infos();
+
+                    // Detect character events (births, deaths, marriages, etc.)
+                    var characterEvents = DetectCharacterEvents(game, infos);
 
                     var message = new
                     {
@@ -1123,6 +1452,7 @@ namespace OldWorldAPIEndpoint
                         turn = turn,
                         year = year,
                         currentPlayer = (int)game.getPlayerTurn(),
+                        characterEvents = characterEvents,
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),
@@ -1134,7 +1464,7 @@ namespace OldWorldAPIEndpoint
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 
-                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}");
+                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}, events={characterEvents.Count}");
                 }
                 else
                 {
@@ -1185,11 +1515,17 @@ namespace OldWorldAPIEndpoint
                     int turn = game.getTurn();
                     int year = game.getYear();
 
+                    // Initialize character snapshots for event detection
+                    // (no events emitted on game start, just baseline state)
+                    UpdateCharacterSnapshots(game);
+                    _previousTurn = turn;
+
                     var message = new
                     {
                         @event = "gameReady",
                         turn = turn,
                         year = year,
+                        characterEvents = new List<object>(),  // Empty on game start
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),

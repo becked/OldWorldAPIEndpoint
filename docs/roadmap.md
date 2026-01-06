@@ -222,27 +222,51 @@ GET /tribe-alliances    All tribe alliances
 - Game reference cached from main thread for HTTP thread safety
 - Headless testing uses TCP sync (wait for TCP data before testing HTTP)
 
+### Slice 5a: Character Events & Extended Character Data
+Character lifecycle events detected via state diffing between turns, plus comprehensive character data expansion.
+
+**Event types (in `characterEvents` array):**
+```json
+{
+  "characterEvents": [
+    {"eventType": "characterBorn", "characterId": 456, "parentIds": [12, 18]},
+    {"eventType": "characterDied", "characterId": 123, "deathReason": "TEXT_DEATH_OLD_AGE"},
+    {"eventType": "leaderChanged", "playerId": 0, "newLeaderId": 456, "oldLeaderId": 123},
+    {"eventType": "characterMarried", "character1Id": 45, "character2Id": 67},
+    {"eventType": "heirChanged", "playerId": 0, "newHeirId": 78, "oldHeirId": 45}
+  ]
+}
+```
+
+**New character fields (30+ additions):**
+- Lifecycle timeline: `birthTurn`, `deathTurn`, `leaderTurn`, `abdicateTurn`, `regentTurn`, `safeTurn`, `nationTurn`
+- Extended status: `isInfertile`, `isRetired`, `isAbdicated`, `isOrWasLeader`, `isOrWasRegent`, `isOrWasLeaderSpouse`, `isSafe`
+- Biological parents: `birthFatherId`, `birthMotherId` (distinct from adoptive)
+- Birth location: `birthCityId`
+- Spouse data: `spouseIds[]`, `numSpouses`, `spousesAlive`, `hasSpouseAlive`, `hasSpouseForeign`, `hasSpouseTribe`
+- Children data: `childrenIds[]`, `numChildren`
+- Former positions: `wasReligionHead`, `wasFamilyHead`
+- Death info: `deadCouncil`, `deathReason`
+- Title/cognomen: `title`, `cognomen`, `nickname`
+- Relationships: `relationships[]` (array of `{type, characterId}` for friends, rivals, etc.)
+- Opinions: `opinions{}` (dictionary of player opinions toward this character)
+
+**HTTP endpoint:**
+```
+GET /character-events    # Returns events from last turn
+```
+
+**Implementation notes:**
+- Events detected by diffing character state between turns (game has no event callbacks)
+- Marriage events deduplicated (only emitted once from lower-ID character)
+- No events emitted on game start (baseline snapshot only)
+- Character snapshots stored in memory for comparison
+
 ---
 
 ## Potential Future Slices
 
 ### Event Expansion
-
-#### Slice 5a: Character Events
-Broadcast events when characters are born, die, marry, etc.
-
-**New event types:**
-```json
-{"event": "characterBorn", "character": {...}, "parents": [...]}
-{"event": "characterDied", "character": {...}, "cause": "OLD_AGE"}
-{"event": "characterMarried", "character1": {...}, "character2": {...}}
-{"event": "leaderChanged", "player": 0, "oldLeader": {...}, "newLeader": {...}}
-```
-
-**Implementation approach:**
-- Track character state between turns
-- Diff to detect births, deaths, marriages
-- Or hook into game event system if available
 
 #### Slice 5b: Military Events
 Broadcast battle outcomes and unit losses.
@@ -424,14 +448,17 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 ## Priority Recommendations
 
-**High value, low effort:**
+**Completed:**
 1. ~~Slice 4c (Per-turn rates)~~ - Done
 2. ~~Slice 4d (Diplomacy)~~ - Done
 3. ~~Slice 4e (Tribe Diplomacy)~~ - Done
-4. Slice 9 (Connection status) - Simple, improves client experience
+4. ~~Slice 6 (HTTP REST)~~ - Done
+5. ~~Slice 5a (Character Events & Extended Data)~~ - Done
 
-**High value, medium effort:**
-5. Slice 6 (HTTP REST) - Enables curl/scripting, great for debugging
+**High value, low effort:**
+6. Slice 9 (Connection status) - Simple, improves client experience
+7. Slice 10 (Historical Data) - Store turn snapshots for trend analysis
 
 **Lower priority:**
-6. Slice 8 (WebSocket) - Nice to have for browser/web clients
+8. Slice 8 (WebSocket) - Nice to have for browser/web clients
+9. Slice 5b/5c (Military/City Events) - More event types

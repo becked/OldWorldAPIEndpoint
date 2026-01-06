@@ -2,7 +2,20 @@
 <ModInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <displayName>Old World API Endpoint</displayName>
-  <description>Exposes game state via TCP and HTTP APIs</description>
+  <description>Exposes game state data via TCP and HTTP APIs, enabling companion apps, overlays, and external tools to read live game information.
+
+Connection Options:
+- TCP (port 9876): Persistent connection that receives push notifications on game events
+- HTTP (port 9877): REST API for on-demand queries (GET /state, /players, /cities, /characters, /tribes)
+
+Data Exposed:
+- Players: Nation, stockpiles, yield rates, legitimacy, city/unit counts
+- Cities: Yields, improvements, build queues, religion, culture, happiness, governor, family
+- Characters: Traits, ratings, jobs, family relationships, leadership status, XP/level
+- Diplomacy: Team relationships, war states, war scores, alliances, contact status
+- Tribes: Strength, cities, settlements, diplomacy with players, alliances
+
+Source code: https://github.com/becked/OldWorldAPIEndpoint</description>
   <modpicture>logo.png</modpicture>
   <author>becked</author>
   <modplatform>Modio</modplatform>

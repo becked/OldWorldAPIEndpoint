@@ -1,346 +1,112 @@
-# Old World API Endpoint - Roadmap & Future Ideas
+# Old World API Endpoint - Roadmap
 
-## Completed Slices
+## Current State
 
-### Slice 1: Hello World
-- Mod loads correctly in Old World
-- TCP server accepts connections on port 9876
-- Broadcasts on turn end events
+The mod provides a functional API with:
+- **TCP Broadcast** (port 9876) - Newline-delimited JSON on turn end and game ready events
+- **HTTP REST** (port 9877) - 14 endpoints for on-demand queries
+- **Data Coverage**: Players, cities, characters, tribes, team/tribe diplomacy and alliances
+- **Character Events**: Birth, death, marriage, leader/heir changes (via state diffing)
 
-### Slice 2: Basic Game Data
-- Turn number and year
-- Real game state (not hardcoded)
-
-### Slice 3: Player Data & Stockpiles
-- All players in game
-- Nation identifiers
-- City and unit counts
-- Legitimacy scores
-- Full resource stockpiles (Food, Wood, Stone, Iron, Civics, Training, Money, Orders, etc.)
-
-### Slice 4a: City Data
-Comprehensive city information at top level with ~80 fields per city.
-
-**Key data groups:**
-- Identity & Location (id, name, ownerId, tileId, x, y, nation)
-- Status Flags (isCapital, isConnected, isTribe, isIdle)
-- Population & Growth (citizens, citizensTotal, growthCount)
-- Military & Defense (hp, hpMax, strength, damage)
-- Governor (governorId, hasGovernor, isGoverned)
-- Family & Faction (family, familyClass, isFamilySeat, familyOpinion)
-- Culture (culture, cultureStep)
-- Religion (religions[], religionCount, holyCity[], hasStateReligion)
-- Production & Build Queue (currentBuild, buildQueue[])
-- Yields per type (perTurn, progress, threshold, overflow, modifier)
-- Improvements & Projects (counts by type)
-- Trade & Happiness (tradeNetwork, luxuryCount, happinessLevel)
-
-**Implementation notes:**
-- Cities at top level (mirrors game data structure)
-- Uses Newtonsoft.Json for serialization
-- Preserves exact game type strings (YIELD_GROWTH, IMPROVEMENT_FARM, etc.)
-
-### Slice 4b: Character Data
-Comprehensive character information at top level with ~40 fields per character.
-
-**Key data groups:**
-- Identity (id, name, suffix, gender, age, characterType)
-- Player & Nation (playerId, nation, tribe)
-- Status (isAlive, isDead, isRoyal, isAdult, isTemporary)
-- Leadership & Succession (isLeader, isHeir, isSuccessor, isLeaderSpouse, isHeirSpouse, isRegent)
-- Jobs & Positions (job, council, courtier)
-- Governor/Agent (isCityGovernor, cityGovernorId, isCityAgent, cityAgentId)
-- Military (hasUnit, unitId, isGeneral)
-- Family (family, familyClass, isFamilyHead, fatherId, motherId)
-- Religion (religion, isReligionHead)
-- Traits (archetype, traits[])
-- Ratings (RATING_WISDOM, RATING_CHARISMA, RATING_COURAGE, RATING_DISCIPLINE)
-- XP & Level (xp, level)
-
-**Player additions:**
-- `leaderId` - References the player's current leader character
-
-**Implementation notes:**
-- Characters at top level (mirrors game data structure)
-- Includes both living and dead characters
-- Uses `mzType` for all game type strings (TRAIT_COMMANDER_ARCHETYPE, etc.)
-
-### Slice 4c: Per-Turn Rates
-Net income/expense rates per yield for each player.
-
-**New fields:**
-```json
-{
-  "players": [{
-    "rates": {
-      "YIELD_FOOD": 15,
-      "YIELD_CIVICS": -5,
-      "YIELD_MONEY": 10,
-      ...
-    }
-  }]
-}
-```
-
-**Implementation notes:**
-- Uses `player.calculateYieldAfterUnits(yieldType, false)` for canonical rate (matches game history)
-- Values divided by 10 (YIELDS_MULTIPLIER) to return whole numbers
-- All 14 yield types included (YIELD_GROWTH, YIELD_CIVICS, YIELD_TRAINING, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DISCONTENT, YIELD_SCIENCE, YIELD_MONEY, YIELD_MAINTENANCE, YIELD_ORDERS, YIELD_FOOD, YIELD_IRON, YIELD_STONE, YIELD_WOOD)
-- City-only yields (GROWTH, CULTURE, HAPPINESS) return 0 at player level
-
-### Slice 4d: Team Diplomacy
-Team-to-team diplomacy state with comprehensive data.
-
-**New arrays:**
-```json
-{
-  "teamDiplomacy": [
-    {
-      "fromTeam": 0,
-      "toTeam": 1,
-      "diplomacy": "DIPLOMACY_WAR",
-      "isHostile": true,
-      "isPeace": false,
-      "hasContact": true,
-      "warScore": 15,
-      "warState": "WARSTATE_WINNING",
-      "conflictTurn": 42,
-      "conflictNumTurns": 8,
-      "diplomacyTurn": 42,
-      "diplomacyNumTurns": 8,
-      "diplomacyBlockTurn": 52,
-      "diplomacyBlockTurns": 2
-    }
-  ],
-  "teamAlliances": [
-    { "team": 2, "allyTeam": 3 }
-  ]
-}
-```
-
-**Player enhancement:**
-- `team` field added to each player object to link players to teams
-
-**Implementation notes:**
-- Diplomacy is tracked between **teams**, not individual players
-- One entry per directed relationship (fromTeam → toTeam)
-- War score is **asymmetric** - each direction has its own value
-- Contact (`hasContact`) is unidirectional
-- Alliances are symmetric (stored per-team)
-- Uses game type strings (DIPLOMACY_WAR, WARSTATE_WINNING, etc.)
-
-### Slice 4e: Tribe Diplomacy
-Tribe-to-team diplomacy state and tribe entity data (separate system from team-to-team diplomacy).
-
-**New arrays:**
-```json
-{
-  "tribes": [
-    {
-      "tribeType": "TRIBE_GAULS",
-      "isAlive": true,
-      "isDead": false,
-      "hasDiplomacy": true,
-      "leaderId": 19,
-      "hasLeader": true,
-      "religion": null,
-      "hasReligion": false,
-      "allyPlayerId": null,
-      "allyTeam": null,
-      "hasPlayerAlly": false,
-      "numUnits": 3,
-      "numCities": 0,
-      "strength": 90,
-      "cityIds": [],
-      "settlementTileIds": [3160, 3525, 3740],
-      "numTribeImprovements": 3
-    }
-  ],
-  "tribeDiplomacy": [
-    {
-      "tribe": "TRIBE_GAULS",
-      "toTeam": 0,
-      "diplomacy": "DIPLOMACY_TRUCE",
-      "isHostile": false,
-      "isPeace": false,
-      "hasContact": false,
-      "warScore": 0,
-      "warState": "WARSTATE_NEUTRAL",
-      "conflictTurn": 0,
-      "conflictNumTurns": 3,
-      "diplomacyTurn": 0,
-      "diplomacyNumTurns": 3,
-      "diplomacyBlockTurn": 0,
-      "diplomacyBlockTurns": 0
-    }
-  ],
-  "tribeAlliances": [
-    { "tribe": "TRIBE_BLEMMYES", "allyPlayerId": 2, "allyTeam": 2 }
-  ]
-}
-```
-
-**Implementation notes:**
-- `tribes` array includes all tribes (alive and dead, diplomacy and non-diplomacy like TRIBE_BARBARIANS)
-- `tribeDiplomacy` filtered to tribes with `isDiplomacyTribeAlive()` (excludes raiders/barbarians)
-- `tribeAlliances` only includes tribes with active player alliances
-- Tribe diplomacy is asymmetric (tribe → team only, no team → tribe)
-- Uses `mzType` for all game type strings (TRIBE_GAULS, DIPLOMACY_TRUCE, etc.)
-
-### Slice 6: HTTP REST Endpoint
-HTTP server for on-demand queries via curl/scripts.
-
-**Port:** 9877 (separate from TCP 9876)
-
-**Endpoints:**
-```
-GET /state              Full game state (mirrors TCP broadcast)
-GET /players            All players array
-GET /player/{index}     Specific player by index
-GET /cities             All cities array
-GET /city/{id}          Specific city by ID
-GET /characters         All characters array
-GET /character/{id}     Specific character by ID
-GET /tribes             All tribes array
-GET /tribe/{type}       Specific tribe by type string (e.g., TRIBE_GAULS)
-GET /team-diplomacy     All team diplomacy relationships
-GET /team-alliances     All team alliances
-GET /tribe-diplomacy    All tribe diplomacy relationships
-GET /tribe-alliances    All tribe alliances
-```
-
-**Error handling:**
-- `200 OK` - Success with JSON data
-- `400 Bad Request` - Invalid ID format
-- `404 Not Found` - Entity not found or unknown endpoint
-- `503 Service Unavailable` - Game not loaded
-
-**Implementation notes:**
-- Uses .NET's `HttpListener` class
-- CORS headers included for browser clients
-- Reuses same data builders as TCP broadcast
-- Game reference cached from main thread for HTTP thread safety
-- Headless testing uses TCP sync (wait for TCP data before testing HTTP)
-
-### Slice 5a: Character Events & Extended Character Data
-Character lifecycle events detected via state diffing between turns, plus comprehensive character data expansion.
-
-**Event types (in `characterEvents` array):**
-```json
-{
-  "characterEvents": [
-    {"eventType": "characterBorn", "characterId": 456, "parentIds": [12, 18]},
-    {"eventType": "characterDied", "characterId": 123, "deathReason": "TEXT_DEATH_OLD_AGE"},
-    {"eventType": "leaderChanged", "playerId": 0, "newLeaderId": 456, "oldLeaderId": 123},
-    {"eventType": "characterMarried", "character1Id": 45, "character2Id": 67},
-    {"eventType": "heirChanged", "playerId": 0, "newHeirId": 78, "oldHeirId": 45}
-  ]
-}
-```
-
-**New character fields (30+ additions):**
-- Lifecycle timeline: `birthTurn`, `deathTurn`, `leaderTurn`, `abdicateTurn`, `regentTurn`, `safeTurn`, `nationTurn`
-- Extended status: `isInfertile`, `isRetired`, `isAbdicated`, `isOrWasLeader`, `isOrWasRegent`, `isOrWasLeaderSpouse`, `isSafe`
-- Biological parents: `birthFatherId`, `birthMotherId` (distinct from adoptive)
-- Birth location: `birthCityId`
-- Spouse data: `spouseIds[]`, `numSpouses`, `spousesAlive`, `hasSpouseAlive`, `hasSpouseForeign`, `hasSpouseTribe`
-- Children data: `childrenIds[]`, `numChildren`
-- Former positions: `wasReligionHead`, `wasFamilyHead`
-- Death info: `deadCouncil`, `deathReason`
-- Title/cognomen: `title`, `cognomen`, `nickname`
-- Relationships: `relationships[]` (array of `{type, characterId}` for friends, rivals, etc.)
-- Opinions: `opinions{}` (dictionary of player opinions toward this character)
-
-**HTTP endpoint:**
-```
-GET /character-events    # Returns events from last turn
-```
-
-**Implementation notes:**
-- Events detected by diffing character state between turns (game has no event callbacks)
-- Marriage events deduplicated (only emitted once from lower-ID character)
-- No events emitted on game start (baseline snapshot only)
-- Character snapshots stored in memory for comparison
+See `technical-overview.md` for full details on current implementation.
 
 ---
 
-## Potential Future Slices
+## Planned Features
 
-### Event Expansion
+### Slice 5b: Military Events
+Battle outcomes and unit losses detected via state diffing.
 
-#### Slice 5b: Military Events
-Broadcast battle outcomes and unit losses.
-
-**New event types:**
+**Event types:**
 ```json
-{"event": "battle", "attacker": {...}, "defender": {...}, "winner": "attacker", "location": {...}}
-{"event": "unitKilled", "unit": {...}, "killedBy": {...}}
-{"event": "cityCapture", "city": {...}, "oldOwner": 0, "newOwner": 1}
+{"eventType": "battle", "attacker": {...}, "defender": {...}, "winner": "attacker", "location": {...}}
+{"eventType": "unitKilled", "unit": {...}, "killedBy": {...}}
+{"eventType": "cityCapture", "cityId": 123, "oldOwnerId": 0, "newOwnerId": 1}
 ```
 
 **Implementation approach:**
-- May require different hooks (combat callbacks)
-- Track unit/city ownership between turns
+- Track unit/city ownership between turns (similar to character event detection)
+- May require additional game hooks for combat callbacks
 
-#### Slice 5c: City Events
-Broadcast city founding, conquest, wonder completion.
-
-**New event types:**
-```json
-{"event": "cityFounded", "city": {...}, "player": 0}
-{"event": "cityConquered", "city": {...}, "oldOwner": 0, "newOwner": 1}
-{"event": "wonderCompleted", "wonder": "WONDER_PYRAMIDS", "city": {...}}
-```
+**Complexity:** Medium-High
 
 ---
 
-### API Features
+### Slice 5c: City Events
+City founding, conquest, and wonder completion.
 
-#### Slice 6: HTTP REST Endpoint
-Add HTTP server for on-demand queries via curl/scripts.
-
-**Port:** 9877 (separate from TCP 9876)
-
-**Endpoints:**
-```bash
-curl localhost:9877/state          # Full game state
-curl localhost:9877/players        # All players
-curl localhost:9877/player/0       # Specific player
-curl localhost:9877/cities         # All cities
-curl localhost:9877/city/123       # Specific city
+**Event types:**
+```json
+{"eventType": "cityFounded", "cityId": 123, "playerId": 0, "name": "Rome"}
+{"eventType": "cityConquered", "cityId": 123, "oldOwnerId": 0, "newOwnerId": 1}
+{"eventType": "wonderCompleted", "wonder": "WONDER_PYRAMIDS", "cityId": 123}
 ```
 
-**Benefits:**
-- Works with curl, wget, any HTTP client
-- Easy debugging and scripting
-- No persistent connection needed
-- Pipe to `jq` for formatting
+**Implementation approach:**
+- Track city list and ownership between turns
+- Track wonder completion progress
 
-**Implementation:**
-- Use .NET's built-in `HttpListener` class
-- Simple routing for GET endpoints
-- Return JSON responses
+**Complexity:** Medium
 
-**Implementation complexity:** Medium
-- HttpListener handles HTTP parsing
-- Just need routing and JSON serialization
+---
 
-#### Slice 7: Configurable Settings
+### Slice 7: Configurable Settings
 Allow port and other settings via mod options.
 
 **Features:**
-- Custom port (default 9876)
-- Enable/disable specific events
-- Verbosity levels
+- Custom TCP port (default 9876)
+- Custom HTTP port (default 9877)
+- Enable/disable specific event types
+- Verbosity levels for logging
 
 **Implementation:**
 - Use Old World's mod settings system
-- Read from ModSettings in Initialize()
+- Read from ModSettings in `Initialize()`
 
-#### Slice 10: Historical Data
+**Complexity:** Low
+
+---
+
+### Slice 8: WebSocket Support
+Add WebSocket server alongside TCP for browser-based clients.
+
+**Benefits:**
+- Direct browser connectivity (no CORS issues)
+- Built-in message framing
+- Enables web-based overlays and companion apps
+
+**Implementation considerations:**
+- WebSocket handshake and frame encoding
+- May need external library or manual implementation
+- Run alongside existing TCP server
+
+**Complexity:** High
+
+---
+
+### Slice 9: Connection Status Events
+Notify clients of server state changes.
+
+**Events:**
+```json
+{"eventType": "connected", "version": "1.0.0", "serverTime": "2024-01-15T10:30:00Z"}
+{"eventType": "gameLoaded", "saveName": "AutoSave-Turn-50"}
+{"eventType": "gameUnloaded"}
+```
+
+**Benefits:**
+- Clients know when game is loaded/unloaded
+- Version handshake for compatibility checking
+- Better client experience during game transitions
+
+**Complexity:** Low
+
+---
+
+### Slice 10: Historical Data
 Store and query game state history across turns.
 
-**Endpoints:**
+**New HTTP endpoints:**
 ```
 GET /history                      All recorded turn snapshots
 GET /history/{turn}               State at specific turn
@@ -348,7 +114,7 @@ GET /history/player/{index}       Player data across all turns
 GET /history/player/{index}/rates Rate trends for a player
 ```
 
-**Example responses:**
+**Example response:**
 ```json
 // GET /history/player/0/rates
 {
@@ -362,7 +128,7 @@ GET /history/player/{index}/rates Rate trends for a player
 ```
 
 **Implementation approach:**
-- Store snapshots in memory at each turn end (already have the data)
+- Store snapshots in memory at each turn end (data already built)
 - Configurable retention (last N turns, or all)
 - Optional: persist to file for cross-session history
 
@@ -371,43 +137,14 @@ GET /history/player/{index}/rates Rate trends for a player
 - Analyze diplomacy changes
 - Power graphs in companion apps
 
-**Implementation complexity:** Medium
-- Storage is straightforward (list of snapshots)
-- Need to consider memory limits for long games
+**Complexity:** Medium
 
 ---
 
-### Quality of Life
-
-#### Slice 8: WebSocket Support
-Add WebSocket server alongside TCP for browser-based clients.
-
-**Benefits:**
-- Direct browser connectivity
-- Built-in framing (no newline parsing)
-- Enables web-based overlays
-
-**Implementation complexity:** High
-- WebSocket handshake
-- Frame encoding/decoding
-- May need external library
-
-#### Slice 9: Connection Status Event
-Notify clients of server state.
-
-**Events:**
-```json
-{"event": "connected", "version": "0.2.0", "serverTime": "2024-01-15T10:30:00Z"}
-{"event": "gameLoaded", "saveName": "AutoSave-Turn-50"}
-{"event": "gameUnloaded"}
-```
-
----
-
-## Technical Debt & Improvements
+## Technical Debt
 
 ### TCP Framing: Switch to Length-Prefixed
-Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefix per the design doc.
+Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefix.
 
 **Current:** `{"event":"newTurn",...}\n`
 
@@ -426,39 +163,40 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 **Include:** CLI test script (Python) for ad-hoc TCP testing since `nc` won't display length-prefixed messages cleanly.
 
-### JSON Serialization ✓
-~~Currently using string interpolation.~~ Now using Newtonsoft.Json with:
-- Anonymous objects for type-safe serialization
-- `DefaultContractResolver` to preserve exact game type strings
-- Proper escaping and null handling
+---
 
 ### Error Handling
-- More granular error messages
-- Separate error event type
+- More granular error messages in JSON responses
+- Separate error event type for TCP broadcast
+- Consistent error structure across HTTP and TCP
+
+---
 
 ### Logging
-- Configurable log levels
+- Configurable log levels (Debug, Info, Warning, Error)
 - Option to log to file instead of Unity console
+- Log rotation for long sessions
+
+---
 
 ### Testing
 - Unit tests for JSON generation
-- Integration test harness
+- Integration test harness for TCP/HTTP endpoints
+- Automated regression tests for headless mode
 
 ---
 
 ## Priority Recommendations
 
-**Completed:**
-1. ~~Slice 4c (Per-turn rates)~~ - Done
-2. ~~Slice 4d (Diplomacy)~~ - Done
-3. ~~Slice 4e (Tribe Diplomacy)~~ - Done
-4. ~~Slice 6 (HTTP REST)~~ - Done
-5. ~~Slice 5a (Character Events & Extended Data)~~ - Done
-
 **High value, low effort:**
-6. Slice 9 (Connection status) - Simple, improves client experience
-7. Slice 10 (Historical Data) - Store turn snapshots for trend analysis
+1. Slice 9 (Connection status) - Simple, improves client experience
+2. Slice 7 (Configurable settings) - Makes mod more flexible
+
+**Medium effort, good value:**
+3. Slice 10 (Historical data) - Enables trend analysis
+4. Slice 5c (City events) - Common game events
 
 **Lower priority:**
-8. Slice 8 (WebSocket) - Nice to have for browser/web clients
-9. Slice 5b/5c (Military/City Events) - More event types
+5. Slice 8 (WebSocket) - Nice for browser clients, but HTTP REST covers most needs
+6. Slice 5b (Military events) - Complex, may require different hooks
+7. TCP length-prefixed framing - Current approach works, only needed for strict binary safety

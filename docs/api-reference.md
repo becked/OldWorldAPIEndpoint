@@ -1,0 +1,295 @@
+# API Reference
+
+Complete reference for all 16 REST API endpoints on port 9877.
+
+## Base URL
+
+```
+http://localhost:9877
+```
+
+## Endpoints Overview
+
+| Endpoint | Description |
+|----------|-------------|
+| [`GET /state`](#get-state) | Full game state |
+| [`GET /players`](#get-players) | All players |
+| [`GET /player/{index}`](#get-playerindex) | Single player |
+| [`GET /cities`](#get-cities) | All cities |
+| [`GET /city/{id}`](#get-cityid) | Single city |
+| [`GET /characters`](#get-characters) | All characters |
+| [`GET /character/{id}`](#get-characterid) | Single character |
+| [`GET /character-events`](#get-character-events) | Character events |
+| [`GET /unit-events`](#get-unit-events) | Unit events |
+| [`GET /city-events`](#get-city-events) | City events |
+| [`GET /tribes`](#get-tribes) | All tribes |
+| [`GET /tribe/{tribeType}`](#get-tribetribetype) | Single tribe |
+| [`GET /team-diplomacy`](#get-team-diplomacy) | Team relationships |
+| [`GET /team-alliances`](#get-team-alliances) | Team alliances |
+| [`GET /tribe-diplomacy`](#get-tribe-diplomacy) | Tribe relationships |
+| [`GET /tribe-alliances`](#get-tribe-alliances) | Tribe alliances |
+
+---
+
+## State
+
+### GET /state
+
+Returns complete game state with all entities.
+
+**Response:** Full game state including turn, year, players, cities, characters, tribes, and diplomacy.
+
+```bash
+curl localhost:9877/state | jq '{turn, year, playerCount: (.players | length)}'
+```
+
+**Example Response:**
+```json
+{
+  "turn": 5,
+  "year": 5,
+  "currentPlayer": 0,
+  "players": [...],
+  "characters": [...],
+  "cities": [...],
+  "teamDiplomacy": [...],
+  "tribes": [...]
+}
+```
+
+---
+
+## Players
+
+### GET /players
+
+Returns array of all players.
+
+```bash
+curl localhost:9877/players | jq '.[] | {nation, cities, money: .stockpiles.YIELD_MONEY}'
+```
+
+### GET /player/{index}
+
+Returns single player by 0-based index.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | integer | Player index (0-based) |
+
+```bash
+curl localhost:9877/player/0 | jq
+```
+
+**Errors:**
+- `400` - Invalid index format
+- `404` - Player not found
+
+---
+
+## Cities
+
+### GET /cities
+
+Returns array of all cities (~80 fields each).
+
+```bash
+# All capitals
+curl localhost:9877/cities | jq '.[] | select(.isCapital) | {name, nation}'
+
+# Cities building something
+curl localhost:9877/cities | jq '.[] | select(.currentBuild) | {name, building: .currentBuild.itemType}'
+```
+
+### GET /city/{id}
+
+Returns single city by ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | integer | City ID |
+
+```bash
+curl localhost:9877/city/0 | jq '{name, citizens, improvements}'
+```
+
+---
+
+## Characters
+
+### GET /characters
+
+Returns array of all characters (~85 fields each).
+
+```bash
+# All living leaders
+curl localhost:9877/characters | jq '.[] | select(.isLeader and .isAlive) | {name, nation, age}'
+
+# Generals with ratings
+curl localhost:9877/characters | jq '.[] | select(.isGeneral) | {name, ratings}'
+
+# Characters with specific trait
+curl localhost:9877/characters | jq '.[] | select(.traits | index("TRAIT_WARRIOR")) | .name'
+```
+
+### GET /character/{id}
+
+Returns single character by ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | integer | Character ID |
+
+```bash
+curl localhost:9877/character/42 | jq '{name, traits, spouseIds, childrenIds}'
+```
+
+---
+
+## Events
+
+Events are detected by comparing game state between turns.
+
+### GET /character-events
+
+Returns character events from the last turn.
+
+**Event Types:**
+- `characterBorn` - New character born
+- `characterDied` - Character died
+- `leaderChanged` - Nation leader changed
+- `heirChanged` - Nation heir changed
+- `characterMarried` - Two characters married
+
+```bash
+curl localhost:9877/character-events | jq '.[] | select(.eventType == "characterDied")'
+```
+
+### GET /unit-events
+
+Returns unit events from the last turn.
+
+**Event Types:**
+- `unitCreated` - New unit created
+- `unitKilled` - Unit destroyed
+
+```bash
+curl localhost:9877/unit-events | jq
+```
+
+### GET /city-events
+
+Returns city events from the last turn.
+
+**Event Types:**
+- `cityFounded` - New city founded
+- `cityCapture` - City captured
+
+```bash
+curl localhost:9877/city-events | jq
+```
+
+---
+
+## Tribes
+
+### GET /tribes
+
+Returns array of all tribes.
+
+```bash
+curl localhost:9877/tribes | jq '.[] | select(.isAlive) | {type: .tribeType, units: .numUnits}'
+```
+
+### GET /tribe/{tribeType}
+
+Returns single tribe by type string (case-insensitive).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `tribeType` | string | Tribe type (e.g., `TRIBE_GAULS`) |
+
+```bash
+curl localhost:9877/tribe/TRIBE_GAULS | jq
+```
+
+---
+
+## Diplomacy
+
+### GET /team-diplomacy
+
+Returns all directed relationships between teams.
+
+```bash
+# All wars
+curl localhost:9877/team-diplomacy | jq '.[] | select(.diplomacy == "DIPLOMACY_WAR")'
+
+# Who is at war
+curl localhost:9877/team-diplomacy | jq -r '.[] | select(.isHostile) | "Team \(.fromTeam) vs Team \(.toTeam)"'
+```
+
+### GET /team-alliances
+
+Returns all team alliance pairs.
+
+```bash
+curl localhost:9877/team-alliances | jq
+```
+
+### GET /tribe-diplomacy
+
+Returns all directed relationships from tribes to teams.
+
+```bash
+curl localhost:9877/tribe-diplomacy | jq '.[] | select(.isHostile)'
+```
+
+### GET /tribe-alliances
+
+Returns all tribe-to-player alliances.
+
+```bash
+curl localhost:9877/tribe-alliances | jq
+```
+
+---
+
+## Error Responses
+
+All errors return JSON with `error` and `code` fields.
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid parameters |
+| `404` | Not Found - Resource doesn't exist |
+| `405` | Method Not Allowed - Only GET supported |
+| `503` | Service Unavailable - Game not loaded |
+
+**Example:**
+```json
+{
+  "error": "Player not found: 99",
+  "code": 404
+}
+```
+
+---
+
+## CORS Headers
+
+All responses include:
+```
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET
+```
+
+---
+
+## Interactive API
+
+Try the API interactively with [Swagger UI](swagger.html).
+
+## OpenAPI Specification
+
+Download the [OpenAPI 3.0 spec](openapi.yaml) for code generation.

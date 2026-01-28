@@ -1,0 +1,796 @@
+openapi: 3.0.3
+info:
+  title: Old World API
+  description: |
+    REST API for the Old World game mod that exposes game state for companion apps, overlays, and external tools.
+
+    ## Overview
+
+    This API provides read-only access to game state including players, cities, characters, tribes, diplomacy, and events.
+    All data uses game type strings (e.g., `NATION_ROME`, `YIELD_FOOD`) for unambiguous identification.
+
+    ## Connection
+
+    The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
+
+    ## CORS
+
+    All endpoints include CORS headers for browser access:
+    - `Access-Control-Allow-Origin: *`
+    - `Access-Control-Allow-Methods: GET`
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:9877
+    description: Local HTTP REST server
+
+tags:
+  - name: State
+    description: Full game state
+  - name: Players
+    description: Player (nation) data
+  - name: Cities
+    description: City data
+  - name: Characters
+    description: Character data
+  - name: Events
+    description: Turn-based event detection
+  - name: Tribes
+    description: Tribe (barbarian) data
+  - name: Diplomacy
+    description: Diplomatic relationships
+
+paths:
+  /state:
+    get:
+      tags: [State]
+      summary: Get full game state
+      description: Returns comprehensive game state including all players, cities, characters, tribes, and diplomacy.
+      operationId: getState
+      responses:
+        '200':
+          description: Full game state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /players:
+    get:
+      tags: [Players]
+      summary: Get all players
+      description: Returns array of all players with stockpiles and rates.
+      operationId: getPlayers
+      responses:
+        '200':
+          description: Array of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}:
+    get:
+      tags: [Players]
+      summary: Get player by index
+      description: Returns a single player by their 0-based index.
+      operationId: getPlayerByIndex
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Player data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /cities:
+    get:
+      tags: [Cities]
+      summary: Get all cities
+      description: Returns array of all cities with ~80 fields each.
+      operationId: getCities
+      responses:
+        '200':
+          description: Array of cities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /city/{id}:
+    get:
+      tags: [Cities]
+      summary: Get city by ID
+      description: Returns a single city by its unique ID.
+      operationId: getCityById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: City ID
+      responses:
+        '200':
+          description: City data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /characters:
+    get:
+      tags: [Characters]
+      summary: Get all characters
+      description: Returns array of all characters with ~85 fields each.
+      operationId: getCharacters
+      responses:
+        '200':
+          description: Array of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Character'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /character/{id}:
+    get:
+      tags: [Characters]
+      summary: Get character by ID
+      description: Returns a single character by their unique ID.
+      operationId: getCharacterById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      responses:
+        '200':
+          description: Character data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /character-events:
+    get:
+      tags: [Events]
+      summary: Get character events
+      description: Returns character events detected from the last turn (births, deaths, marriages, leadership changes).
+      operationId: getCharacterEvents
+      responses:
+        '200':
+          description: Array of character events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CharacterEvent'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /unit-events:
+    get:
+      tags: [Events]
+      summary: Get unit events
+      description: Returns unit events detected from the last turn (created, killed).
+      operationId: getUnitEvents
+      responses:
+        '200':
+          description: Array of unit events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitEvent'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /city-events:
+    get:
+      tags: [Events]
+      summary: Get city events
+      description: Returns city events detected from the last turn (founded, captured).
+      operationId: getCityEvents
+      responses:
+        '200':
+          description: Array of city events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityEvent'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribes:
+    get:
+      tags: [Tribes]
+      summary: Get all tribes
+      description: Returns array of all tribes with status and alliance data.
+      operationId: getTribes
+      responses:
+        '200':
+          description: Array of tribes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tribe'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribe/{tribeType}:
+    get:
+      tags: [Tribes]
+      summary: Get tribe by type
+      description: Returns a single tribe by its type string (case-insensitive).
+      operationId: getTribeByType
+      parameters:
+        - name: tribeType
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Tribe type (e.g., TRIBE_GAULS)
+          example: TRIBE_GAULS
+      responses:
+        '200':
+          description: Tribe data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tribe'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /team-diplomacy:
+    get:
+      tags: [Diplomacy]
+      summary: Get team diplomacy
+      description: Returns all directed diplomatic relationships between teams.
+      operationId: getTeamDiplomacy
+      responses:
+        '200':
+          description: Array of team diplomacy entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamDiplomacy'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /team-alliances:
+    get:
+      tags: [Diplomacy]
+      summary: Get team alliances
+      description: Returns all team alliance pairs.
+      operationId: getTeamAlliances
+      responses:
+        '200':
+          description: Array of team alliances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamAlliance'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribe-diplomacy:
+    get:
+      tags: [Diplomacy]
+      summary: Get tribe diplomacy
+      description: Returns all directed diplomatic relationships from tribes to teams.
+      operationId: getTribeDiplomacy
+      responses:
+        '200':
+          description: Array of tribe diplomacy entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TribeDiplomacy'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribe-alliances:
+    get:
+      tags: [Diplomacy]
+      summary: Get tribe alliances
+      description: Returns all tribe-to-player alliances.
+      operationId: getTribeAlliances
+      responses:
+        '200':
+          description: Array of tribe alliances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TribeAlliance'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+components:
+  schemas:
+    GameState:
+      type: object
+      description: Complete game state snapshot
+      properties:
+        turn:
+          type: integer
+          description: Current turn number
+        year:
+          type: integer
+          description: Current year
+        currentPlayer:
+          type: integer
+          description: Player index whose turn it is
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Character'
+        cities:
+          type: array
+          items:
+            $ref: '#/components/schemas/City'
+        teamDiplomacy:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamDiplomacy'
+        teamAlliances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamAlliance'
+        tribes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tribe'
+        tribeDiplomacy:
+          type: array
+          items:
+            $ref: '#/components/schemas/TribeDiplomacy'
+        tribeAlliances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TribeAlliance'
+
+    Player:
+      type: object
+      description: A player (nation) in the game
+      properties:
+        index:
+          type: integer
+          description: Player index (0-based)
+        team:
+          type: integer
+          description: Team number
+        nation:
+          type: string
+          description: Nation type (e.g., NATION_ROME)
+        leaderId:
+          type: integer
+          nullable: true
+          description: Current leader character ID
+        cities:
+          type: integer
+          description: Number of cities
+        units:
+          type: integer
+          description: Number of units
+        legitimacy:
+          type: integer
+          description: Current legitimacy
+        stockpiles:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Resource stockpiles by yield type
+        rates:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Per-turn rates by yield type
+
+    City:
+      type: object
+      description: A city with ~80 fields
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        ownerId:
+          type: integer
+        tileId:
+          type: integer
+        x:
+          type: integer
+        y:
+          type: integer
+        nation:
+          type: string
+          nullable: true
+        team:
+          type: integer
+        isCapital:
+          type: boolean
+        isTribe:
+          type: boolean
+        isConnected:
+          type: boolean
+        foundedTurn:
+          type: integer
+        citizens:
+          type: integer
+        hp:
+          type: integer
+        hpMax:
+          type: integer
+        hasBuild:
+          type: boolean
+        currentBuild:
+          $ref: '#/components/schemas/BuildQueueItem'
+        yields:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/YieldDetails'
+        improvements:
+          type: object
+          additionalProperties:
+            type: integer
+
+    Character:
+      type: object
+      description: A character with ~85 fields
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        suffix:
+          type: string
+        gender:
+          type: string
+          enum: [Male, Female]
+        age:
+          type: integer
+        playerId:
+          type: integer
+          nullable: true
+        nation:
+          type: string
+          nullable: true
+        isAlive:
+          type: boolean
+        isDead:
+          type: boolean
+        isLeader:
+          type: boolean
+        isHeir:
+          type: boolean
+        traits:
+          type: array
+          items:
+            type: string
+        ratings:
+          type: object
+          additionalProperties:
+            type: integer
+        spouseIds:
+          type: array
+          items:
+            type: integer
+        childrenIds:
+          type: array
+          items:
+            type: integer
+
+    Tribe:
+      type: object
+      description: A tribe (barbarian faction)
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type (e.g., TRIBE_GAULS)
+        isAlive:
+          type: boolean
+        isDead:
+          type: boolean
+        hasDiplomacy:
+          type: boolean
+        leaderId:
+          type: integer
+          nullable: true
+        hasLeader:
+          type: boolean
+        numUnits:
+          type: integer
+        numCities:
+          type: integer
+        strength:
+          type: integer
+        cityIds:
+          type: array
+          items:
+            type: integer
+        hasPlayerAlly:
+          type: boolean
+        allyPlayerId:
+          type: integer
+          nullable: true
+
+    BuildQueueItem:
+      type: object
+      nullable: true
+      properties:
+        buildType:
+          type: string
+          enum: [UNIT, PROJECT, SPECIALIST]
+        itemType:
+          type: string
+        progress:
+          type: integer
+        threshold:
+          type: integer
+        turnsLeft:
+          type: integer
+        hurried:
+          type: boolean
+
+    YieldDetails:
+      type: object
+      properties:
+        perTurn:
+          type: integer
+        progress:
+          type: integer
+        threshold:
+          type: integer
+        overflow:
+          type: integer
+
+    Location:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        x:
+          type: integer
+        y:
+          type: integer
+
+    CharacterEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          enum: [characterBorn, characterDied, leaderChanged, heirChanged, characterMarried]
+        characterId:
+          type: integer
+        parentIds:
+          type: array
+          items:
+            type: integer
+        deathReason:
+          type: string
+          nullable: true
+        playerId:
+          type: integer
+        newLeaderId:
+          type: integer
+        oldLeaderId:
+          type: integer
+          nullable: true
+
+    UnitEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          enum: [unitCreated, unitKilled]
+        unitId:
+          type: integer
+        unitType:
+          type: string
+        playerId:
+          type: integer
+        lastOwnerId:
+          type: integer
+        location:
+          $ref: '#/components/schemas/Location'
+        lastLocation:
+          $ref: '#/components/schemas/Location'
+
+    CityEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          enum: [cityFounded, cityCapture]
+        cityId:
+          type: integer
+        cityName:
+          type: string
+        playerId:
+          type: integer
+        oldOwnerId:
+          type: integer
+        newOwnerId:
+          type: integer
+        wasTribe:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Location'
+
+    TeamDiplomacy:
+      type: object
+      properties:
+        fromTeam:
+          type: integer
+        toTeam:
+          type: integer
+        diplomacy:
+          type: string
+          nullable: true
+        isHostile:
+          type: boolean
+        isPeace:
+          type: boolean
+        hasContact:
+          type: boolean
+        warScore:
+          type: integer
+        warState:
+          type: string
+          nullable: true
+        conflictTurn:
+          type: integer
+        conflictNumTurns:
+          type: integer
+        diplomacyTurn:
+          type: integer
+        diplomacyNumTurns:
+          type: integer
+
+    TeamAlliance:
+      type: object
+      properties:
+        team:
+          type: integer
+        allyTeam:
+          type: integer
+
+    TribeDiplomacy:
+      type: object
+      properties:
+        tribe:
+          type: string
+        toTeam:
+          type: integer
+        diplomacy:
+          type: string
+          nullable: true
+        isHostile:
+          type: boolean
+        isPeace:
+          type: boolean
+        hasContact:
+          type: boolean
+        warScore:
+          type: integer
+        warState:
+          type: string
+          nullable: true
+
+    TribeAlliance:
+      type: object
+      properties:
+        tribe:
+          type: string
+        allyPlayerId:
+          type: integer
+        allyTeam:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: HTTP status code
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid player index. Use /player/{index}"
+            code: 400
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Player not found: 99"
+            code: 404
+
+    GameNotAvailable:
+      description: Game not loaded or unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Game not available"
+            code: 503

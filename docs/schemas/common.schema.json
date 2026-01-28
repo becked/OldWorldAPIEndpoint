@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Common Definitions",
+  "description": "Shared type definitions for Old World API",
+  "definitions": {
+    "gameTypeString": {
+      "type": "string",
+      "pattern": "^[A-Z]+_[A-Z0-9_]+$",
+      "description": "Game type identifier (e.g., NATION_ROME, YIELD_FOOD, IMPROVEMENT_FARM)",
+      "examples": ["NATION_ROME", "YIELD_FOOD", "TRAIT_WARRIOR", "IMPROVEMENT_FARM"]
+    },
+    "yieldMap": {
+      "type": "object",
+      "description": "Map of yield type strings to integer values",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/gameTypeString"
+      },
+      "examples": [{
+        "YIELD_FOOD": 100,
+        "YIELD_WOOD": 50,
+        "YIELD_STONE": 25
+      }]
+    },
+    "cityYieldDetails": {
+      "type": "object",
+      "description": "Detailed yield information for a city",
+      "properties": {
+        "perTurn": {
+          "type": "integer",
+          "description": "Amount produced per turn"
+        },
+        "progress": {
+          "type": "integer",
+          "description": "Current progress toward threshold"
+        },
+        "threshold": {
+          "type": "integer",
+          "description": "Threshold to trigger effect (e.g., growth, culture level)"
+        },
+        "overflow": {
+          "type": "integer",
+          "description": "Overflow from previous threshold completion"
+        }
+      },
+      "required": ["perTurn", "progress", "threshold", "overflow"]
+    },
+    "location": {
+      "type": "object",
+      "description": "Tile location information",
+      "properties": {
+        "tileId": {
+          "type": "integer",
+          "description": "Unique tile identifier"
+        },
+        "x": {
+          "type": "integer",
+          "description": "X coordinate on the map"
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y coordinate on the map"
+        }
+      },
+      "required": ["tileId", "x", "y"]
+    },
+    "nullableInt": {
+      "type": ["integer", "null"],
+      "description": "Integer that may be null when not applicable"
+    },
+    "nullableString": {
+      "type": ["string", "null"],
+      "description": "String that may be null when not applicable"
+    },
+    "buildQueueItem": {
+      "type": "object",
+      "description": "Item in a city's build queue",
+      "properties": {
+        "buildType": {
+          "type": "string",
+          "enum": ["UNIT", "PROJECT", "SPECIALIST"],
+          "description": "Category of item being built"
+        },
+        "itemType": {
+          "$ref": "#/definitions/gameTypeString",
+          "description": "Specific type being built (e.g., UNIT_WARRIOR)"
+        },
+        "progress": {
+          "type": "integer",
+          "description": "Current production progress"
+        },
+        "threshold": {
+          "type": "integer",
+          "description": "Total production required"
+        },
+        "turnsLeft": {
+          "type": "integer",
+          "description": "Estimated turns until completion"
+        },
+        "hurried": {
+          "type": "boolean",
+          "description": "Whether production was hurried (rushed)"
+        }
+      },
+      "required": ["buildType", "itemType", "progress", "threshold", "turnsLeft", "hurried"]
+    }
+  }
+}

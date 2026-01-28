@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events.schema.json",
+  "title": "Events",
+  "description": "Event types detected by state diffing between turns",
+  "definitions": {
+    "characterBorn": {
+      "type": "object",
+      "description": "A new character was born",
+      "properties": {
+        "eventType": { "const": "characterBorn" },
+        "characterId": { "type": "integer", "description": "ID of the newborn character" },
+        "parentIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "IDs of parents (father, mother)"
+        }
+      },
+      "required": ["eventType", "characterId", "parentIds"]
+    },
+    "characterDied": {
+      "type": "object",
+      "description": "A character died",
+      "properties": {
+        "eventType": { "const": "characterDied" },
+        "characterId": { "type": "integer", "description": "ID of the deceased character" },
+        "deathReason": { "type": ["string", "null"], "description": "Cause of death" }
+      },
+      "required": ["eventType", "characterId"]
+    },
+    "leaderChanged": {
+      "type": "object",
+      "description": "A nation's leader changed",
+      "properties": {
+        "eventType": { "const": "leaderChanged" },
+        "playerId": { "type": "integer", "description": "Player index affected" },
+        "newLeaderId": { "type": "integer", "description": "ID of new leader" },
+        "oldLeaderId": { "type": ["integer", "null"], "description": "ID of previous leader" }
+      },
+      "required": ["eventType", "playerId", "newLeaderId"]
+    },
+    "heirChanged": {
+      "type": "object",
+      "description": "A nation's heir changed",
+      "properties": {
+        "eventType": { "const": "heirChanged" },
+        "playerId": { "type": "integer", "description": "Player index affected" },
+        "newHeirId": { "type": "integer", "description": "ID of new heir" },
+        "oldHeirId": { "type": ["integer", "null"], "description": "ID of previous heir" }
+      },
+      "required": ["eventType", "playerId", "newHeirId"]
+    },
+    "characterMarried": {
+      "type": "object",
+      "description": "Two characters married",
+      "properties": {
+        "eventType": { "const": "characterMarried" },
+        "character1Id": { "type": "integer", "description": "First spouse ID" },
+        "character2Id": { "type": "integer", "description": "Second spouse ID" }
+      },
+      "required": ["eventType", "character1Id", "character2Id"]
+    },
+    "unitCreated": {
+      "type": "object",
+      "description": "A new unit was created",
+      "properties": {
+        "eventType": { "const": "unitCreated" },
+        "unitId": { "type": "integer", "description": "ID of the new unit" },
+        "unitType": { "type": "string", "description": "Unit type (e.g., UNIT_WARRIOR)" },
+        "playerId": { "type": "integer", "description": "Owner player index" },
+        "location": { "$ref": "common.schema.json#/definitions/location" }
+      },
+      "required": ["eventType", "unitId", "unitType", "playerId", "location"]
+    },
+    "unitKilled": {
+      "type": "object",
+      "description": "A unit was destroyed",
+      "properties": {
+        "eventType": { "const": "unitKilled" },
+        "unitId": { "type": "integer", "description": "ID of the destroyed unit" },
+        "unitType": { "type": "string", "description": "Unit type" },
+        "lastOwnerId": { "type": "integer", "description": "Last owner player index" },
+        "lastLocation": { "$ref": "common.schema.json#/definitions/location" }
+      },
+      "required": ["eventType", "unitId", "unitType", "lastOwnerId", "lastLocation"]
+    },
+    "cityFounded": {
+      "type": "object",
+      "description": "A new city was founded",
+      "properties": {
+        "eventType": { "const": "cityFounded" },
+        "cityId": { "type": "integer", "description": "ID of the new city" },
+        "cityName": { "type": "string", "description": "Name of the city" },
+        "playerId": { "type": "integer", "description": "Founding player index" },
+        "location": { "$ref": "common.schema.json#/definitions/location" }
+      },
+      "required": ["eventType", "cityId", "cityName", "playerId", "location"]
+    },
+    "cityCapture": {
+      "type": "object",
+      "description": "A city was captured",
+      "properties": {
+        "eventType": { "const": "cityCapture" },
+        "cityId": { "type": "integer", "description": "ID of the captured city" },
+        "cityName": { "type": "string", "description": "Name of the city" },
+        "oldOwnerId": { "type": "integer", "description": "Previous owner player index" },
+        "newOwnerId": { "type": "integer", "description": "New owner player index" },
+        "wasTribe": { "type": "boolean", "description": "Whether it was a tribal city" }
+      },
+      "required": ["eventType", "cityId", "cityName", "oldOwnerId", "newOwnerId", "wasTribe"]
+    },
+    "wonderCompleted": {
+      "type": "object",
+      "description": "A wonder was completed",
+      "properties": {
+        "eventType": { "const": "wonderCompleted" },
+        "wonder": { "type": "string", "description": "Wonder type (e.g., IMPROVEMENT_GREAT_PYRAMID)" },
+        "cityId": { "type": ["integer", "null"], "description": "City ID where built" },
+        "playerId": { "type": ["integer", "null"], "description": "Player index who built it" },
+        "tribeType": { "type": ["string", "null"], "description": "Tribe type if built by tribe" }
+      },
+      "required": ["eventType", "wonder"]
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/characterBorn" },
+    { "$ref": "#/definitions/characterDied" },
+    { "$ref": "#/definitions/leaderChanged" },
+    { "$ref": "#/definitions/heirChanged" },
+    { "$ref": "#/definitions/characterMarried" },
+    { "$ref": "#/definitions/unitCreated" },
+    { "$ref": "#/definitions/unitKilled" },
+    { "$ref": "#/definitions/cityFounded" },
+    { "$ref": "#/definitions/cityCapture" },
+    { "$ref": "#/definitions/wonderCompleted" }
+  ]
+}

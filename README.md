@@ -4,6 +4,8 @@
 
 A mod for [Old World](https://store.steampowered.com/app/597180/Old_World/) that exposes game state via TCP and HTTP APIs, enabling companion apps, overlays, and external tools.
 
+**[View Full Documentation](https://becked.github.io/OldWorldAPIEndpoint/)** | [API Reference](docs/api-reference.md) | [OpenAPI Spec](docs/openapi.yaml)
+
 ## Features
 
 - **TCP Broadcast (port 9876)** - Push-based: automatically sends game state at each turn end

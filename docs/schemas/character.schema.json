@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "character.schema.json",
+  "title": "Character",
+  "description": "A character in the game with ~85 fields across 24 categories",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique character identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "First name"
+    },
+    "suffix": {
+      "type": "string",
+      "description": "Name suffix (e.g., dynasty name)"
+    },
+    "gender": {
+      "type": "string",
+      "enum": ["Male", "Female"],
+      "description": "Character gender"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current age in years"
+    },
+    "characterType": {
+      "type": ["string", "null"],
+      "description": "Predefined character type (e.g., CHARACTER_CLEOPATRA)"
+    },
+    "playerId": {
+      "type": ["integer", "null"],
+      "description": "Player index this character belongs to"
+    },
+    "nation": {
+      "type": ["string", "null"],
+      "description": "Nation type (e.g., NATION_ROME)"
+    },
+    "tribe": {
+      "type": ["string", "null"],
+      "description": "Tribe type if tribal character"
+    },
+    "isAlive": {
+      "type": "boolean",
+      "description": "Whether the character is alive"
+    },
+    "isDead": {
+      "type": "boolean",
+      "description": "Whether the character is dead"
+    },
+    "isRoyal": {
+      "type": "boolean",
+      "description": "Whether part of the royal family"
+    },
+    "isAdult": {
+      "type": "boolean",
+      "description": "Whether the character is an adult"
+    },
+    "isTemporary": {
+      "type": "boolean",
+      "description": "Whether this is a temporary character"
+    },
+    "isLeader": {
+      "type": "boolean",
+      "description": "Whether currently the nation's leader"
+    },
+    "isHeir": {
+      "type": "boolean",
+      "description": "Whether designated as heir"
+    },
+    "isSuccessor": {
+      "type": "boolean",
+      "description": "Whether a potential successor"
+    },
+    "isLeaderSpouse": {
+      "type": "boolean",
+      "description": "Whether spouse of the leader"
+    },
+    "isHeirSpouse": {
+      "type": "boolean",
+      "description": "Whether spouse of the heir"
+    },
+    "isRegent": {
+      "type": "boolean",
+      "description": "Whether serving as regent"
+    },
+    "job": {
+      "type": ["string", "null"],
+      "description": "Current job type (e.g., JOB_AMBASSADOR)"
+    },
+    "council": {
+      "type": ["string", "null"],
+      "description": "Council position (e.g., COUNCIL_CHANCELLOR)"
+    },
+    "courtier": {
+      "type": ["string", "null"],
+      "description": "Courtier role (e.g., COURTIER_DIPLOMAT)"
+    },
+    "isCityGovernor": {
+      "type": "boolean",
+      "description": "Whether governing a city"
+    },
+    "cityGovernorId": {
+      "type": ["integer", "null"],
+      "description": "ID of city being governed"
+    },
+    "isCityAgent": {
+      "type": "boolean",
+      "description": "Whether an agent in a city"
+    },
+    "cityAgentId": {
+      "type": ["integer", "null"],
+      "description": "ID of city where agent"
+    },
+    "hasUnit": {
+      "type": "boolean",
+      "description": "Whether commanding a unit"
+    },
+    "unitId": {
+      "type": ["integer", "null"],
+      "description": "ID of commanded unit"
+    },
+    "isGeneral": {
+      "type": "boolean",
+      "description": "Whether a general"
+    },
+    "family": {
+      "type": ["string", "null"],
+      "description": "Family type (e.g., FAMILY_CLAUDIUS)"
+    },
+    "familyClass": {
+      "type": ["string", "null"],
+      "description": "Family class (e.g., FAMILYCLASS_LANDOWNERS)"
+    },
+    "isFamilyHead": {
+      "type": "boolean",
+      "description": "Whether head of family"
+    },
+    "religion": {
+      "type": ["string", "null"],
+      "description": "Personal religion"
+    },
+    "isReligionHead": {
+      "type": "boolean",
+      "description": "Whether head of a religion"
+    },
+    "fatherId": {
+      "type": ["integer", "null"],
+      "description": "Character ID of adoptive father"
+    },
+    "motherId": {
+      "type": ["integer", "null"],
+      "description": "Character ID of adoptive mother"
+    },
+    "archetype": {
+      "type": ["string", "null"],
+      "description": "Primary trait/archetype"
+    },
+    "traits": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of trait types (e.g., TRAIT_WARRIOR)"
+    },
+    "ratings": {
+      "type": "object",
+      "description": "Character ratings (RATING_COURAGE, RATING_DISCIPLINE, etc.)",
+      "additionalProperties": { "type": "integer" }
+    },
+    "xp": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Experience points"
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Character level"
+    },
+    "birthTurn": {
+      "type": "integer",
+      "description": "Turn when born"
+    },
+    "deathTurn": {
+      "type": "integer",
+      "description": "Turn when died (-1 if alive)"
+    },
+    "leaderTurn": {
+      "type": "integer",
+      "description": "Turn when became leader (-1 if never)"
+    },
+    "abdicateTurn": {
+      "type": "integer",
+      "description": "Turn when abdicated (-1 if never)"
+    },
+    "regentTurn": {
+      "type": "integer",
+      "description": "Turn when became regent (-1 if never)"
+    },
+    "safeTurn": {
+      "type": "integer",
+      "description": "Turn when became safe from harm"
+    },
+    "nationTurn": {
+      "type": "integer",
+      "description": "Turn when joined nation"
+    },
+    "isInfertile": {
+      "type": "boolean",
+      "description": "Whether infertile"
+    },
+    "isRetired": {
+      "type": "boolean",
+      "description": "Whether retired"
+    },
+    "isAbdicated": {
+      "type": "boolean",
+      "description": "Whether abdicated"
+    },
+    "isOrWasLeader": {
+      "type": "boolean",
+      "description": "Whether is or was a leader"
+    },
+    "isOrWasRegent": {
+      "type": "boolean",
+      "description": "Whether is or was a regent"
+    },
+    "isOrWasLeaderSpouse": {
+      "type": "boolean",
+      "description": "Whether is or was a leader's spouse"
+    },
+    "isSafe": {
+      "type": "boolean",
+      "description": "Whether currently safe"
+    },
+    "birthFatherId": {
+      "type": ["integer", "null"],
+      "description": "Biological father ID"
+    },
+    "birthMotherId": {
+      "type": ["integer", "null"],
+      "description": "Biological mother ID"
+    },
+    "birthCityId": {
+      "type": ["integer", "null"],
+      "description": "City where born"
+    },
+    "spouseIds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "IDs of spouses"
+    },
+    "numSpouses": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of spouses (total)"
+    },
+    "spousesAlive": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of living spouses"
+    },
+    "hasSpouseAlive": {
+      "type": "boolean",
+      "description": "Whether has living spouse"
+    },
+    "hasSpouseForeign": {
+      "type": "boolean",
+      "description": "Whether has foreign spouse"
+    },
+    "hasSpouseTribe": {
+      "type": "boolean",
+      "description": "Whether has tribal spouse"
+    },
+    "childrenIds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "IDs of children"
+    },
+    "numChildren": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of children"
+    },
+    "wasReligionHead": {
+      "type": ["string", "null"],
+      "description": "Former religion head position"
+    },
+    "wasFamilyHead": {
+      "type": ["string", "null"],
+      "description": "Former family head position"
+    },
+    "deadCouncil": {
+      "type": ["string", "null"],
+      "description": "Council position at death"
+    },
+    "deathReason": {
+      "type": ["string", "null"],
+      "description": "Cause of death"
+    },
+    "title": {
+      "type": ["string", "null"],
+      "description": "Title (e.g., TITLE_AUGUSTUS)"
+    },
+    "cognomen": {
+      "type": ["string", "null"],
+      "description": "Cognomen (e.g., COGNOMEN_GREAT)"
+    },
+    "nickname": {
+      "type": ["string", "null"],
+      "description": "Nickname text"
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Character relationships",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Relationship type (e.g., RELATIONSHIP_FRIEND)" },
+          "characterId": { "type": "integer", "description": "Related character ID" }
+        },
+        "required": ["type", "characterId"]
+      }
+    },
+    "opinions": {
+      "type": "object",
+      "description": "Opinions towards players (keyed by player index)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "opinion": { "type": ["string", "null"], "description": "Opinion type" },
+          "rate": { "type": "integer", "description": "Opinion change rate" }
+        }
+      }
+    }
+  },
+  "required": [
+    "id", "name", "gender", "age", "isAlive", "isDead",
+    "isRoyal", "isAdult", "isLeader", "isHeir", "traits", "ratings"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "player.schema.json",
+  "title": "Player",
+  "description": "A player (nation) in the game",
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Player index (0-based, used for lookups)"
+    },
+    "team": {
+      "type": "integer",
+      "description": "Team number this player belongs to"
+    },
+    "nation": {
+      "$ref": "common.schema.json#/definitions/gameTypeString",
+      "description": "Nation type (e.g., NATION_ROME, NATION_GREECE)"
+    },
+    "leaderId": {
+      "type": ["integer", "null"],
+      "description": "Character ID of the current leader, or null if none"
+    },
+    "cities": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of cities owned"
+    },
+    "units": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of units controlled"
+    },
+    "legitimacy": {
+      "type": "integer",
+      "description": "Current legitimacy value"
+    },
+    "stockpiles": {
+      "$ref": "common.schema.json#/definitions/yieldMap",
+      "description": "Current resource stockpiles keyed by yield type"
+    },
+    "rates": {
+      "$ref": "common.schema.json#/definitions/yieldMap",
+      "description": "Per-turn resource rates keyed by yield type"
+    }
+  },
+  "required": [
+    "index",
+    "team",
+    "nation",
+    "cities",
+    "units",
+    "legitimacy",
+    "stockpiles",
+    "rates"
+  ],
+  "examples": [{
+    "index": 0,
+    "team": 0,
+    "nation": "NATION_ROME",
+    "leaderId": 42,
+    "cities": 5,
+    "units": 12,
+    "legitimacy": 100,
+    "stockpiles": {
+      "YIELD_FOOD": 500,
+      "YIELD_WOOD": 250,
+      "YIELD_STONE": 100,
+      "YIELD_IRON": 50,
+      "YIELD_MONEY": 300
+    },
+    "rates": {
+      "YIELD_FOOD": 25,
+      "YIELD_SCIENCE": 15,
+      "YIELD_CIVICS": 10
+    }
+  }]
+}

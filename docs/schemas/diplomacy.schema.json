@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diplomacy.schema.json",
+  "title": "Diplomacy",
+  "description": "Diplomatic relationships between teams and tribes",
+  "definitions": {
+    "teamDiplomacy": {
+      "type": "object",
+      "description": "Directed diplomatic relationship from one team to another",
+      "properties": {
+        "fromTeam": {
+          "type": "integer",
+          "description": "Source team number"
+        },
+        "toTeam": {
+          "type": "integer",
+          "description": "Target team number"
+        },
+        "diplomacy": {
+          "type": ["string", "null"],
+          "description": "Diplomacy state (e.g., DIPLOMACY_PEACE, DIPLOMACY_WAR, DIPLOMACY_TRUCE)"
+        },
+        "isHostile": {
+          "type": "boolean",
+          "description": "Whether in a hostile state"
+        },
+        "isPeace": {
+          "type": "boolean",
+          "description": "Whether at peace"
+        },
+        "hasContact": {
+          "type": "boolean",
+          "description": "Whether teams have made contact"
+        },
+        "warScore": {
+          "type": "integer",
+          "description": "Current war score"
+        },
+        "warState": {
+          "type": ["string", "null"],
+          "description": "War state type"
+        },
+        "conflictTurn": {
+          "type": "integer",
+          "description": "Turn when conflict began"
+        },
+        "conflictNumTurns": {
+          "type": "integer",
+          "description": "Number of turns in conflict"
+        },
+        "diplomacyTurn": {
+          "type": "integer",
+          "description": "Turn when current diplomacy state began"
+        },
+        "diplomacyNumTurns": {
+          "type": "integer",
+          "description": "Turns in current diplomacy state"
+        },
+        "diplomacyBlockTurn": {
+          "type": "integer",
+          "description": "Turn when diplomacy was blocked"
+        },
+        "diplomacyBlockTurns": {
+          "type": "integer",
+          "description": "Turns remaining on diplomacy block"
+        }
+      },
+      "required": [
+        "fromTeam", "toTeam", "isHostile", "isPeace", "hasContact",
+        "warScore", "conflictTurn", "conflictNumTurns",
+        "diplomacyTurn", "diplomacyNumTurns", "diplomacyBlockTurn", "diplomacyBlockTurns"
+      ]
+    },
+    "teamAlliance": {
+      "type": "object",
+      "description": "Alliance between two teams",
+      "properties": {
+        "team": {
+          "type": "integer",
+          "description": "Team number"
+        },
+        "allyTeam": {
+          "type": "integer",
+          "description": "Allied team number"
+        }
+      },
+      "required": ["team", "allyTeam"]
+    },
+    "tribeDiplomacy": {
+      "type": "object",
+      "description": "Directed diplomatic relationship from a tribe to a team",
+      "properties": {
+        "tribe": {
+          "$ref": "common.schema.json#/definitions/gameTypeString",
+          "description": "Tribe type (e.g., TRIBE_GAULS)"
+        },
+        "toTeam": {
+          "type": "integer",
+          "description": "Target team number"
+        },
+        "diplomacy": {
+          "type": ["string", "null"],
+          "description": "Diplomacy state"
+        },
+        "isHostile": {
+          "type": "boolean",
+          "description": "Whether in a hostile state"
+        },
+        "isPeace": {
+          "type": "boolean",
+          "description": "Whether at peace"
+        },
+        "hasContact": {
+          "type": "boolean",
+          "description": "Whether tribe and team have contact"
+        },
+        "warScore": {
+          "type": "integer",
+          "description": "Current war score"
+        },
+        "warState": {
+          "type": ["string", "null"],
+          "description": "War state type"
+        },
+        "conflictTurn": {
+          "type": "integer",
+          "description": "Turn when conflict began"
+        },
+        "conflictNumTurns": {
+          "type": "integer",
+          "description": "Turns in conflict"
+        },
+        "diplomacyTurn": {
+          "type": "integer",
+          "description": "Turn when current diplomacy began"
+        },
+        "diplomacyNumTurns": {
+          "type": "integer",
+          "description": "Turns in current diplomacy state"
+        },
+        "diplomacyBlockTurn": {
+          "type": "integer",
+          "description": "Turn when diplomacy was blocked"
+        },
+        "diplomacyBlockTurns": {
+          "type": "integer",
+          "description": "Turns remaining on block"
+        }
+      },
+      "required": [
+        "tribe", "toTeam", "isHostile", "isPeace", "hasContact",
+        "warScore", "conflictTurn", "conflictNumTurns",
+        "diplomacyTurn", "diplomacyNumTurns", "diplomacyBlockTurn", "diplomacyBlockTurns"
+      ]
+    },
+    "tribeAlliance": {
+      "type": "object",
+      "description": "Alliance between a tribe and a player",
+      "properties": {
+        "tribe": {
+          "$ref": "common.schema.json#/definitions/gameTypeString",
+          "description": "Tribe type"
+        },
+        "allyPlayerId": {
+          "type": "integer",
+          "description": "Allied player index"
+        },
+        "allyTeam": {
+          "type": "integer",
+          "description": "Allied team number"
+        }
+      },
+      "required": ["tribe", "allyPlayerId", "allyTeam"]
+    }
+  }
+}

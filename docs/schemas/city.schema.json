@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "city.schema.json",
+  "title": "City",
+  "description": "A city in the game with ~80 fields across 20 categories",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique city identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "City name"
+    },
+    "ownerId": {
+      "type": "integer",
+      "description": "Player index of the owner"
+    },
+    "tileId": {
+      "type": "integer",
+      "description": "Tile ID where the city center is located"
+    },
+    "x": {
+      "type": "integer",
+      "description": "X coordinate on the map"
+    },
+    "y": {
+      "type": "integer",
+      "description": "Y coordinate on the map"
+    },
+    "nation": {
+      "type": ["string", "null"],
+      "description": "Nation type of the city (e.g., NATION_ROME)"
+    },
+    "team": {
+      "type": "integer",
+      "description": "Team number"
+    },
+    "isCapital": {
+      "type": "boolean",
+      "description": "Whether this is the nation's capital"
+    },
+    "isTribe": {
+      "type": "boolean",
+      "description": "Whether this is a tribal city"
+    },
+    "isConnected": {
+      "type": "boolean",
+      "description": "Whether connected to the trade network"
+    },
+    "foundedTurn": {
+      "type": "integer",
+      "description": "Turn number when the city was founded"
+    },
+    "citizens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of citizen population"
+    },
+    "hp": {
+      "type": "integer",
+      "description": "Current hit points"
+    },
+    "hpMax": {
+      "type": "integer",
+      "description": "Maximum hit points"
+    },
+    "damage": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current damage taken"
+    },
+    "strength": {
+      "type": "integer",
+      "description": "Defensive strength"
+    },
+    "captureTurns": {
+      "type": "integer",
+      "description": "Turns until capture completes (0 if not being captured)"
+    },
+    "hasCapturePlayer": {
+      "type": "boolean",
+      "description": "Whether a player is capturing this city"
+    },
+    "hasCaptureTribe": {
+      "type": "boolean",
+      "description": "Whether a tribe is capturing this city"
+    },
+    "assimilateTurns": {
+      "type": "integer",
+      "description": "Turns until assimilation completes"
+    },
+    "governorId": {
+      "type": ["integer", "null"],
+      "description": "Character ID of the governor, or null"
+    },
+    "hasGovernor": {
+      "type": "boolean",
+      "description": "Whether the city has a governor assigned"
+    },
+    "family": {
+      "type": ["string", "null"],
+      "description": "Family type (e.g., FAMILY_CLAUDIUS)"
+    },
+    "hasFamily": {
+      "type": "boolean",
+      "description": "Whether a family controls this city"
+    },
+    "isFamilySeat": {
+      "type": "boolean",
+      "description": "Whether this is a family seat"
+    },
+    "culture": {
+      "type": ["string", "null"],
+      "description": "Culture level (e.g., CULTURE_DEVELOPING)"
+    },
+    "cultureStep": {
+      "type": "integer",
+      "description": "Progress within current culture level"
+    },
+    "religions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of religions present (e.g., RELIGION_CHRISTIANITY)"
+    },
+    "religionCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of religions in the city"
+    },
+    "hasStateReligion": {
+      "type": "boolean",
+      "description": "Whether the state religion is present"
+    },
+    "holyCity": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Religions for which this is a holy city"
+    },
+    "isReligionHolyCityAny": {
+      "type": "boolean",
+      "description": "Whether this is a holy city for any religion"
+    },
+    "hasBuild": {
+      "type": "boolean",
+      "description": "Whether something is being built"
+    },
+    "buildCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of items in build queue"
+    },
+    "currentBuild": {
+      "oneOf": [
+        { "$ref": "common.schema.json#/definitions/buildQueueItem" },
+        { "type": "null" }
+      ],
+      "description": "Current item being built, or null"
+    },
+    "buildQueue": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/definitions/buildQueueItem" },
+      "description": "Full build queue"
+    },
+    "yields": {
+      "type": "object",
+      "description": "Per-yield production details",
+      "additionalProperties": {
+        "$ref": "common.schema.json#/definitions/cityYieldDetails"
+      }
+    },
+    "specialistCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of specialists in the city"
+    },
+    "improvements": {
+      "type": "object",
+      "description": "Count of each improvement type",
+      "additionalProperties": { "type": "integer" }
+    },
+    "improvementClasses": {
+      "type": "object",
+      "description": "Count of improvements by class",
+      "additionalProperties": { "type": "integer" }
+    },
+    "projects": {
+      "type": "object",
+      "description": "Count of each project type",
+      "additionalProperties": { "type": "integer" }
+    },
+    "tradeNetwork": {
+      "type": "integer",
+      "description": "Trade network identifier"
+    },
+    "luxuryCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of luxury resources"
+    },
+    "happinessLevel": {
+      "type": "integer",
+      "description": "Current happiness level"
+    },
+    "improvementCostModifier": {
+      "type": "integer",
+      "description": "Modifier to improvement costs (percentage)"
+    },
+    "specialistCostModifier": {
+      "type": "integer",
+      "description": "Modifier to specialist costs (percentage)"
+    },
+    "projectCostModifier": {
+      "type": "integer",
+      "description": "Modifier to project costs (percentage)"
+    },
+    "urbanTiles": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of urban tiles"
+    },
+    "territoryTileCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total tiles in territory"
+    },
+    "raidedTurn": {
+      "type": "integer",
+      "description": "Turn when last raided (-1 if never)"
+    },
+    "buyTileCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of tiles that can be purchased"
+    }
+  },
+  "required": [
+    "id", "name", "ownerId", "tileId", "x", "y", "team",
+    "isCapital", "isTribe", "isConnected", "foundedTurn", "citizens",
+    "hp", "hpMax", "damage", "strength", "hasBuild", "buildCount"
+  ]
+}

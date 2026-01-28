@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tribe.schema.json",
+  "title": "Tribe",
+  "description": "A tribe (barbarian or minor civilization) in the game",
+  "type": "object",
+  "properties": {
+    "tribeType": {
+      "$ref": "common.schema.json#/definitions/gameTypeString",
+      "description": "Tribe type identifier (e.g., TRIBE_GAULS, TRIBE_BERBERS)"
+    },
+    "isAlive": {
+      "type": "boolean",
+      "description": "Whether the tribe is still active"
+    },
+    "isDead": {
+      "type": "boolean",
+      "description": "Whether the tribe has been eliminated"
+    },
+    "hasDiplomacy": {
+      "type": "boolean",
+      "description": "Whether this tribe type supports diplomacy"
+    },
+    "leaderId": {
+      "type": ["integer", "null"],
+      "description": "Character ID of the tribe leader"
+    },
+    "hasLeader": {
+      "type": "boolean",
+      "description": "Whether the tribe has a named leader"
+    },
+    "religion": {
+      "type": ["string", "null"],
+      "description": "Tribe's religion type"
+    },
+    "hasReligion": {
+      "type": "boolean",
+      "description": "Whether the tribe follows a religion"
+    },
+    "allyPlayerId": {
+      "type": ["integer", "null"],
+      "description": "Player index of ally"
+    },
+    "allyTeam": {
+      "type": ["integer", "null"],
+      "description": "Team number of ally"
+    },
+    "hasPlayerAlly": {
+      "type": "boolean",
+      "description": "Whether allied with a player"
+    },
+    "numUnits": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of units the tribe controls"
+    },
+    "numCities": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of cities the tribe controls"
+    },
+    "strength": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Calculated military strength"
+    },
+    "cityIds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "IDs of cities controlled by this tribe"
+    },
+    "settlementTileIds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "Tile IDs of tribal settlements"
+    },
+    "numTribeImprovements": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of tribe-specific improvements"
+    }
+  },
+  "required": [
+    "tribeType",
+    "isAlive",
+    "isDead",
+    "hasDiplomacy",
+    "hasLeader",
+    "hasReligion",
+    "hasPlayerAlly",
+    "numUnits",
+    "numCities",
+    "strength",
+    "cityIds",
+    "settlementTileIds",
+    "numTribeImprovements"
+  ],
+  "examples": [{
+    "tribeType": "TRIBE_GAULS",
+    "isAlive": true,
+    "isDead": false,
+    "hasDiplomacy": true,
+    "leaderId": 150,
+    "hasLeader": true,
+    "religion": "RELIGION_DRUIDISM",
+    "hasReligion": true,
+    "allyPlayerId": null,
+    "allyTeam": null,
+    "hasPlayerAlly": false,
+    "numUnits": 8,
+    "numCities": 2,
+    "strength": 45,
+    "cityIds": [10, 12],
+    "settlementTileIds": [500, 501, 502],
+    "numTribeImprovements": 3
+  }]
+}

@@ -845,6 +845,639 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Unit Data Methods
+
+        /// <summary>
+        /// Build list of unit objects for JSON serialization.
+        /// </summary>
+        public static List<object> BuildUnitsObject(Game game)
+        {
+            Infos infos = game.infos();
+            var unitList = new List<object>();
+
+            try
+            {
+                var units = game.getUnits();
+                foreach (var unit in units)
+                {
+                    if (unit == null || unit.isDead()) continue;
+                    try
+                    {
+                        unitList.Add(BuildUnitObject(unit, game, infos));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building unit {unit.getID()}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error getting units: {ex.Message}");
+            }
+
+            return unitList;
+        }
+
+        /// <summary>
+        /// Build list of unit objects for a specific player.
+        /// </summary>
+        public static List<object> BuildPlayerUnitsObject(Game game, int playerIndex)
+        {
+            Infos infos = game.infos();
+            var unitList = new List<object>();
+
+            try
+            {
+                var units = game.getUnits();
+                foreach (var unit in units)
+                {
+                    if (unit == null || unit.isDead()) continue;
+                    if (!unit.hasPlayer()) continue;
+                    if ((int)unit.getPlayer() != playerIndex) continue;
+
+                    try
+                    {
+                        unitList.Add(BuildUnitObject(unit, game, infos));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[APIEndpoint] Error building unit {unit.getID()}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error getting player units: {ex.Message}");
+            }
+
+            return unitList;
+        }
+
+        /// <summary>
+        /// Build a single unit object with all field groups.
+        /// </summary>
+        public static object BuildUnitObject(Unit unit, Game game, Infos infos)
+        {
+            var tile = unit.tile();
+            var unitInfo = infos.unit(unit.getType());
+
+            // Build base object with confirmed methods
+            var baseData = new Dictionary<string, object>
+            {
+                // 1. Identity
+                ["id"] = unit.getID(),
+                ["unitType"] = unitInfo?.mzType,
+
+                // 2. Ownership
+                ["ownerId"] = unit.hasPlayer() ? (int?)unit.getPlayer() : null,
+
+                // 3. Position
+                ["tileId"] = tile?.getID() ?? -1,
+                ["x"] = tile?.getX() ?? 0,
+                ["y"] = tile?.getY() ?? 0,
+
+                // 4. Health (base)
+                ["hp"] = unit.getHP(),
+
+                // 5. Status (base)
+                ["isAlive"] = !unit.isDead()
+            };
+
+            // Try to add additional fields that may exist
+            TryAddUnitField(baseData, "hpMax", () => unit.getHPMax());
+            TryAddUnitField(baseData, "damage", () => unit.getDamage());
+            TryAddUnitField(baseData, "xp", () => unit.getXP());
+            TryAddUnitField(baseData, "level", () => unit.getLevel());
+            TryAddUnitField(baseData, "turnSteps", () => unit.getTurnSteps());
+            TryAddUnitField(baseData, "cooldownTurns", () => unit.getCooldownTurns());
+            TryAddUnitField(baseData, "fortifyTurns", () => unit.getFortifyTurns());
+            TryAddUnitField(baseData, "createTurn", () => unit.getCreateTurn());
+
+            // Character attachments
+            TryAddUnitField(baseData, "generalId", () => unit.hasGeneral() ? (int?)unit.getGeneralID() : null);
+            TryAddUnitField(baseData, "hasGeneral", () => unit.hasGeneral());
+
+            // Note: Tribe ownership fields (hasTribe, getTribe) not available in public API
+
+            // Status flags
+            TryAddUnitField(baseData, "isSleep", () => unit.isSleep());
+            TryAddUnitField(baseData, "isSentry", () => unit.isSentry());
+            TryAddUnitField(baseData, "isPass", () => unit.isPass());
+
+            // Family
+            TryAddUnitField(baseData, "family", () => unit.hasFamily() ? infos.family(unit.getFamily())?.mzType : null);
+            TryAddUnitField(baseData, "hasFamily", () => unit.hasFamily());
+
+            // Religion
+            TryAddUnitField(baseData, "religion", () => unit.hasReligion() ? infos.religion(unit.getReligion())?.mzType : null);
+            TryAddUnitField(baseData, "hasReligion", () => unit.hasReligion());
+
+            // Promotions
+            TryAddUnitField(baseData, "promotions", () => GetUnitPromotions(unit, infos));
+
+            return baseData;
+        }
+
+        #region Unit Helper Methods
+
+        private static void TryAddUnitField(Dictionary<string, object> data, string key, Func<object> getValue)
+        {
+            try
+            {
+                data[key] = getValue();
+            }
+            catch
+            {
+                // Method doesn't exist or failed - skip this field
+            }
+        }
+
+        private static List<string> GetUnitPromotions(Unit unit, Infos infos)
+        {
+            var promotions = new List<string>();
+            try
+            {
+                int count = (int)infos.promotionsNum();
+                for (int p = 0; p < count; p++)
+                {
+                    var promoType = (PromotionType)p;
+                    if (unit.hasPromotion(promoType))
+                    {
+                        var promoName = infos.promotion(promoType)?.mzType;
+                        if (promoName != null)
+                            promotions.Add(promoName);
+                    }
+                }
+            }
+            catch { }
+            return promotions;
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Player Extension Methods
+
+        /// <summary>
+        /// Build player technology state for JSON serialization.
+        /// </summary>
+        public static object BuildPlayerTechs(Player player, Game game, Infos infos)
+        {
+            var data = new Dictionary<string, object>();
+
+            try
+            {
+                // Current research
+                var researching = player.getTechResearching();
+                data["researching"] = researching != TechType.NONE ? infos.tech(researching)?.mzType : null;
+
+                // Progress and status per tech
+                var progress = new Dictionary<string, int>();
+                var researched = new List<string>();
+                var available = new List<string>();
+
+                int techCount = (int)infos.techsNum();
+                for (int t = 0; t < techCount; t++)
+                {
+                    var techType = (TechType)t;
+                    var techInfo = infos.tech(techType);
+                    if (techInfo == null) continue;
+
+                    string techName = techInfo.mzType;
+
+                    try
+                    {
+                        int prog = player.getTechProgress(techType);
+                        if (prog > 0)
+                            progress[techName] = prog;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        if (player.isTechAcquired(techType))
+                            researched.Add(techName);
+                    }
+                    catch { }
+
+                    try
+                    {
+                        if (player.isTechAvailable(techType))
+                            available.Add(techName);
+                    }
+                    catch { }
+                }
+
+                data["progress"] = progress;
+                data["researched"] = researched;
+                data["available"] = available;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player techs: {ex.Message}");
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// Build player family relationships for JSON serialization.
+        /// Note: Limited data available from public API
+        /// </summary>
+        public static object BuildPlayerFamilies(Player player, Game game, Infos infos)
+        {
+            var families = new List<object>();
+
+            try
+            {
+                int familyCount = (int)infos.familiesNum();
+                for (int f = 0; f < familyCount; f++)
+                {
+                    var familyType = (FamilyType)f;
+                    var familyInfo = infos.family(familyType);
+                    if (familyInfo == null) continue;
+
+                    var familyData = new Dictionary<string, object>
+                    {
+                        ["family"] = familyInfo.mzType
+                    };
+
+                    // Try to get opinion rate - may not be available
+                    try
+                    {
+                        familyData["opinionRate"] = player.getFamilyOpinionRate(familyType);
+                    }
+                    catch { }
+
+                    // Only add if we got some data
+                    if (familyData.Count > 1)
+                        families.Add(familyData);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player families: {ex.Message}");
+            }
+
+            return new { families };
+        }
+
+        /// <summary>
+        /// Build player religion state for JSON serialization.
+        /// </summary>
+        public static object BuildPlayerReligion(Player player, Game game, Infos infos)
+        {
+            var data = new Dictionary<string, object>();
+
+            try
+            {
+                // State religion
+                try
+                {
+                    var stateReligion = player.getStateReligion();
+                    data["stateReligion"] = stateReligion != ReligionType.NONE ? infos.religion(stateReligion)?.mzType : null;
+                }
+                catch { data["stateReligion"] = null; }
+
+                // Religion counts
+                var religionCounts = new Dictionary<string, int>();
+                int religionCount = (int)infos.religionsNum();
+                for (int r = 0; r < religionCount; r++)
+                {
+                    var relType = (ReligionType)r;
+                    try
+                    {
+                        int count = player.getReligionCount(relType);
+                        if (count > 0)
+                        {
+                            var relInfo = infos.religion(relType);
+                            if (relInfo != null)
+                                religionCounts[relInfo.mzType] = count;
+                        }
+                    }
+                    catch { }
+                }
+                data["religionCounts"] = religionCounts;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player religion: {ex.Message}");
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// Build player goals and ambitions for JSON serialization.
+        /// Note: Goal data is not accessible from public API - returns empty structure
+        /// </summary>
+        public static object BuildPlayerGoals(Player player, Game game, Infos infos)
+        {
+            // Goal data (getGoalDataList) is protected - cannot access
+            return new
+            {
+                goals = new List<object>(),
+                note = "Goal data not accessible from mod API"
+            };
+        }
+
+        /// <summary>
+        /// Build player pending decisions for JSON serialization.
+        /// Note: Decision data is not accessible from public API - returns empty structure
+        /// </summary>
+        public static object BuildPlayerDecisions(Player player, Game game, Infos infos)
+        {
+            // Decision data (getDecisionList) is protected - cannot access
+            return new
+            {
+                decisions = new List<object>(),
+                note = "Decision data not accessible from mod API"
+            };
+        }
+
+        /// <summary>
+        /// Build player laws state for JSON serialization.
+        /// Note: Law data not accessible from mod API
+        /// </summary>
+        public static object BuildPlayerLaws(Player player, Game game, Infos infos)
+        {
+            // isLaw method is not available in public API
+            return new
+            {
+                activeLaws = new Dictionary<string, string>(),
+                note = "Law data not accessible from mod API"
+            };
+        }
+
+        /// <summary>
+        /// Build player missions state for JSON serialization.
+        /// Note: Mission data not accessible from mod API
+        /// </summary>
+        public static object BuildPlayerMissions(Player player, Game game, Infos infos)
+        {
+            return new
+            {
+                missions = new List<object>(),
+                note = "Mission data not accessible from mod API"
+            };
+        }
+
+        /// <summary>
+        /// Build player resources/luxuries state for JSON serialization.
+        /// Note: Resource count data not accessible from mod API
+        /// </summary>
+        public static object BuildPlayerResources(Player player, Game game, Infos infos)
+        {
+            // countResource method is not available in public API
+            return new
+            {
+                luxuries = new Dictionary<string, int>(),
+                resources = new Dictionary<string, int>(),
+                note = "Resource data not accessible from mod API"
+            };
+        }
+
+        #endregion
+
+        #region Global Data Methods
+
+        /// <summary>
+        /// Build global religions state for JSON serialization.
+        /// </summary>
+        public static object BuildReligionsObject(Game game)
+        {
+            Infos infos = game.infos();
+            var religions = new List<object>();
+
+            try
+            {
+                int religionCount = (int)infos.religionsNum();
+                for (int r = 0; r < religionCount; r++)
+                {
+                    var religionType = (ReligionType)r;
+                    var religionInfo = infos.religion(religionType);
+                    if (religionInfo == null) continue;
+
+                    var religionData = new Dictionary<string, object>
+                    {
+                        ["religionType"] = religionInfo.mzType
+                    };
+
+                    // Try to get founded status
+                    try { religionData["isFounded"] = game.isReligionFounded(religionType); } catch { }
+
+                    // Try to get head character
+                    try
+                    {
+                        var head = game.religionHead(religionType);
+                        religionData["headCharacterId"] = head?.getID();
+                    }
+                    catch { }
+
+                    // Try to get holy city
+                    try
+                    {
+                        var holyCity = game.religionHolyCity(religionType);
+                        religionData["holyCityId"] = holyCity?.getID();
+                    }
+                    catch { }
+
+                    religions.Add(religionData);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building religions: {ex.Message}");
+            }
+
+            return religions;
+        }
+
+        /// <summary>
+        /// Build map metadata for JSON serialization.
+        /// </summary>
+        public static object BuildMapObject(Game game)
+        {
+            var data = new Dictionary<string, object>();
+
+            // Note: getMapWidth/getMapHeight not available in public API
+            // Using numTiles as primary dimension indicator
+            try { data["numTiles"] = game.getNumTiles(); } catch { }
+
+            return data;
+        }
+
+        /// <summary>
+        /// Build paginated tiles list for JSON serialization.
+        /// </summary>
+        public static object BuildTilesObjectPaginated(Game game, int offset, int limit)
+        {
+            Infos infos = game.infos();
+            var tiles = new List<object>();
+            int total = 0;
+
+            try
+            {
+                var allTiles = game.allTiles();
+                if (allTiles != null)
+                {
+                    var tileList = new List<Tile>(allTiles);
+                    total = tileList.Count;
+                    int end = Math.Min(offset + limit, total);
+
+                    for (int i = offset; i < end; i++)
+                    {
+                        try
+                        {
+                            var tile = tileList[i];
+                            if (tile != null)
+                                tiles.Add(BuildTileObject(tile, game, infos));
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building tiles: {ex.Message}");
+            }
+
+            return new
+            {
+                tiles,
+                pagination = new
+                {
+                    offset,
+                    limit,
+                    total,
+                    hasMore = offset + limit < total
+                }
+            };
+        }
+
+        /// <summary>
+        /// Build a single tile object.
+        /// </summary>
+        public static object BuildTileObject(Tile tile, Game game, Infos infos)
+        {
+            var data = new Dictionary<string, object>
+            {
+                ["id"] = tile.getID(),
+                ["x"] = tile.getX(),
+                ["y"] = tile.getY()
+            };
+
+            // Geography
+            try { data["terrain"] = infos.terrain(tile.getTerrain())?.mzType; } catch { }
+            try { data["height"] = infos.height(tile.getHeight())?.mzType; } catch { }
+            try
+            {
+                if (tile.hasVegetation())
+                    data["vegetation"] = infos.vegetation(tile.getVegetation())?.mzType;
+            }
+            catch { }
+            try
+            {
+                if (tile.hasResource())
+                    data["resource"] = infos.resource(tile.getResource())?.mzType;
+            }
+            catch { }
+
+            // Infrastructure
+            // Note: hasRoad() not available in public API
+            try
+            {
+                if (tile.hasImprovement())
+                    data["improvement"] = infos.improvement(tile.getImprovement())?.mzType;
+            }
+            catch { }
+            try { data["isPillaged"] = tile.isPillaged(); } catch { }
+
+            // Ownership
+            try { data["ownerId"] = tile.hasOwner() ? (int?)tile.getOwner() : null; } catch { }
+            try { data["cityId"] = tile.hasCity() ? (int?)tile.getCityID() : null; } catch { }
+            try { data["cityTerritoryId"] = tile.hasCityTerritory() ? (int?)tile.getCityTerritory() : null; } catch { }
+
+            // Note: tile.getUnits() is protected - unitIds not available
+
+            return data;
+        }
+
+        /// <summary>
+        /// Get a single tile by ID.
+        /// </summary>
+        public static object GetTileById(Game game, int tileId)
+        {
+            try
+            {
+                // Try direct access first
+                var tile = game.tile(tileId);
+                if (tile != null)
+                    return BuildTileObject(tile, game, game.infos());
+            }
+            catch { }
+
+            // Fallback to iterating all tiles
+            try
+            {
+                foreach (var tile in game.allTiles())
+                {
+                    if (tile != null && tile.getID() == tileId)
+                        return BuildTileObject(tile, game, game.infos());
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// Get a single tile by coordinates.
+        /// </summary>
+        public static object GetTileByCoords(Game game, int x, int y)
+        {
+            try
+            {
+                // Try grid access first
+                var tile = game.tileGrid(x, y);
+                if (tile != null)
+                    return BuildTileObject(tile, game, game.infos());
+            }
+            catch { }
+
+            // Fallback to iterating all tiles
+            try
+            {
+                foreach (var tile in game.allTiles())
+                {
+                    if (tile != null && tile.getX() == x && tile.getY() == y)
+                        return BuildTileObject(tile, game, game.infos());
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// Build game configuration for JSON serialization.
+        /// </summary>
+        public static object BuildConfigObject(Game game)
+        {
+            var data = new Dictionary<string, object>();
+
+            // Note: getMapWidth/getMapHeight not available in public API
+            try { data["numTiles"] = game.getNumTiles(); } catch { }
+            try { data["numPlayers"] = (int)game.getNumPlayers(); } catch { }
+            try { data["numTeams"] = (int)game.getNumTeams(); } catch { }
+            try { data["turn"] = game.getTurn(); } catch { }
+            try { data["year"] = game.getYear(); } catch { }
+
+            return data;
+        }
+
+        #endregion
+
         #region Character Events
 
         // Snapshot class for storing previous turn's character state (used for event detection)
@@ -1754,6 +2387,22 @@ namespace OldWorldAPIEndpoint
                 stockpiles = stockpiles,
                 rates = rates
             };
+        }
+
+        /// <summary>
+        /// Get a specific unit by ID.
+        /// </summary>
+        public static object GetUnitById(Game game, int unitId)
+        {
+            var units = game.getUnits();
+            Infos infos = game.infos();
+
+            foreach (var unit in units)
+            {
+                if (unit != null && !unit.isDead() && unit.getID() == unitId)
+                    return BuildUnitObject(unit, game, infos);
+            }
+            return null;
         }
 
         /// <summary>

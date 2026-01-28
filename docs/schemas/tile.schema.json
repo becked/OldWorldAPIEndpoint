@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tile.schema.json",
+  "title": "Tile",
+  "description": "A map tile (hex) in the game",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique tile ID"
+    },
+    "x": {
+      "type": "integer",
+      "description": "X coordinate"
+    },
+    "y": {
+      "type": "integer",
+      "description": "Y coordinate"
+    },
+    "terrain": {
+      "$ref": "common.schema.json#/definitions/gameTypeString",
+      "description": "Terrain type (e.g., TERRAIN_TEMPERATE)"
+    },
+    "height": {
+      "$ref": "common.schema.json#/definitions/gameTypeString",
+      "description": "Height type (e.g., HEIGHT_MOUNTAIN, HEIGHT_HILL)"
+    },
+    "vegetation": {
+      "type": ["string", "null"],
+      "description": "Vegetation type if present"
+    },
+    "resource": {
+      "type": ["string", "null"],
+      "description": "Resource type if present"
+    },
+    "improvement": {
+      "type": ["string", "null"],
+      "description": "Improvement type if built"
+    },
+    "isPillaged": {
+      "type": "boolean",
+      "description": "Whether improvement is pillaged"
+    },
+    "ownerId": {
+      "type": ["integer", "null"],
+      "description": "Owning player index"
+    },
+    "cityId": {
+      "type": ["integer", "null"],
+      "description": "City ID if tile has city"
+    },
+    "cityTerritoryId": {
+      "type": ["integer", "null"],
+      "description": "City territory ID"
+    }
+  },
+  "required": ["id", "x", "y"],
+  "examples": [{
+    "id": 123,
+    "x": 15,
+    "y": 8,
+    "terrain": "TERRAIN_TEMPERATE",
+    "height": "HEIGHT_FLAT",
+    "vegetation": "VEGETATION_FOREST",
+    "resource": "RESOURCE_IRON",
+    "improvement": "IMPROVEMENT_MINE",
+    "isPillaged": false,
+    "ownerId": 0,
+    "cityId": null,
+    "cityTerritoryId": 5
+  }]
+}

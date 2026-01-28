@@ -1,6 +1,6 @@
 # API Reference
 
-Complete reference for all 16 REST API endpoints on port 9877.
+Complete reference for all 32 REST API endpoints on port 9877.
 
 ## Base URL
 
@@ -10,6 +10,7 @@ http://localhost:9877
 
 ## Endpoints Overview
 
+### Core Data
 | Endpoint | Description |
 |----------|-------------|
 | [`GET /state`](#get-state) | Full game state |
@@ -19,15 +20,56 @@ http://localhost:9877
 | [`GET /city/{id}`](#get-cityid) | Single city |
 | [`GET /characters`](#get-characters) | All characters |
 | [`GET /character/{id}`](#get-characterid) | Single character |
+
+### Units
+| Endpoint | Description |
+|----------|-------------|
+| [`GET /units`](#get-units) | All units |
+| [`GET /unit/{id}`](#get-unitid) | Single unit |
+| [`GET /player/{index}/units`](#get-playerindexunits) | Player's units |
+
+### Player Extensions
+| Endpoint | Description |
+|----------|-------------|
+| [`GET /player/{index}/techs`](#get-playerindextechs) | Technology state |
+| [`GET /player/{index}/families`](#get-playerindexfamilies) | Family relationships |
+| [`GET /player/{index}/religion`](#get-playerindexreligion) | Religion state |
+| [`GET /player/{index}/goals`](#get-playerindexgoals) | Goals/ambitions |
+| [`GET /player/{index}/decisions`](#get-playerindexdecisions) | Pending decisions |
+| [`GET /player/{index}/laws`](#get-playerindexlaws) | Active laws |
+| [`GET /player/{index}/missions`](#get-playerindexmissions) | Active missions |
+| [`GET /player/{index}/resources`](#get-playerindexresources) | Resource counts |
+
+### Map & Tiles
+| Endpoint | Description |
+|----------|-------------|
+| [`GET /map`](#get-map) | Map metadata |
+| [`GET /tiles`](#get-tiles) | Paginated tiles |
+| [`GET /tile/{id}`](#get-tileid) | Tile by ID |
+| [`GET /tile/{x}/{y}`](#get-tilexy) | Tile by coordinates |
+
+### Events
+| Endpoint | Description |
+|----------|-------------|
 | [`GET /character-events`](#get-character-events) | Character events |
 | [`GET /unit-events`](#get-unit-events) | Unit events |
 | [`GET /city-events`](#get-city-events) | City events |
+
+### Tribes & Diplomacy
+| Endpoint | Description |
+|----------|-------------|
 | [`GET /tribes`](#get-tribes) | All tribes |
 | [`GET /tribe/{tribeType}`](#get-tribetribetype) | Single tribe |
 | [`GET /team-diplomacy`](#get-team-diplomacy) | Team relationships |
 | [`GET /team-alliances`](#get-team-alliances) | Team alliances |
 | [`GET /tribe-diplomacy`](#get-tribe-diplomacy) | Tribe relationships |
 | [`GET /tribe-alliances`](#get-tribe-alliances) | Tribe alliances |
+
+### Global
+| Endpoint | Description |
+|----------|-------------|
+| [`GET /religions`](#get-religions) | All religions |
+| [`GET /config`](#get-config) | Game configuration |
 
 ---
 
@@ -142,6 +184,173 @@ Returns single character by ID.
 
 ```bash
 curl localhost:9877/character/42 | jq '{name, traits, spouseIds, childrenIds}'
+```
+
+---
+
+## Units
+
+### GET /units
+
+Returns array of all living units.
+
+```bash
+curl localhost:9877/units | jq '.[] | {id, unitType, ownerId}'
+```
+
+### GET /unit/{id}
+
+Returns single unit by ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | integer | Unit ID |
+
+```bash
+curl localhost:9877/unit/1 | jq
+```
+
+### GET /player/{index}/units
+
+Returns all units owned by a player.
+
+```bash
+curl localhost:9877/player/0/units | jq '.[] | {unitType, hp}'
+```
+
+---
+
+## Player Extensions
+
+### GET /player/{index}/techs
+
+Returns technology research state.
+
+```bash
+curl localhost:9877/player/0/techs | jq
+```
+
+**Response:**
+```json
+{
+  "researching": "TECH_STONECUTTING",
+  "progress": { "TECH_STONECUTTING": 148 },
+  "researched": ["TECH_TRAPPING", "TECH_ADMINISTRATION"],
+  "available": ["TECH_IRONWORKING", "TECH_STONECUTTING"]
+}
+```
+
+### GET /player/{index}/families
+
+Returns family relationship data.
+
+```bash
+curl localhost:9877/player/0/families | jq
+```
+
+### GET /player/{index}/religion
+
+Returns player religion state.
+
+```bash
+curl localhost:9877/player/0/religion | jq
+```
+
+### GET /player/{index}/goals
+
+Returns goals and ambitions. *Note: Returns placeholder data due to API limitations.*
+
+### GET /player/{index}/decisions
+
+Returns pending decisions. *Note: Returns placeholder data due to API limitations.*
+
+### GET /player/{index}/laws
+
+Returns active laws. *Note: Returns placeholder data due to API limitations.*
+
+### GET /player/{index}/missions
+
+Returns active missions. *Note: Returns placeholder data due to API limitations.*
+
+### GET /player/{index}/resources
+
+Returns resource/luxury counts. *Note: Returns placeholder data due to API limitations.*
+
+---
+
+## Map & Tiles
+
+### GET /map
+
+Returns map metadata.
+
+```bash
+curl localhost:9877/map | jq
+```
+
+**Response:**
+```json
+{ "numTiles": 5476 }
+```
+
+### GET /tiles
+
+Returns paginated tile list.
+
+| Parameter | Default | Max | Description |
+|-----------|---------|-----|-------------|
+| `offset` | 0 | - | Starting index |
+| `limit` | 100 | 1000 | Max tiles to return |
+
+```bash
+curl "localhost:9877/tiles?offset=0&limit=10" | jq '.pagination'
+```
+
+### GET /tile/{id}
+
+Returns single tile by ID.
+
+```bash
+curl localhost:9877/tile/123 | jq
+```
+
+### GET /tile/{x}/{y}
+
+Returns single tile by coordinates.
+
+```bash
+curl localhost:9877/tile/15/8 | jq
+```
+
+---
+
+## Religion & Config
+
+### GET /religions
+
+Returns global religion state.
+
+```bash
+curl localhost:9877/religions | jq '.[] | select(.isFounded)'
+```
+
+### GET /config
+
+Returns game configuration.
+
+```bash
+curl localhost:9877/config | jq
+```
+
+**Response:**
+```json
+{
+  "numTiles": 5476,
+  "numPlayers": 5,
+  "numTeams": 5,
+  "turn": 42,
+  "year": 42
+}
 ```
 
 ---

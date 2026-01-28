@@ -158,6 +158,38 @@ if [ $HTTP_READY -eq 1 ]; then
     test_endpoint "/tribe-alliances" "Tribe alliances"
 
     echo ""
+    echo "  Testing units endpoints:"
+    test_endpoint "/units" "All units"
+    UNIT_ID=$(curl -s "http://localhost:$HTTP_PORT/units" 2>/dev/null | python3 -c "import sys,json; units=json.load(sys.stdin); print(units[0]['id'] if units else '')" 2>/dev/null)
+    if [ -n "$UNIT_ID" ]; then
+        test_endpoint "/unit/$UNIT_ID" "Unit $UNIT_ID"
+    fi
+    test_endpoint "/player/0/units" "Player 0 units"
+
+    echo ""
+    echo "  Testing player extension endpoints:"
+    test_endpoint "/player/0/techs" "Player 0 techs"
+    test_endpoint "/player/0/families" "Player 0 families"
+    test_endpoint "/player/0/religion" "Player 0 religion"
+    test_endpoint "/player/0/goals" "Player 0 goals"
+    test_endpoint "/player/0/decisions" "Player 0 decisions"
+    test_endpoint "/player/0/laws" "Player 0 laws"
+    test_endpoint "/player/0/missions" "Player 0 missions"
+    test_endpoint "/player/0/resources" "Player 0 resources"
+
+    echo ""
+    echo "  Testing global endpoints:"
+    test_endpoint "/religions" "Religions"
+    test_endpoint "/map" "Map metadata"
+    test_endpoint "/config" "Game config"
+
+    echo ""
+    echo "  Testing tiles endpoints:"
+    test_endpoint "/tiles?limit=5" "Tiles (paginated)"
+    test_endpoint "/tile/0" "Tile by ID"
+    test_endpoint "/tile/5/5" "Tile by coords"
+
+    echo ""
     echo "  Testing single-entity endpoints:"
     test_endpoint "/player/0" "Player 0"
 

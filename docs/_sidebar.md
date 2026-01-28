@@ -10,9 +10,13 @@
   - [Player](schemas/player.md)
   - [City](schemas/city.md)
   - [Character](schemas/character.md)
+  - [Unit](schemas/unit.md)
+  - [Tile](schemas/tile.md)
   - [Tribe](schemas/tribe.md)
   - [Events](schemas/events.md)
   - [Diplomacy](schemas/diplomacy.md)
+  - [Religion](schemas/religion.md)
+  - [Config](schemas/config.md)
 
 - **Design**
   - [API Principles](api-design-principles.md)

@@ -290,9 +290,66 @@ namespace OldWorldAPIEndpoint
 
                 case "player":
                     if (segments.Length > 1 && int.TryParse(segments[1], out int playerIndex))
-                        HandlePlayerRequest(context, game, playerIndex);
+                    {
+                        if (segments.Length == 2)
+                        {
+                            HandlePlayerRequest(context, game, playerIndex);
+                        }
+                        else if (segments.Length == 3)
+                        {
+                            // Handle player sub-resources: /player/{index}/{resource}
+                            switch (segments[2])
+                            {
+                                case "units":
+                                    HandlePlayerUnitsRequest(context, game, playerIndex);
+                                    break;
+                                case "techs":
+                                    HandlePlayerTechsRequest(context, game, playerIndex);
+                                    break;
+                                case "families":
+                                    HandlePlayerFamiliesRequest(context, game, playerIndex);
+                                    break;
+                                case "religion":
+                                    HandlePlayerReligionRequest(context, game, playerIndex);
+                                    break;
+                                case "goals":
+                                    HandlePlayerGoalsRequest(context, game, playerIndex);
+                                    break;
+                                case "decisions":
+                                    HandlePlayerDecisionsRequest(context, game, playerIndex);
+                                    break;
+                                case "laws":
+                                    HandlePlayerLawsRequest(context, game, playerIndex);
+                                    break;
+                                case "missions":
+                                    HandlePlayerMissionsRequest(context, game, playerIndex);
+                                    break;
+                                case "resources":
+                                    HandlePlayerResourcesRequest(context, game, playerIndex);
+                                    break;
+                                default:
+                                    SendErrorResponse(context.Response, $"Unknown player resource: {segments[2]}", 404);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            SendErrorResponse(context.Response, "Invalid player path", 400);
+                        }
+                    }
                     else
                         SendErrorResponse(context.Response, "Invalid player index. Use /player/{index}", 400);
+                    break;
+
+                case "units":
+                    HandleUnitsRequest(context, game);
+                    break;
+
+                case "unit":
+                    if (segments.Length > 1 && int.TryParse(segments[1], out int unitId))
+                        HandleUnitRequest(context, game, unitId);
+                    else
+                        SendErrorResponse(context.Response, "Invalid unit ID. Use /unit/{id}", 400);
                     break;
 
                 case "cities":
@@ -356,6 +413,31 @@ namespace OldWorldAPIEndpoint
                     HandleTribeAlliancesRequest(context, game);
                     break;
 
+                case "religions":
+                    HandleReligionsRequest(context, game);
+                    break;
+
+                case "map":
+                    HandleMapRequest(context, game);
+                    break;
+
+                case "tiles":
+                    HandleTilesRequest(context, game);
+                    break;
+
+                case "tile":
+                    if (segments.Length == 2 && int.TryParse(segments[1], out int tileId))
+                        HandleTileRequest(context, game, tileId);
+                    else if (segments.Length == 3 && int.TryParse(segments[1], out int tileX) && int.TryParse(segments[2], out int tileY))
+                        HandleTileByCoords(context, game, tileX, tileY);
+                    else
+                        SendErrorResponse(context.Response, "Invalid tile path. Use /tile/{id} or /tile/{x}/{y}", 400);
+                    break;
+
+                case "config":
+                    HandleConfigRequest(context, game);
+                    break;
+
                 default:
                     SendErrorResponse(context.Response, $"Unknown endpoint: /{path}", 404);
                     break;
@@ -396,6 +478,123 @@ namespace OldWorldAPIEndpoint
                 SendJsonResponse(context.Response, player);
             else
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+        }
+
+        private void HandlePlayerUnitsRequest(HttpListenerContext context, Game game, int index)
+        {
+            var units = APIEndpoint.BuildPlayerUnitsObject(game, index);
+            SendJsonResponse(context.Response, units);
+        }
+
+        private void HandlePlayerTechsRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var techs = APIEndpoint.BuildPlayerTechs(players[index], game, game.infos());
+            SendJsonResponse(context.Response, techs);
+        }
+
+        private void HandlePlayerFamiliesRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var families = APIEndpoint.BuildPlayerFamilies(players[index], game, game.infos());
+            SendJsonResponse(context.Response, families);
+        }
+
+        private void HandlePlayerReligionRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var religion = APIEndpoint.BuildPlayerReligion(players[index], game, game.infos());
+            SendJsonResponse(context.Response, religion);
+        }
+
+        private void HandlePlayerGoalsRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var goals = APIEndpoint.BuildPlayerGoals(players[index], game, game.infos());
+            SendJsonResponse(context.Response, goals);
+        }
+
+        private void HandlePlayerDecisionsRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var decisions = APIEndpoint.BuildPlayerDecisions(players[index], game, game.infos());
+            SendJsonResponse(context.Response, decisions);
+        }
+
+        private void HandlePlayerLawsRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var laws = APIEndpoint.BuildPlayerLaws(players[index], game, game.infos());
+            SendJsonResponse(context.Response, laws);
+        }
+
+        private void HandlePlayerMissionsRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var missions = APIEndpoint.BuildPlayerMissions(players[index], game, game.infos());
+            SendJsonResponse(context.Response, missions);
+        }
+
+        private void HandlePlayerResourcesRequest(HttpListenerContext context, Game game, int index)
+        {
+            Player[] players = game.getPlayers();
+            if (index < 0 || index >= players.Length || players[index] == null)
+            {
+                SendErrorResponse(context.Response, $"Player not found: {index}", 404);
+                return;
+            }
+            var resources = APIEndpoint.BuildPlayerResources(players[index], game, game.infos());
+            SendJsonResponse(context.Response, resources);
+        }
+
+        private void HandleUnitsRequest(HttpListenerContext context, Game game)
+        {
+            var units = APIEndpoint.BuildUnitsObject(game);
+            SendJsonResponse(context.Response, units);
+        }
+
+        private void HandleUnitRequest(HttpListenerContext context, Game game, int unitId)
+        {
+            var unit = APIEndpoint.GetUnitById(game, unitId);
+            if (unit != null)
+                SendJsonResponse(context.Response, unit);
+            else
+                SendErrorResponse(context.Response, $"Unit not found: {unitId}", 404);
         }
 
         private void HandleCitiesRequest(HttpListenerContext context, Game game)
@@ -483,6 +682,62 @@ namespace OldWorldAPIEndpoint
         {
             var alliances = APIEndpoint.BuildTribeAlliancesObject(game);
             SendJsonResponse(context.Response, alliances);
+        }
+
+        private void HandleReligionsRequest(HttpListenerContext context, Game game)
+        {
+            var religions = APIEndpoint.BuildReligionsObject(game);
+            SendJsonResponse(context.Response, religions);
+        }
+
+        private void HandleMapRequest(HttpListenerContext context, Game game)
+        {
+            var map = APIEndpoint.BuildMapObject(game);
+            SendJsonResponse(context.Response, map);
+        }
+
+        private void HandleTilesRequest(HttpListenerContext context, Game game)
+        {
+            // Parse pagination parameters from query string
+            int offset = 0;
+            int limit = 100; // Default limit
+
+            var query = context.Request.QueryString;
+            if (!string.IsNullOrEmpty(query["offset"]))
+                int.TryParse(query["offset"], out offset);
+            if (!string.IsNullOrEmpty(query["limit"]))
+            {
+                int.TryParse(query["limit"], out limit);
+                // Cap at 1000 tiles per request to prevent huge responses
+                limit = Math.Min(limit, 1000);
+            }
+
+            var tiles = APIEndpoint.BuildTilesObjectPaginated(game, offset, limit);
+            SendJsonResponse(context.Response, tiles);
+        }
+
+        private void HandleTileRequest(HttpListenerContext context, Game game, int tileId)
+        {
+            var tile = APIEndpoint.GetTileById(game, tileId);
+            if (tile != null)
+                SendJsonResponse(context.Response, tile);
+            else
+                SendErrorResponse(context.Response, $"Tile not found: {tileId}", 404);
+        }
+
+        private void HandleTileByCoords(HttpListenerContext context, Game game, int x, int y)
+        {
+            var tile = APIEndpoint.GetTileByCoords(game, x, y);
+            if (tile != null)
+                SendJsonResponse(context.Response, tile);
+            else
+                SendErrorResponse(context.Response, $"Tile not found at ({x}, {y})", 404);
+        }
+
+        private void HandleConfigRequest(HttpListenerContext context, Game game)
+        {
+            var config = APIEndpoint.BuildConfigObject(game);
+            SendJsonResponse(context.Response, config);
         }
 
         #endregion

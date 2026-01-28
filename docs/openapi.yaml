@@ -36,12 +36,20 @@ tags:
     description: City data
   - name: Characters
     description: Character data
+  - name: Units
+    description: Unit data
+  - name: Tiles
+    description: Map tile data
   - name: Events
     description: Turn-based event detection
   - name: Tribes
     description: Tribe (barbarian) data
   - name: Diplomacy
     description: Diplomatic relationships
+  - name: Religion
+    description: Global religion state
+  - name: Config
+    description: Game configuration
 
 paths:
   /state:
@@ -365,6 +373,423 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TribeAlliance'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /units:
+    get:
+      tags: [Units]
+      summary: Get all units
+      description: Returns array of all living units with position, health, and status.
+      operationId: getUnits
+      responses:
+        '200':
+          description: Array of units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /unit/{id}:
+    get:
+      tags: [Units]
+      summary: Get unit by ID
+      description: Returns a single unit by its unique ID.
+      operationId: getUnitById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unit ID
+      responses:
+        '200':
+          description: Unit data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/units:
+    get:
+      tags: [Players, Units]
+      summary: Get player units
+      description: Returns all units owned by a specific player.
+      operationId: getPlayerUnits
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Array of units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/techs:
+    get:
+      tags: [Players]
+      summary: Get player technologies
+      description: Returns technology research state for a player.
+      operationId: getPlayerTechs
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Technology state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerTechs'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/families:
+    get:
+      tags: [Players]
+      summary: Get player families
+      description: Returns family relationship data for a player.
+      operationId: getPlayerFamilies
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Family data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerFamilies'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/religion:
+    get:
+      tags: [Players]
+      summary: Get player religion
+      description: Returns religion state for a player.
+      operationId: getPlayerReligion
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Religion state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerReligion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/goals:
+    get:
+      tags: [Players]
+      summary: Get player goals
+      description: Returns goals and ambitions for a player.
+      operationId: getPlayerGoals
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Goals data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerGoals'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/decisions:
+    get:
+      tags: [Players]
+      summary: Get player decisions
+      description: Returns pending decisions for a player.
+      operationId: getPlayerDecisions
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Decisions data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDecisions'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/laws:
+    get:
+      tags: [Players]
+      summary: Get player laws
+      description: Returns active laws for a player.
+      operationId: getPlayerLaws
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Laws data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerLaws'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/missions:
+    get:
+      tags: [Players]
+      summary: Get player missions
+      description: Returns active missions for a player.
+      operationId: getPlayerMissions
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Missions data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerMissions'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/resources:
+    get:
+      tags: [Players]
+      summary: Get player resources
+      description: Returns resource and luxury counts for a player.
+      operationId: getPlayerResources
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Resources data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerResources'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /religions:
+    get:
+      tags: [Religion]
+      summary: Get all religions
+      description: Returns global religion state including founded religions and holy cities.
+      operationId: getReligions
+      responses:
+        '200':
+          description: Array of religions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Religion'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /map:
+    get:
+      tags: [Tiles]
+      summary: Get map metadata
+      description: Returns map metadata including tile count.
+      operationId: getMap
+      responses:
+        '200':
+          description: Map metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapMetadata'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tiles:
+    get:
+      tags: [Tiles]
+      summary: Get tiles (paginated)
+      description: Returns paginated list of map tiles. Use offset and limit for pagination.
+      operationId: getTiles
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Starting index for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+          description: Maximum tiles to return (max 1000)
+      responses:
+        '200':
+          description: Paginated tiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TilesPaginated'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tile/{id}:
+    get:
+      tags: [Tiles]
+      summary: Get tile by ID
+      description: Returns a single tile by its unique ID.
+      operationId: getTileById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Tile ID
+      responses:
+        '200':
+          description: Tile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tile/{x}/{y}:
+    get:
+      tags: [Tiles]
+      summary: Get tile by coordinates
+      description: Returns a single tile by its x,y coordinates.
+      operationId: getTileByCoords
+      parameters:
+        - name: x
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: X coordinate
+        - name: y
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Y coordinate
+      responses:
+        '200':
+          description: Tile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /config:
+    get:
+      tags: [Config]
+      summary: Get game configuration
+      description: Returns game configuration including player count, turn, and year.
+      operationId: getConfig
+      responses:
+        '200':
+          description: Game configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
 
@@ -752,6 +1177,274 @@ components:
         allyPlayerId:
           type: integer
         allyTeam:
+          type: integer
+
+    Unit:
+      type: object
+      description: A unit with position, health, and status
+      properties:
+        id:
+          type: integer
+        unitType:
+          type: string
+          description: Unit type (e.g., UNIT_WARRIOR, UNIT_WORKER)
+        ownerId:
+          type: integer
+          nullable: true
+        tileId:
+          type: integer
+        x:
+          type: integer
+        y:
+          type: integer
+        hp:
+          type: integer
+        hpMax:
+          type: integer
+        damage:
+          type: integer
+        isAlive:
+          type: boolean
+        xp:
+          type: integer
+        level:
+          type: integer
+        turnSteps:
+          type: integer
+        cooldownTurns:
+          type: integer
+        fortifyTurns:
+          type: integer
+        createTurn:
+          type: integer
+        generalId:
+          type: integer
+          nullable: true
+        hasGeneral:
+          type: boolean
+        isSleep:
+          type: boolean
+        isSentry:
+          type: boolean
+        isPass:
+          type: boolean
+        family:
+          type: string
+          nullable: true
+        hasFamily:
+          type: boolean
+        religion:
+          type: string
+          nullable: true
+        hasReligion:
+          type: boolean
+        promotions:
+          type: array
+          items:
+            type: string
+
+    PlayerTechs:
+      type: object
+      description: Player technology research state
+      properties:
+        researching:
+          type: string
+          nullable: true
+          description: Currently researching tech type
+        progress:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Progress per tech type
+        researched:
+          type: array
+          items:
+            type: string
+          description: Completed tech types
+        available:
+          type: array
+          items:
+            type: string
+          description: Available tech types
+
+    PlayerFamilies:
+      type: object
+      description: Player family relationships
+      properties:
+        families:
+          type: array
+          items:
+            type: object
+            properties:
+              family:
+                type: string
+              opinionRate:
+                type: integer
+
+    PlayerReligion:
+      type: object
+      description: Player religion state
+      properties:
+        stateReligion:
+          type: string
+          nullable: true
+        religionCount:
+          type: object
+          additionalProperties:
+            type: integer
+
+    PlayerGoals:
+      type: object
+      description: Player goals and ambitions
+      properties:
+        goals:
+          type: array
+          items:
+            type: object
+        note:
+          type: string
+          description: API limitation note
+
+    PlayerDecisions:
+      type: object
+      description: Player pending decisions
+      properties:
+        decisions:
+          type: array
+          items:
+            type: object
+        note:
+          type: string
+          description: API limitation note
+
+    PlayerLaws:
+      type: object
+      description: Player active laws
+      properties:
+        laws:
+          type: object
+          additionalProperties:
+            type: string
+        note:
+          type: string
+          description: API limitation note
+
+    PlayerMissions:
+      type: object
+      description: Player active missions
+      properties:
+        missions:
+          type: array
+          items:
+            type: object
+        note:
+          type: string
+          description: API limitation note
+
+    PlayerResources:
+      type: object
+      description: Player resource counts
+      properties:
+        resources:
+          type: object
+          additionalProperties:
+            type: integer
+        note:
+          type: string
+          description: API limitation note
+
+    Religion:
+      type: object
+      description: Global religion state
+      properties:
+        religionType:
+          type: string
+        isFounded:
+          type: boolean
+        headCharacterId:
+          type: integer
+          nullable: true
+        holyCityId:
+          type: integer
+          nullable: true
+
+    MapMetadata:
+      type: object
+      description: Map metadata
+      properties:
+        numTiles:
+          type: integer
+
+    TilesPaginated:
+      type: object
+      description: Paginated tiles response
+      properties:
+        tiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tile'
+        pagination:
+          type: object
+          properties:
+            offset:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            hasMore:
+              type: boolean
+
+    Tile:
+      type: object
+      description: A map tile
+      properties:
+        id:
+          type: integer
+        x:
+          type: integer
+        y:
+          type: integer
+        terrain:
+          type: string
+          description: Terrain type (e.g., TERRAIN_TEMPERATE)
+        height:
+          type: string
+          description: Height type (e.g., HEIGHT_MOUNTAIN)
+        vegetation:
+          type: string
+          nullable: true
+        resource:
+          type: string
+          nullable: true
+        improvement:
+          type: string
+          nullable: true
+        isPillaged:
+          type: boolean
+        ownerId:
+          type: integer
+          nullable: true
+        cityId:
+          type: integer
+          nullable: true
+        cityTerritoryId:
+          type: integer
+          nullable: true
+
+    GameConfig:
+      type: object
+      description: Game configuration
+      properties:
+        numTiles:
+          type: integer
+        numPlayers:
+          type: integer
+        numTeams:
+          type: integer
+        turn:
+          type: integer
+        year:
           type: integer
 
     Error:

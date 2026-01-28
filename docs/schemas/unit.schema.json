@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "unit.schema.json",
+  "title": "Unit",
+  "description": "A unit (military or civilian) in the game",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique unit ID"
+    },
+    "unitType": {
+      "$ref": "common.schema.json#/definitions/gameTypeString",
+      "description": "Unit type (e.g., UNIT_WARRIOR, UNIT_WORKER)"
+    },
+    "ownerId": {
+      "type": ["integer", "null"],
+      "description": "Owning player index, or null if no owner"
+    },
+    "tileId": {
+      "type": "integer",
+      "description": "Current tile ID"
+    },
+    "x": {
+      "type": "integer",
+      "description": "X coordinate"
+    },
+    "y": {
+      "type": "integer",
+      "description": "Y coordinate"
+    },
+    "hp": {
+      "type": "integer",
+      "description": "Current hit points"
+    },
+    "hpMax": {
+      "type": "integer",
+      "description": "Maximum hit points"
+    },
+    "damage": {
+      "type": "integer",
+      "description": "Accumulated damage"
+    },
+    "isAlive": {
+      "type": "boolean",
+      "description": "Whether unit is alive"
+    },
+    "xp": {
+      "type": "integer",
+      "description": "Experience points"
+    },
+    "level": {
+      "type": "integer",
+      "description": "Unit level"
+    },
+    "turnSteps": {
+      "type": "integer",
+      "description": "Steps taken this turn"
+    },
+    "cooldownTurns": {
+      "type": "integer",
+      "description": "Turns until cooldown expires"
+    },
+    "fortifyTurns": {
+      "type": "integer",
+      "description": "Turns fortified"
+    },
+    "createTurn": {
+      "type": "integer",
+      "description": "Turn unit was created"
+    },
+    "generalId": {
+      "type": ["integer", "null"],
+      "description": "Attached general character ID"
+    },
+    "hasGeneral": {
+      "type": "boolean",
+      "description": "Whether unit has a general"
+    },
+    "isSleep": {
+      "type": "boolean",
+      "description": "Whether unit is sleeping"
+    },
+    "isSentry": {
+      "type": "boolean",
+      "description": "Whether unit is on sentry"
+    },
+    "isPass": {
+      "type": "boolean",
+      "description": "Whether unit has passed"
+    },
+    "family": {
+      "type": ["string", "null"],
+      "description": "Family type if unit has family"
+    },
+    "hasFamily": {
+      "type": "boolean",
+      "description": "Whether unit has family"
+    },
+    "religion": {
+      "type": ["string", "null"],
+      "description": "Religion type if unit has religion"
+    },
+    "hasReligion": {
+      "type": "boolean",
+      "description": "Whether unit has religion"
+    },
+    "promotions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/gameTypeString"
+      },
+      "description": "List of promotion types"
+    }
+  },
+  "required": ["id", "unitType", "tileId", "x", "y", "hp", "isAlive"],
+  "examples": [{
+    "id": 1,
+    "unitType": "UNIT_WORKER",
+    "ownerId": 1,
+    "tileId": 661,
+    "x": 69,
+    "y": 8,
+    "hp": 20,
+    "hpMax": 20,
+    "damage": 0,
+    "isAlive": true,
+    "xp": 0,
+    "level": 1,
+    "turnSteps": 0,
+    "cooldownTurns": 0,
+    "fortifyTurns": 0,
+    "createTurn": 1,
+    "generalId": null,
+    "hasGeneral": false,
+    "isSleep": false,
+    "isSentry": false,
+    "isPass": false,
+    "family": "FAMILY_IRTJET",
+    "hasFamily": true,
+    "religion": null,
+    "hasReligion": false,
+    "promotions": []
+  }]
+}

@@ -63,8 +63,58 @@ Both `stockpiles` and `rates` are objects keyed by yield type strings:
 
 ## API Endpoints
 
+### Core
 - `GET /players` - Returns array of all players
 - `GET /player/{index}` - Returns single player by index
+
+### Extensions
+- `GET /player/{index}/units` - Player's units (see [Unit](unit.md))
+- `GET /player/{index}/techs` - Technology research state
+- `GET /player/{index}/families` - Family relationships
+- `GET /player/{index}/religion` - Religion state (see [Religion](religion.md))
+- `GET /player/{index}/goals` - Goals and ambitions*
+- `GET /player/{index}/decisions` - Pending decisions*
+- `GET /player/{index}/laws` - Active laws*
+- `GET /player/{index}/missions` - Active missions*
+- `GET /player/{index}/resources` - Resource/luxury counts*
+
+*These endpoints return placeholder data due to game API limitations.
+
+## Technology State
+
+`GET /player/{index}/techs` returns:
+
+```json
+{
+  "researching": "TECH_STONECUTTING",
+  "progress": {
+    "TECH_STONECUTTING": 148
+  },
+  "researched": [
+    "TECH_TRAPPING",
+    "TECH_ADMINISTRATION"
+  ],
+  "available": [
+    "TECH_IRONWORKING",
+    "TECH_STONECUTTING"
+  ]
+}
+```
+
+## Family Data
+
+`GET /player/{index}/families` returns:
+
+```json
+{
+  "families": [
+    {
+      "family": "FAMILY_SARGONID",
+      "opinionRate": 0
+    }
+  ]
+}
+```
 
 ## Example Queries
 

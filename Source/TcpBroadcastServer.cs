@@ -66,7 +66,10 @@ namespace OldWorldAPIEndpoint
             {
                 _listener?.Stop();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[TcpBroadcastServer] Error stopping listener: {ex.Message}");
+            }
 
             foreach (var kvp in _clients)
             {
@@ -74,7 +77,10 @@ namespace OldWorldAPIEndpoint
                 {
                     kvp.Value.Close();
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[TcpBroadcastServer] Error closing client {kvp.Key}: {ex.Message}");
+                }
             }
             _clients.Clear();
 

@@ -22,8 +22,8 @@ namespace OldWorldAPIEndpoint
         private static ModSettings _modSettings;
         private static int _initCount = 0;
 
-        // Cached game reference for HTTP access (updated from main thread)
-        private static Game _cachedGame;
+        // Cached game reference for HTTP access (updated from main thread, read by HTTP thread)
+        private static volatile Game _cachedGame;
 
         // Cached ClientManager for command execution
         private static object _clientManager;
@@ -367,6 +367,10 @@ namespace OldWorldAPIEndpoint
         }
 
         #region City Helper Methods
+        // Note: The helper methods in this region use bare catch blocks intentionally.
+        // They implement graceful degradation - if any data field fails to read
+        // (due to game API changes, null references, etc.), we return partial/empty
+        // data rather than crashing the entire API broadcast. This is by design.
 
         private static List<string> GetCityReligions(City city, Infos infos)
         {

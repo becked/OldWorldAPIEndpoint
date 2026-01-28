@@ -73,7 +73,10 @@ namespace OldWorldAPIEndpoint
                 _listener?.Stop();
                 _listener?.Close();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[HttpRestServer] Error stopping listener: {ex.Message}");
+            }
 
             Debug.Log("[APIEndpoint] HTTP server stopped");
         }
@@ -143,7 +146,10 @@ namespace OldWorldAPIEndpoint
                 {
                     SendErrorResponse(context.Response, "Internal server error", 500);
                 }
-                catch { }
+                catch (Exception responseEx)
+                {
+                    Debug.LogWarning($"[HttpRestServer] Failed to send error response: {responseEx.Message}");
+                }
             }
         }
 

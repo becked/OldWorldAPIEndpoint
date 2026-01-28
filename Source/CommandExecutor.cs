@@ -167,7 +167,10 @@ namespace OldWorldAPIEndpoint
                         return result;
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[CommandExecutor] canDoActions check failed: {ex.Message}");
+                }
             }
 
             // Check for multiplayer (refuse commands in MP)

@@ -127,3 +127,42 @@ After making code changes, always complete these steps:
    - No errors in game log
    - New fields appear in JSON output
    - Expected event counts in log messages
+4. **Update Documentation** (if API changed) - see below
+
+## Documentation
+
+API documentation lives in `docs/` and is served via GitHub Pages (Docsify, no build step).
+
+**Documentation site:** https://becked.github.io/OldWorldAPIEndpoint/
+
+### When to Update Docs
+
+Update documentation when:
+- Adding/removing/renaming fields in any data model
+- Adding/removing REST endpoints
+- Adding new event types
+- Changing response structure
+
+### Files to Update
+
+| Change Type | Files to Update |
+|-------------|-----------------|
+| New/changed fields | `docs/schemas/{entity}.schema.json`, `docs/schemas/{entity}.md` |
+| New endpoint | `docs/openapi.yaml`, `docs/api-reference.md` |
+| New event type | `docs/schemas/events.schema.json`, `docs/schemas/events.md` |
+| New entity type | Create new schema files, update `docs/_sidebar.md` |
+
+### Key Documentation Files
+
+- `docs/openapi.yaml` - OpenAPI 3.0 spec (16 endpoints)
+- `docs/schemas/*.schema.json` - JSON Schema definitions
+- `docs/schemas/*.md` - Human-readable schema docs
+- `docs/api-reference.md` - Endpoint reference with examples
+- `docs/_sidebar.md` - Navigation structure
+
+### Local Preview
+
+```bash
+npx docsify-cli serve docs
+# Opens at http://localhost:3000
+```

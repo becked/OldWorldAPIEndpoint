@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -110,16 +111,30 @@ namespace OldWorldAPIEndpoint
         {
             try
             {
-                if (context.Request.HttpMethod != "GET")
+                string path = context.Request.Url.AbsolutePath;
+                string method = context.Request.HttpMethod;
+                Debug.Log($"[APIEndpoint] HTTP {method} {path}");
+
+                // Handle OPTIONS for CORS preflight
+                if (method == "OPTIONS")
                 {
-                    SendErrorResponse(context.Response, "Only GET requests supported", 405);
+                    HandleCorsPreflightRequest(context);
                     return;
                 }
 
-                string path = context.Request.Url.AbsolutePath;
-                Debug.Log($"[APIEndpoint] HTTP GET {path}");
+                if (method == "POST")
+                {
+                    HandlePostRequest(context, path);
+                    return;
+                }
 
-                RouteRequest(context, path);
+                if (method == "GET")
+                {
+                    RouteRequest(context, path);
+                    return;
+                }
+
+                SendErrorResponse(context.Response, "Method not allowed. Use GET or POST.", 405);
             }
             catch (Exception ex)
             {
@@ -129,6 +144,115 @@ namespace OldWorldAPIEndpoint
                     SendErrorResponse(context.Response, "Internal server error", 500);
                 }
                 catch { }
+            }
+        }
+
+        /// <summary>
+        /// Handle CORS preflight OPTIONS request.
+        /// </summary>
+        private void HandleCorsPreflightRequest(HttpListenerContext context)
+        {
+            var response = context.Response;
+            response.StatusCode = 204; // No Content
+            response.AddHeader("Access-Control-Allow-Origin", "*");
+            response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+            response.AddHeader("Access-Control-Max-Age", "86400");
+            response.Close();
+        }
+
+        /// <summary>
+        /// Handle POST requests for command execution.
+        /// </summary>
+        private void HandlePostRequest(HttpListenerContext context, string path)
+        {
+            path = path.Trim('/').ToLowerInvariant();
+
+            switch (path)
+            {
+                case "command":
+                    HandleCommandRequest(context);
+                    break;
+                case "commands":
+                    HandleBulkCommandRequest(context);
+                    break;
+                default:
+                    SendErrorResponse(context.Response, $"POST not supported for /{path}. Use /command or /commands.", 405);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handle single command execution request.
+        /// </summary>
+        private void HandleCommandRequest(HttpListenerContext context)
+        {
+            try
+            {
+                using var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8);
+                string body = reader.ReadToEnd();
+
+                var cmd = JsonConvert.DeserializeObject<GameCommand>(body, _jsonSettings);
+
+                if (cmd == null)
+                {
+                    SendErrorResponse(context.Response, "Invalid JSON body", 400);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(cmd.Action))
+                {
+                    SendErrorResponse(context.Response, "Missing required field: action", 400);
+                    return;
+                }
+
+                var result = APIEndpoint.QueueAndWaitCommand(cmd);
+                SendJsonResponse(context.Response, result, result.Success ? 200 : 400);
+            }
+            catch (JsonException ex)
+            {
+                SendErrorResponse(context.Response, $"Invalid JSON: {ex.Message}", 400);
+            }
+            catch (Exception ex)
+            {
+                SendErrorResponse(context.Response, $"Command execution error: {ex.Message}", 500);
+            }
+        }
+
+        /// <summary>
+        /// Handle bulk command execution request.
+        /// </summary>
+        private void HandleBulkCommandRequest(HttpListenerContext context)
+        {
+            try
+            {
+                using var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8);
+                string body = reader.ReadToEnd();
+
+                var bulkCmd = JsonConvert.DeserializeObject<BulkCommand>(body, _jsonSettings);
+
+                if (bulkCmd == null)
+                {
+                    SendErrorResponse(context.Response, "Invalid JSON body", 400);
+                    return;
+                }
+
+                if (bulkCmd.Commands == null || bulkCmd.Commands.Count == 0)
+                {
+                    SendErrorResponse(context.Response, "Missing or empty commands array", 400);
+                    return;
+                }
+
+                var result = APIEndpoint.QueueAndWaitBulkCommand(bulkCmd);
+                SendJsonResponse(context.Response, result, result.AllSucceeded ? 200 : 400);
+            }
+            catch (JsonException ex)
+            {
+                SendErrorResponse(context.Response, $"Invalid JSON: {ex.Message}", 400);
+            }
+            catch (Exception ex)
+            {
+                SendErrorResponse(context.Response, $"Bulk command execution error: {ex.Message}", 500);
             }
         }
 
@@ -150,7 +274,7 @@ namespace OldWorldAPIEndpoint
 
             if (segments.Length == 0)
             {
-                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /character-events, /unit-events, /city-events, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
+                SendErrorResponse(context.Response, "GET: /state, /players, /cities, /characters, /tribes, /team-diplomacy. POST: /command, /commands", 404);
                 return;
             }
 
@@ -376,7 +500,8 @@ namespace OldWorldAPIEndpoint
 
             // CORS headers for browser clients
             response.AddHeader("Access-Control-Allow-Origin", "*");
-            response.AddHeader("Access-Control-Allow-Methods", "GET");
+            response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
 
             response.OutputStream.Write(buffer, 0, buffer.Length);
             response.Close();
@@ -399,7 +524,8 @@ namespace OldWorldAPIEndpoint
 
             // CORS headers for browser clients
             response.AddHeader("Access-Control-Allow-Origin", "*");
-            response.AddHeader("Access-Control-Allow-Methods", "GET");
+            response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
 
             response.OutputStream.Write(buffer, 0, buffer.Length);
             response.Close();

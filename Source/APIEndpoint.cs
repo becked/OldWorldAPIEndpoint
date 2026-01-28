@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using TenCrowns.AppCore;
@@ -22,6 +24,13 @@ namespace OldWorldAPIEndpoint
 
         // Cached game reference for HTTP access (updated from main thread)
         private static Game _cachedGame;
+
+        // Cached ClientManager for command execution
+        private static object _clientManager;
+
+        // Command queue: HTTP thread enqueues, main thread (OnClientUpdate) dequeues and executes
+        private static readonly ConcurrentQueue<(GameCommand cmd, ManualResetEventSlim signal, CommandResult result)> _commandQueue
+            = new ConcurrentQueue<(GameCommand, ManualResetEventSlim, CommandResult)>();
 
         // JSON serializer settings
         // Note: We use DefaultContractResolver to preserve exact game type strings (e.g., YIELD_GROWTH)
@@ -2013,6 +2022,202 @@ namespace OldWorldAPIEndpoint
             catch (Exception ex)
             {
                 Debug.LogError($"[APIEndpoint] OnGameServerReady error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Queue a command for execution on the main thread and wait for result.
+        /// Called from HTTP thread.
+        /// </summary>
+        public static CommandResult ExecuteCommand(GameCommand cmd, int timeoutMs = 5000)
+        {
+            var result = new CommandResult { RequestId = cmd.RequestId };
+            using var signal = new ManualResetEventSlim(false);
+
+            // Queue the command for processing on the main thread
+            _commandQueue.Enqueue((cmd, signal, result));
+
+            // Wait for the main thread to process it
+            if (!signal.Wait(timeoutMs))
+            {
+                result.Success = false;
+                result.Error = "Command execution timed out (main thread may not be processing)";
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Execute multiple commands in sequence.
+        /// Each command is queued and executed on the main thread.
+        /// </summary>
+        public static BulkCommandResult ExecuteBulkCommand(BulkCommand bulkCmd)
+        {
+            var result = new BulkCommandResult
+            {
+                RequestId = bulkCmd.RequestId,
+                Results = new List<BulkCommandItemResult>(),
+                AllSucceeded = true
+            };
+
+            for (int i = 0; i < bulkCmd.Commands.Count; i++)
+            {
+                var cmd = bulkCmd.Commands[i];
+                var itemResult = new BulkCommandItemResult
+                {
+                    Index = i,
+                    Action = cmd.Action
+                };
+
+                var execResult = ExecuteCommand(cmd);
+                itemResult.Success = execResult.Success;
+                itemResult.Error = execResult.Error;
+
+                result.Results.Add(itemResult);
+
+                if (!itemResult.Success)
+                {
+                    result.AllSucceeded = false;
+                    if (bulkCmd.StopOnError)
+                    {
+                        result.StoppedAtIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get or create the ClientManager instance via reflection.
+        /// Path: AppMain.gApp.Client (GameClientBehaviour) -> ClientMgr (ClientManager)
+        /// </summary>
+        private static object GetOrCreateClientManager()
+        {
+            if (_clientManager != null) return _clientManager;
+
+            try
+            {
+                InitializeReflection();
+                var appMain = GetAppMain();
+                if (appMain == null)
+                {
+                    Debug.Log("[APIEndpoint] GetOrCreateClientManager: appMain is null");
+                    return null;
+                }
+
+                // Step 1: Get GameClientBehaviour via AppMain.gApp.Client
+                object gameClientBehaviour = null;
+                if (_clientProperty != null)
+                {
+                    gameClientBehaviour = _clientProperty.GetValue(appMain);
+                }
+
+                if (gameClientBehaviour == null)
+                {
+                    Debug.LogWarning("[APIEndpoint] Could not get GameClientBehaviour");
+                    return null;
+                }
+
+                // Step 2: Get ClientManager via GameClientBehaviour.ClientMgr
+                var clientMgrProp = gameClientBehaviour.GetType().GetProperty("ClientMgr",
+                    BindingFlags.Public | BindingFlags.Instance);
+                if (clientMgrProp != null)
+                {
+                    _clientManager = clientMgrProp.GetValue(gameClientBehaviour);
+                    if (_clientManager != null)
+                    {
+                        Debug.Log($"[APIEndpoint] Got ClientManager: {_clientManager.GetType().Name}");
+                        return _clientManager;
+                    }
+                }
+
+                Debug.LogWarning("[APIEndpoint] Could not find ClientManager via ClientMgr property");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Failed to get ClientManager: {ex.Message}");
+            }
+
+            return _clientManager;
+        }
+
+        /// <summary>
+        /// Get the cached ClientManager for command execution.
+        /// </summary>
+        public static object GetClientManager()
+        {
+            return _clientManager;
+        }
+
+        /// <summary>
+        /// Get the cached game instance.
+        /// </summary>
+        public static Game GetCachedGame()
+        {
+            return _cachedGame;
+        }
+
+        // Legacy queue methods - kept for API compatibility but now execute synchronously
+        public static CommandResult QueueAndWaitCommand(GameCommand cmd, int timeoutMs = 5000)
+        {
+            return ExecuteCommand(cmd);
+        }
+
+        public static BulkCommandResult QueueAndWaitBulkCommand(BulkCommand cmd, int timeoutMs = 30000)
+        {
+            return ExecuteBulkCommand(cmd);
+        }
+
+        /// <summary>
+        /// Called every frame on the main Unity thread.
+        /// Process queued commands here so they execute on the correct thread.
+        /// </summary>
+        public override void OnClientUpdate()
+        {
+            // Ensure we have the game reference
+            if (_cachedGame == null)
+            {
+                _cachedGame = GetGame();
+            }
+
+            // Process up to 10 commands per frame to avoid blocking
+            int processed = 0;
+            while (processed < 10 && _commandQueue.TryDequeue(out var item))
+            {
+                var (cmd, signal, result) = item;
+                try
+                {
+                    // Get ClientManager on main thread
+                    var clientManager = GetOrCreateClientManager();
+                    if (clientManager == null)
+                    {
+                        result.Success = false;
+                        result.Error = "ClientManager not available";
+                    }
+                    else if (_cachedGame == null)
+                    {
+                        result.Success = false;
+                        result.Error = "Game not available";
+                    }
+                    else
+                    {
+                        var execResult = CommandExecutor.Execute(clientManager, _cachedGame, cmd);
+                        result.RequestId = execResult.RequestId;
+                        result.Success = execResult.Success;
+                        result.Error = execResult.Error;
+                        result.Data = execResult.Data;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.Success = false;
+                    result.Error = $"Exception: {ex.Message}";
+                    Debug.LogError($"[APIEndpoint] Command error in OnClientUpdate: {ex}");
+                }
+                signal.Set(); // Signal the waiting HTTP thread
+                processed++;
             }
         }
 

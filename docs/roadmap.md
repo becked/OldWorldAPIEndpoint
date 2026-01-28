@@ -14,24 +14,6 @@ See `technical-overview.md` for full details on current implementation.
 
 ## Planned Features
 
-### Slice 5b: Military Events
-Battle outcomes and unit losses detected via state diffing.
-
-**Event types:**
-```json
-{"eventType": "battle", "attacker": {...}, "defender": {...}, "winner": "attacker", "location": {...}}
-{"eventType": "unitKilled", "unit": {...}, "killedBy": {...}}
-{"eventType": "cityCapture", "cityId": 123, "oldOwnerId": 0, "newOwnerId": 1}
-```
-
-**Implementation approach:**
-- Track unit/city ownership between turns (similar to character event detection)
-- May require additional game hooks for combat callbacks
-
-**Complexity:** Medium-High
-
----
-
 ### Slice 5c: City Events
 City founding, conquest, and wonder completion.
 

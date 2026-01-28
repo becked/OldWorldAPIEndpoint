@@ -91,7 +91,19 @@ namespace OldWorldAPIEndpoint
                 try
                 {
                     var context = _listener.GetContext();
-                    ThreadPool.QueueUserWorkItem(_ => HandleRequest(context));
+                    ThreadPool.QueueUserWorkItem(_ =>
+                    {
+                        try
+                        {
+                            HandleRequest(context);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Defense-in-depth: HandleRequest has its own exception handling,
+                            // but catch any truly unexpected escapes
+                            Debug.LogError($"[HttpRestServer] Unhandled exception in request handler: {ex}");
+                        }
+                    });
                 }
                 catch (HttpListenerException) when (!_running)
                 {

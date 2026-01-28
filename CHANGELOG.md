@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-01-28
+
+### Added
+- **Bidirectional command support**: POST endpoints for executing game commands (unit movement, city production, research, diplomacy, etc.)
+- **Command validation**: `/validate` endpoint to check command validity before execution
+- **Units endpoint**: `/units`, `/unit/{id}`, `/player/{index}/units` for querying unit data
+- **Tiles endpoint**: `/tiles`, `/tile/{id}`, `/tile/{x}/{y}`, `/map` for map and tile data
+- **Player extensions**: New endpoints for player-specific data:
+  - `/player/{index}/techs` - Technology research state
+  - `/player/{index}/laws` - Active laws
+  - `/player/{index}/religion` - Religion state
+  - `/player/{index}/families` - Family relationships
+  - `/player/{index}/goals` - Goals and ambitions
+  - `/player/{index}/missions` - Active missions
+- **Game configuration**: `/config` endpoint for map settings, difficulty, victory conditions
+- CLI DSL design document for building interactive command-line clients
+
+### Changed
+- API is now bidirectional (read/write) instead of read-only
+
 ## [1.0.0] - 2025-01-27
 
 ### Added

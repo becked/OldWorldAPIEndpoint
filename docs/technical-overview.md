@@ -2,33 +2,42 @@
 
 ## Overview
 
-Old World API Endpoint is a mod for the strategy game Old World that broadcasts game state over TCP, enabling companion apps, overlays, and external tools to receive real-time game data.
+Old World API Endpoint is a mod for the strategy game Old World that exposes game state and commands via TCP and HTTP APIs, enabling companion apps, overlays, AI agents, and external tools to both read game data and control the game.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Old World Game                          │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              OldWorldAPIEndpoint.dll                 │    │
-│  │  ┌───────────────────┐  ┌───────────────────────┐   │    │
-│  │  │   APIEndpoint     │  │  TcpBroadcastServer   │   │    │
-│  │  │ (ModEntryPoint    │  │  - Port 9876          │   │    │
-│  │  │    Adapter)       │──│  - Accepts clients    │   │    │
-│  │  │                   │  │  - Broadcasts JSON    │   │    │
-│  │  └───────────────────┘  └───────────────────────┘   │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │ TCP (localhost:9876)
-                              │ Newline-delimited JSON
-                              ▼
-                    ┌─────────────────┐
-                    │  Client Apps    │
-                    │  - nc/telnet    │
-                    │  - Custom apps  │
-                    │  - Overlays     │
-                    └─────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                         Old World Game                                │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │                   OldWorldAPIEndpoint.dll                       │  │
+│  │  ┌───────────────────┐                                          │  │
+│  │  │   APIEndpoint     │                                          │  │
+│  │  │ (ModEntryPoint    │                                          │  │
+│  │  │    Adapter)       │                                          │  │
+│  │  └────────┬──────────┘                                          │  │
+│  │           │                                                      │  │
+│  │  ┌────────┴────────┬─────────────────────┐                      │  │
+│  │  │                 │                     │                      │  │
+│  │  ▼                 ▼                     ▼                      │  │
+│  │  ┌─────────────┐  ┌─────────────────┐  ┌──────────────────┐    │  │
+│  │  │ TCP Server  │  │ HTTP Server     │  │ Command Queue    │    │  │
+│  │  │ Port 9876   │  │ Port 9877       │  │ (Main Thread)    │    │  │
+│  │  │ Push events │  │ GET: Query      │  │ Execute actions  │    │  │
+│  │  │             │  │ POST: Commands  │  │                  │    │  │
+│  │  └─────────────┘  └─────────────────┘  └──────────────────┘    │  │
+│  └────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────┘
+         │                      │
+         │ TCP                  │ HTTP
+         │ Push notifications   │ Request/Response
+         ▼                      ▼
+┌─────────────────────────────────────────┐
+│              Client Apps                 │
+│  - Companion apps    - AI agents         │
+│  - Stream overlays   - Automation tools  │
+│  - Custom dashboards                     │
+└─────────────────────────────────────────┘
 ```
 
 ## Key Components
@@ -36,19 +45,29 @@ Old World API Endpoint is a mod for the strategy game Old World that broadcasts 
 ### APIEndpoint.cs
 
 Main entry point extending `ModEntryPointAdapter`. Responsibilities:
-- Initialize TCP server on mod load
-- Hook into game lifecycle events (`OnNewTurnServer`, `OnGameServerReady`)
+- Initialize TCP and HTTP servers on mod load
+- Hook into game lifecycle events (`OnNewTurnServer`, `OnGameServerReady`, `OnClientUpdate`)
 - Access game state via reflection (required because mods cannot reference Assembly-CSharp.dll)
 - Build JSON payloads and broadcast to connected clients
+- Process command queue on main thread via `OnClientUpdate()`
 
 ### TcpBroadcastServer.cs
 
-Minimal TCP server implementation:
+TCP push notification server:
 - Listens on `localhost:9876`
 - Accepts multiple concurrent client connections
 - Background thread for connection acceptance
-- Broadcasts newline-delimited JSON to all connected clients
+- Broadcasts newline-delimited JSON to all connected clients on game events
 - Automatically removes disconnected clients
+
+### HttpRestServer.cs
+
+HTTP REST API server:
+- Listens on `localhost:9877`
+- Handles GET requests for querying game state (players, cities, units, tiles, etc.)
+- Handles POST requests for executing game commands
+- Thread-safe command queuing for main thread execution
+- Returns JSON responses with proper error codes
 
 ## Game Data Access
 
@@ -104,22 +123,40 @@ These types can be referenced directly (no reflection needed):
 
 Uses Newtonsoft.Json with `DefaultContractResolver` to preserve exact game type strings (e.g., `YIELD_GROWTH`, `IMPROVEMENT_FARM`). See `docs/api-design-principles.md` for design philosophy.
 
-## TCP Protocol
+## Connection Options
 
-### Connection
+### TCP (Port 9876) - Push Notifications
+
+Best for: Real-time updates, streaming overlays, persistent connections.
+
 - **Host:** `localhost` (127.0.0.1)
 - **Port:** `9876`
 - **Protocol:** TCP
 - **Format:** Newline-delimited JSON (each message is a complete JSON object followed by `\n`)
+- **Direction:** Server → Client (push only)
 
-### Testing Connection
 ```bash
 nc localhost 9876
 ```
 
-Or with telnet:
+### HTTP (Port 9877) - REST API
+
+Best for: On-demand queries, command execution, request/response patterns.
+
+- **Host:** `localhost` (127.0.0.1)
+- **Port:** `9877`
+- **Protocol:** HTTP/1.1
+- **Format:** JSON
+- **Direction:** Bidirectional (GET for queries, POST for commands)
+
 ```bash
-telnet localhost 9876
+# Query game state
+curl localhost:9877/state | jq
+
+# Execute a command
+curl -X POST localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "endTurn", "params": {}}'
 ```
 
 ## JSON Message Format
@@ -211,7 +248,7 @@ Broadcast at the start of each new turn.
 | `yields` | object | Per-yield data (perTurn, progress, threshold, etc.) |
 | `improvements` | object | Improvement counts by type |
 | `currentBuild` | object | Current production (buildType, itemType, progress, etc.) |
-| ... | ... | See `docs/roadmap.md` for complete field list |
+| ... | ... | See schema documentation for complete field list |
 
 ### Yield Types
 
@@ -302,14 +339,15 @@ OldWorldAPIEndpoint/
 ├── CLAUDE.md                   # Claude Code project instructions
 ├── Source/
 │   ├── APIEndpoint.cs          # Main entry point
-│   └── TcpBroadcastServer.cs   # TCP server implementation
+│   ├── TcpBroadcastServer.cs   # TCP server implementation
+│   └── HttpRestServer.cs       # HTTP REST API server
 ├── bin/                        # Build output (gitignored)
 │   └── OldWorldAPIEndpoint.dll
 └── docs/                       # Documentation
     ├── technical-overview.md   # This file
+    ├── api-reference.md        # REST API endpoint reference
     ├── api-design-principles.md # API design philosophy
-    ├── headless-mode-investigation.md  # Headless mode reference
-    └── roadmap.md              # Future development ideas
+    └── schemas/                # JSON Schema definitions
 ```
 
 ## Testing

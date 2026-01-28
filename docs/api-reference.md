@@ -1,6 +1,6 @@
 # API Reference
 
-Complete reference for all 32 REST API endpoints on port 9877.
+Complete reference for the REST API on port 9877. Includes 32 GET endpoints for querying game state and 2 POST endpoints for executing commands.
 
 ## Base URL
 
@@ -9,6 +9,12 @@ http://localhost:9877
 ```
 
 ## Endpoints Overview
+
+### Commands
+| Endpoint | Description |
+|----------|-------------|
+| [`POST /command`](#post-command) | Execute game command |
+| [`GET /validate`](#get-validate) | Validate command before execution |
 
 ### Core Data
 | Endpoint | Description |
@@ -485,12 +491,162 @@ All errors return JSON with `error` and `code` fields.
 
 ---
 
+## Commands
+
+The API supports bidirectional communication. In addition to reading game state via GET endpoints, you can execute game commands via POST.
+
+### POST /command
+
+Execute a single game command.
+
+**Request:**
+```json
+{
+  "action": "moveUnit",
+  "requestId": "optional-correlation-id",
+  "params": {
+    "unitId": 42,
+    "targetTileId": 156
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "requestId": "optional-correlation-id",
+  "success": true,
+  "error": null
+}
+```
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "endTurn", "params": {}}'
+```
+
+### Command Categories
+
+#### Unit Movement & Combat
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `moveUnit` | `unitId`, `targetTileId` | `march`, `queue` |
+| `attack` | `unitId`, `targetTileId` | - |
+| `fortify` | `unitId` | - |
+| `heal` | `unitId` | `auto` |
+| `march` | `unitId` | - |
+| `pass` | `unitId` | - |
+| `sleep` | `unitId` | - |
+| `sentry` | `unitId` | - |
+| `wake` | `unitId` | - |
+
+#### Unit Special Actions
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `foundCity` | `unitId`, `familyType` | `nationType` |
+| `buildImprovement` | `unitId`, `improvementType`, `tileId` | `buyGoods`, `queue` |
+| `addRoad` | `unitId`, `tileId` | `buyGoods`, `queue` |
+| `pillage` | `unitId` | - |
+| `promote` | `unitId`, `promotionType` | - |
+| `upgrade` | `unitId`, `unitType` | `buyGoods` |
+| `disband` | `unitId` | `force` |
+
+#### City Production
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `buildUnit` | `cityId`, `unitType` | `buyGoods`, `first` |
+| `buildProject` | `cityId`, `projectType` | `buyGoods`, `first`, `repeat` |
+| `hurryCivics` | `cityId` | - |
+| `hurryMoney` | `cityId` | - |
+| `hurryPopulation` | `cityId` | - |
+| `hurryOrders` | `cityId` | - |
+
+#### Research & Decisions
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `research` | `techType` | - |
+| `redrawTech` | - | - |
+| `targetTech` | `techType` | - |
+| `makeDecision` | `decisionId`, `choiceIndex` | `data` |
+
+#### Diplomacy
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `declareWar` | `targetPlayer` | - |
+| `makePeace` | `targetPlayer` | - |
+| `declareTruce` | `targetPlayer` | - |
+| `giftCity` | `cityId`, `targetPlayer` | - |
+| `giftYield` | `yieldType`, `targetPlayer` | `reverse` |
+
+#### Character Management
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `assignGovernor` | `cityId`, `characterId` | - |
+| `releaseGovernor` | `cityId` | - |
+| `assignGeneral` | `unitId`, `characterId` | - |
+| `releaseGeneral` | `unitId` | - |
+| `startMission` | `missionType`, `characterId`, `target` | `cancel` |
+
+#### Turn Control
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `endTurn` | - | - |
+
+### GET /validate
+
+Check if a command is valid before executing.
+
+**Request:**
+```
+GET /validate?action=moveUnit&unitId=42&targetTileId=156
+```
+
+**Response:**
+```json
+{
+  "valid": true,
+  "reason": null
+}
+```
+
+Or if invalid:
+```json
+{
+  "valid": false,
+  "reason": "Unit has no movement points remaining"
+}
+```
+
+### Type String Format
+
+Use game type strings exactly as they appear in GET responses:
+- Units: `UNIT_WARRIOR`, `UNIT_SETTLER`, etc.
+- Projects: `PROJECT_GRANARY`, `PROJECT_BARRACKS`, etc.
+- Techs: `TECH_TRAPPING`, `TECH_STONECUTTING`, etc.
+- Improvements: `IMPROVEMENT_FARM`, `IMPROVEMENT_MINE`, etc.
+
+### Security Notes
+
+- Commands only work in single-player mode
+- Both servers bind to localhost only
+- All commands go through game validation
+
+---
+
 ## CORS Headers
 
 All responses include:
 ```
 Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET
+Access-Control-Allow-Methods: GET, POST
 ```
 
 ---

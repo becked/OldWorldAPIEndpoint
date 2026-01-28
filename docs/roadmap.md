@@ -7,30 +7,15 @@ The mod provides a functional API with:
 - **HTTP REST** (port 9877) - 14 endpoints for on-demand queries
 - **Data Coverage**: Players, cities, characters, tribes, team/tribe diplomacy and alliances
 - **Character Events**: Birth, death, marriage, leader/heir changes (via state diffing)
+- **Unit Events**: Unit creation and death (via state diffing)
+- **City Events**: City founding and capture (via state diffing)
+- **Wonder Events**: Wonder completion (via state diffing)
 
 See `technical-overview.md` for full details on current implementation.
 
 ---
 
 ## Planned Features
-
-### Slice 5c: City Events
-City founding, conquest, and wonder completion.
-
-**Event types:**
-```json
-{"eventType": "cityFounded", "cityId": 123, "playerId": 0, "name": "Rome"}
-{"eventType": "cityConquered", "cityId": 123, "oldOwnerId": 0, "newOwnerId": 1}
-{"eventType": "wonderCompleted", "wonder": "WONDER_PYRAMIDS", "cityId": 123}
-```
-
-**Implementation approach:**
-- Track city list and ownership between turns
-- Track wonder completion progress
-
-**Complexity:** Medium
-
----
 
 ### Slice 7: Configurable Settings
 Allow port and other settings via mod options.
@@ -176,9 +161,7 @@ Currently using newline-delimited JSON. Switch to 4-byte big-endian length prefi
 
 **Medium effort, good value:**
 3. Slice 10 (Historical data) - Enables trend analysis
-4. Slice 5c (City events) - Common game events
 
 **Lower priority:**
-5. Slice 8 (WebSocket) - Nice for browser clients, but HTTP REST covers most needs
-6. Slice 5b (Military events) - Complex, may require different hooks
-7. TCP length-prefixed framing - Current approach works, only needed for strict binary safety
+4. Slice 8 (WebSocket) - Nice for browser clients, but HTTP REST covers most needs
+5. TCP length-prefixed framing - Current approach works, only needed for strict binary safety

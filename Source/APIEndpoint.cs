@@ -1307,6 +1307,170 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Wonder Events
+
+        // Snapshot class for storing previous turn's wonder state (used for event detection)
+        private class WonderSnapshot
+        {
+            public ImprovementType WonderType;
+            public bool IsCompleted;
+            public PlayerType OwnerPlayer;
+            public TribeType OwnerTribe;
+        }
+
+        // Storage for previous turn's wonder state
+        private static Dictionary<ImprovementType, WonderSnapshot> _previousWonders
+            = new Dictionary<ImprovementType, WonderSnapshot>();
+        private static List<object> _lastWonderEvents = new List<object>();
+
+        /// <summary>
+        /// Find which city contains a completed wonder for a player.
+        /// </summary>
+        private static int? FindPlayerWonderCity(Game game, ImprovementType wonderType, PlayerType ownerPlayer)
+        {
+            try
+            {
+                foreach (var city in game.getCities())
+                {
+                    if (city == null) continue;
+                    if (city.getPlayer() != ownerPlayer) continue;
+
+                    foreach (int tileId in city.getTerritoryTiles())
+                    {
+                        var tile = game.tile(tileId);
+                        if (tile != null && tile.getImprovement() == wonderType)
+                        {
+                            return city.getID();
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// Detect wonder completion events by diffing current state against previous turn's state.
+        /// Returns list of event objects (wonderCompleted).
+        /// </summary>
+        public static List<object> DetectWonderEvents(Game game, Infos infos)
+        {
+            var events = new List<object>();
+            int currentTurn = game.getTurn();
+
+            // Skip event detection on first turn or if turn hasn't changed
+            if (_previousTurn < 0 || currentTurn <= _previousTurn)
+            {
+                UpdateWonderSnapshots(game, infos);
+                _lastWonderEvents = events;
+                return events;
+            }
+
+            try
+            {
+                int improvementCount = (int)infos.improvementsNum();
+
+                for (int i = 0; i < improvementCount; i++)
+                {
+                    var impType = (ImprovementType)i;
+                    var impInfo = infos.improvement(impType);
+
+                    // Only check wonders
+                    if (!impInfo.mbWonder) continue;
+
+                    // Check if wonder is now owned (finished)
+                    bool isNowOwned = game.getWonderOwned(impType, true,
+                        out PlayerType currentPlayer, out TribeType currentTribe);
+
+                    // Get previous state
+                    bool wasOwned = _previousWonders.TryGetValue(impType, out var prev)
+                        && prev.IsCompleted;
+
+                    // Detect new completion
+                    if (isNowOwned && !wasOwned)
+                    {
+                        int? cityId = null;
+                        int? playerId = null;
+                        string tribeType = null;
+
+                        if (currentPlayer != PlayerType.NONE)
+                        {
+                            playerId = (int)currentPlayer;
+                            cityId = FindPlayerWonderCity(game, impType, currentPlayer);
+                        }
+                        else if (currentTribe != TribeType.NONE)
+                        {
+                            tribeType = infos.tribe(currentTribe).mzType;
+                            var tribeCity = game.getTribeWonderCity(impType, currentTribe);
+                            cityId = tribeCity?.getID();
+                        }
+
+                        events.Add(new
+                        {
+                            eventType = "wonderCompleted",
+                            wonder = impInfo.mzType,
+                            cityId = cityId,
+                            playerId = playerId,
+                            tribeType = tribeType
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error detecting wonder events: {ex.Message}");
+            }
+
+            // Update snapshots for next turn
+            UpdateWonderSnapshots(game, infos);
+            _lastWonderEvents = events;
+
+            return events;
+        }
+
+        /// <summary>
+        /// Update the wonder snapshots for the next turn comparison.
+        /// </summary>
+        private static void UpdateWonderSnapshots(Game game, Infos infos)
+        {
+            _previousWonders.Clear();
+            try
+            {
+                int improvementCount = (int)infos.improvementsNum();
+
+                for (int i = 0; i < improvementCount; i++)
+                {
+                    var impType = (ImprovementType)i;
+                    var impInfo = infos.improvement(impType);
+
+                    // Only track wonders
+                    if (!impInfo.mbWonder) continue;
+
+                    bool isOwned = game.getWonderOwned(impType, true,
+                        out PlayerType ownerPlayer, out TribeType ownerTribe);
+
+                    _previousWonders[impType] = new WonderSnapshot
+                    {
+                        WonderType = impType,
+                        IsCompleted = isOwned,
+                        OwnerPlayer = ownerPlayer,
+                        OwnerTribe = ownerTribe
+                    };
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Get the last detected wonder events (for HTTP endpoint).
+        /// </summary>
+        public static List<object> GetLastWonderEvents()
+        {
+            return _lastWonderEvents;
+        }
+
+        #endregion
+
         #region Team Diplomacy Methods
 
         /// <summary>
@@ -1732,6 +1896,7 @@ namespace OldWorldAPIEndpoint
                     var characterEvents = DetectCharacterEvents(game, infos);
                     var unitEvents = DetectUnitEvents(game, infos);
                     var cityEvents = DetectCityEvents(game, infos);
+                    var wonderEvents = DetectWonderEvents(game, infos);
 
                     var message = new
                     {
@@ -1742,6 +1907,7 @@ namespace OldWorldAPIEndpoint
                         characterEvents = characterEvents,
                         unitEvents = unitEvents,
                         cityEvents = cityEvents,
+                        wonderEvents = wonderEvents,
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),
@@ -1753,7 +1919,7 @@ namespace OldWorldAPIEndpoint
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 
-                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}, charEvents={characterEvents.Count}, unitEvents={unitEvents.Count}, cityEvents={cityEvents.Count}");
+                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}, charEvents={characterEvents.Count}, unitEvents={unitEvents.Count}, cityEvents={cityEvents.Count}, wonderEvents={wonderEvents.Count}");
                 }
                 else
                 {
@@ -1811,6 +1977,7 @@ namespace OldWorldAPIEndpoint
                     UpdateCharacterSnapshots(game);
                     UpdateUnitSnapshots(game, infos);
                     UpdateCitySnapshots(game);
+                    UpdateWonderSnapshots(game, infos);
                     _previousTurn = turn;
 
                     var message = new
@@ -1821,6 +1988,7 @@ namespace OldWorldAPIEndpoint
                         characterEvents = new List<object>(),  // Empty on game start
                         unitEvents = new List<object>(),       // Empty on game start
                         cityEvents = new List<object>(),       // Empty on game start
+                        wonderEvents = new List<object>(),     // Empty on game start
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),

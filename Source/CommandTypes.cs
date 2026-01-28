@@ -66,6 +66,25 @@ namespace OldWorldAPIEndpoint
     }
 
     /// <summary>
+    /// Result of parsing a command parameter.
+    /// Distinguishes between missing parameters and invalid types.
+    /// </summary>
+    public struct ParseResult<T>
+    {
+        /// <summary>Was the key present in Params?</summary>
+        public bool Found;
+
+        /// <summary>Did parsing succeed?</summary>
+        public bool Valid;
+
+        /// <summary>The parsed value (only valid if Valid is true).</summary>
+        public T Value;
+
+        /// <summary>The original value as string (for error messages).</summary>
+        public string RawValue;
+    }
+
+    /// <summary>
     /// A batch of commands to execute in sequence.
     /// </summary>
     public class BulkCommand

@@ -263,6 +263,89 @@ namespace OldWorldAPIEndpoint
         }
 
         /// <summary>
+        /// Try to get an integer parameter with detailed parse result.
+        /// Distinguishes between missing parameters and invalid types.
+        /// </summary>
+        private static bool TryGetIntParam(GameCommand cmd, string key, out ParseResult<int> result)
+        {
+            result = new ParseResult<int>();
+
+            if (cmd.Params == null || !cmd.Params.TryGetValue(key, out var value))
+            {
+                result.Found = false;
+                return false;
+            }
+
+            result.Found = true;
+            result.RawValue = value?.ToString() ?? "null";
+
+            if (value is int i)
+            {
+                result.Valid = true;
+                result.Value = i;
+                return true;
+            }
+            if (value is long l)
+            {
+                result.Valid = true;
+                result.Value = (int)l;
+                return true;
+            }
+            if (value is double d)
+            {
+                result.Valid = true;
+                result.Value = (int)d;
+                return true;
+            }
+            if (int.TryParse(value?.ToString(), out int parsed))
+            {
+                result.Valid = true;
+                result.Value = parsed;
+                return true;
+            }
+
+            Debug.LogWarning($"[CommandExecutor] Parse failed for '{key}': expected int, got '{result.RawValue}'");
+            result.Valid = false;
+            return false;
+        }
+
+        /// <summary>
+        /// Try to get a string parameter with detailed parse result.
+        /// </summary>
+        private static bool TryGetStringParam(GameCommand cmd, string key, out ParseResult<string> result)
+        {
+            result = new ParseResult<string>();
+
+            if (cmd.Params == null || !cmd.Params.TryGetValue(key, out var value))
+            {
+                result.Found = false;
+                return false;
+            }
+
+            result.Found = true;
+            result.RawValue = value?.ToString() ?? "null";
+            result.Value = result.RawValue;
+            result.Valid = !string.IsNullOrEmpty(result.Value);
+
+            if (!result.Valid)
+            {
+                Debug.LogWarning($"[CommandExecutor] Parse failed for '{key}': expected non-empty string, got '{result.RawValue}'");
+            }
+
+            return result.Valid;
+        }
+
+        /// <summary>
+        /// Generate an appropriate error message based on parse result.
+        /// </summary>
+        private static string GetParamError<T>(string key, ParseResult<T> result, string expectedType)
+        {
+            if (!result.Found)
+                return $"Missing required parameter: {key}";
+            return $"Invalid type for parameter '{key}': expected {expectedType}, got '{result.RawValue}'";
+        }
+
+        /// <summary>
         /// Resolve a unit type string (e.g., "UNIT_WARRIOR") to UnitType enum.
         /// </summary>
         private static UnitType ResolveUnitType(Game game, string typeStr)
@@ -368,22 +451,22 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteMoveUnit(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-            int targetTileId = GetIntParam(cmd, "targetTileId");
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "targetTileId", out var targetTileIdResult))
+            {
+                result.Error = GetParamError("targetTileId", targetTileIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            int targetTileId = targetTileIdResult.Value;
             bool queueMove = GetBoolParam(cmd, "queue", false);
             bool forceMove = GetBoolParam(cmd, "force", false);
-
-            if (unitId < 0)
-            {
-                result.Error = "Missing required parameter: unitId";
-                return result;
-            }
-
-            if (targetTileId < 0)
-            {
-                result.Error = "Missing required parameter: targetTileId";
-                return result;
-            }
 
             if (game == null)
             {
@@ -430,20 +513,20 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteAttack(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-            int targetTileId = GetIntParam(cmd, "targetTileId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
 
-            if (targetTileId < 0)
+            if (!TryGetIntParam(cmd, "targetTileId", out var targetTileIdResult))
             {
-                result.Error = "Missing required parameter: targetTileId";
+                result.Error = GetParamError("targetTileId", targetTileIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
+            int targetTileId = targetTileIdResult.Value;
 
             if (_sendUnitAttackMethod == null)
             {
@@ -479,13 +562,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteFortify(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
 
             if (_sendUnitFortifyMethod == null)
             {
@@ -515,13 +598,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecutePass(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
 
             if (_sendUnitPassMethod == null)
             {
@@ -551,13 +634,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteSleep(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
 
             if (_sendUnitSleepMethod == null)
             {
@@ -587,13 +670,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteSentry(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
 
             if (_sendUnitSentryMethod == null)
             {
@@ -623,13 +706,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteWake(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
 
             if (_sendUnitWakeMethod == null)
             {
@@ -659,14 +742,14 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteDisband(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-            bool force = GetBoolParam(cmd, "force", false);
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
+            bool force = GetBoolParam(cmd, "force", false);
 
             if (_sendUnitDisbandMethod == null)
             {
@@ -696,20 +779,20 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecutePromote(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int unitId = GetIntParam(cmd, "unitId");
-            string promotionStr = GetStringParam(cmd, "promotion");
-
-            if (unitId < 0)
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
             {
-                result.Error = "Missing required parameter: unitId";
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
                 return result;
             }
 
-            if (string.IsNullOrEmpty(promotionStr))
+            if (!TryGetStringParam(cmd, "promotion", out var promotionResult))
             {
-                result.Error = "Missing required parameter: promotion";
+                result.Error = GetParamError("promotion", promotionResult, "string");
                 return result;
             }
+
+            int unitId = unitIdResult.Value;
+            string promotionStr = promotionResult.Value;
 
             PromotionType promotionType = ResolvePromotionType(game, promotionStr);
             if (promotionType == PromotionType.NONE)
@@ -746,21 +829,21 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteBuild(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int cityId = GetIntParam(cmd, "cityId");
-            string unitTypeStr = GetStringParam(cmd, "unitType");
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetStringParam(cmd, "unitType", out var unitTypeResult))
+            {
+                result.Error = GetParamError("unitType", unitTypeResult, "string");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            string unitTypeStr = unitTypeResult.Value;
             bool rush = GetBoolParam(cmd, "rush", false);
-
-            if (cityId < 0)
-            {
-                result.Error = "Missing required parameter: cityId";
-                return result;
-            }
-
-            if (string.IsNullOrEmpty(unitTypeStr))
-            {
-                result.Error = "Missing required parameter: unitType";
-                return result;
-            }
 
             if (game == null)
             {
@@ -806,14 +889,14 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteHurry(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            int cityId = GetIntParam(cmd, "cityId");
-            string yieldStr = GetStringParam(cmd, "yield", "YIELD_CIVICS");
-
-            if (cityId < 0)
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
             {
-                result.Error = "Missing required parameter: cityId";
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
                 return result;
             }
+
+            int cityId = cityIdResult.Value;
+            string yieldStr = GetStringParam(cmd, "yield", "YIELD_CIVICS");
 
             YieldType yieldType = ResolveYieldType(game, yieldStr);
             if (yieldType == YieldType.NONE)
@@ -843,13 +926,13 @@ namespace OldWorldAPIEndpoint
 
         private static CommandResult ExecuteResearch(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
-            string techStr = GetStringParam(cmd, "tech");
-
-            if (string.IsNullOrEmpty(techStr))
+            if (!TryGetStringParam(cmd, "tech", out var techResult))
             {
-                result.Error = "Missing required parameter: tech";
+                result.Error = GetParamError("tech", techResult, "string");
                 return result;
             }
+
+            string techStr = techResult.Value;
 
             TechType techType = ResolveTechType(game, techStr);
             if (techType == TechType.NONE)

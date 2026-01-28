@@ -5,11 +5,12 @@
 #   1. Get an OAuth2 access token from https://mod.io/me/access (read+write)
 #   2. Add MODIO_ACCESS_TOKEN to your .env file
 #
-# Usage: ./modio-upload.sh [version] [changelog]
+# Usage: ./modio-upload.sh [changelog]
 # Examples:
-#   ./modio-upload.sh                           # Upload with auto-version
-#   ./modio-upload.sh "1.2.0"                   # Upload with specific version
-#   ./modio-upload.sh "1.2.0" "Fixed bug X"    # Upload with version and changelog
+#   ./modio-upload.sh                    # Upload with version from ModInfo.xml, changelog from CHANGELOG.md
+#   ./modio-upload.sh "Fixed bug X"      # Upload with custom changelog message
+#
+# Version is always read from ModInfo.xml. Use ./bump-version.sh to change it.
 
 set -e
 
@@ -36,9 +37,28 @@ if [ -z "$MODIO_GAME_ID" ] || [ -z "$MODIO_MOD_ID" ]; then
     exit 1
 fi
 
-# Optional parameters
-VERSION="${1:-}"
-CHANGELOG="${2:-}"
+# Read version from ModInfo.xml (single source of truth)
+VERSION=$(sed -n 's/.*<modversion>\([^<]*\)<\/modversion>.*/\1/p' ModInfo.xml)
+if [ -z "$VERSION" ]; then
+    echo "Error: Could not extract version from ModInfo.xml"
+    exit 1
+fi
+echo "Version: $VERSION"
+
+# Changelog: use argument if provided, otherwise extract from CHANGELOG.md
+CHANGELOG="${1:-}"
+if [ -z "$CHANGELOG" ] && [ -f "CHANGELOG.md" ]; then
+    # Extract changelog for current version from CHANGELOG.md
+    # Finds section starting with ## [VERSION] and captures until next ## or end
+    CHANGELOG=$(awk -v ver="$VERSION" '
+        /^## \[/ {
+            if (found) exit
+            if ($0 ~ "\\[" ver "\\]") { found=1; next }
+        }
+        found && /^## \[/ { exit }
+        found { print }
+    ' CHANGELOG.md | sed '/^$/d' | head -20)
+fi
 
 # Mod metadata (matches Steam Workshop)
 MOD_NAME="Old World API Endpoint"

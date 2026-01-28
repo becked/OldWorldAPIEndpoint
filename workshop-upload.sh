@@ -5,8 +5,12 @@
 #   1. Install SteamCMD: brew install steamcmd
 #   2. Have Steam Guard ready (you'll need to authenticate)
 #
-# First upload:  ./workshop-upload.sh
-# Updates:       ./workshop-upload.sh <publishedfileid>
+# Usage: ./workshop-upload.sh [changelog]
+# Examples:
+#   ./workshop-upload.sh                    # Upload with changelog from CHANGELOG.md
+#   ./workshop-upload.sh "Fixed bug X"      # Upload with custom changelog message
+#
+# Version is always read from ModInfo.xml. Use ./bump-version.sh to change it.
 
 set -e
 
@@ -19,6 +23,37 @@ if [ -f ".env" ]; then
 else
     echo "Error: .env file not found (needed for build)"
     exit 1
+fi
+
+# Read version from ModInfo.xml (single source of truth)
+VERSION=$(sed -n 's/.*<modversion>\([^<]*\)<\/modversion>.*/\1/p' ModInfo.xml)
+if [ -z "$VERSION" ]; then
+    echo "Error: Could not extract version from ModInfo.xml"
+    exit 1
+fi
+echo "Version: $VERSION"
+
+# Changelog: use argument if provided, otherwise extract from CHANGELOG.md
+CHANGELOG="${1:-}"
+if [ -z "$CHANGELOG" ] && [ -f "CHANGELOG.md" ]; then
+    # Extract changelog for current version from CHANGELOG.md
+    CHANGELOG=$(awk -v ver="$VERSION" '
+        /^## \[/ {
+            if (found) exit
+            if ($0 ~ "\\[" ver "\\]") { found=1; next }
+        }
+        found && /^## \[/ { exit }
+        found { print }
+    ' CHANGELOG.md | sed '/^$/d' | head -20)
+fi
+
+# Format changenote with version prefix (use actual newlines, awk will escape them)
+if [ -n "$CHANGELOG" ]; then
+    CHANGENOTE="v$VERSION
+
+$CHANGELOG"
+else
+    CHANGENOTE="v$VERSION"
 fi
 
 # Build first
@@ -47,17 +82,41 @@ fi
 echo "Content prepared:"
 ls -la workshop_content/
 
-# Handle publishedfileid for updates (command line overrides .env)
-PUBLISHED_ID="${1:-$STEAM_WORKSHOP_ID}"
+# Get publishedfileid from .env (required for updates)
+PUBLISHED_ID="$STEAM_WORKSHOP_ID"
 
 # Create temp VDF with absolute paths (SteamCMD needs them)
 echo ""
 echo "=== Generating upload VDF ==="
-sed -e "s|\"contentfolder\".*|\"contentfolder\" \"$SCRIPT_DIR/workshop_content\"|" \
-    -e "s|\"previewfile\".*|\"previewfile\" \"$SCRIPT_DIR/logo.png\"|" \
-    -e "s/\"publishedfileid\" *\"[^\"]*\"/\"publishedfileid\" \"$PUBLISHED_ID\"/" \
-    workshop.vdf > workshop_upload.vdf
+
+# Escape quotes in changenote (but keep actual newlines - Steam needs them)
+ESCAPED_CHANGENOTE=$(printf '%s' "$CHANGENOTE" | sed 's/"/\\"/g')
+
+# Build VDF by processing line by line, inserting changenote with actual newlines
+{
+    while IFS= read -r line; do
+        case "$line" in
+            *'"contentfolder"'*)
+                printf '\t"contentfolder"\t\t"%s"\n' "$SCRIPT_DIR/workshop_content"
+                ;;
+            *'"previewfile"'*)
+                printf '\t"previewfile"\t\t"%s"\n' "$SCRIPT_DIR/logo.png"
+                ;;
+            *'"publishedfileid"'*)
+                printf '\t"publishedfileid"\t\t"%s"\n' "$PUBLISHED_ID"
+                ;;
+            *'"changenote"'*)
+                printf '\t"changenote"\t\t"%s"\n' "$ESCAPED_CHANGENOTE"
+                ;;
+            *)
+                printf '%s\n' "$line"
+                ;;
+        esac
+    done < workshop.vdf
+} > workshop_upload.vdf
 VDF_FILE="workshop_upload.vdf"
+
+echo "Changenote: $(echo "$CHANGENOTE" | head -1)..."
 
 if [ -n "$PUBLISHED_ID" ]; then
     echo "Updating existing item: $PUBLISHED_ID"
@@ -89,4 +148,4 @@ echo ""
 echo "=== Upload complete ==="
 echo ""
 echo "If this was a new upload, note the 'publishedfileid' from the output above."
-echo "Save it for future updates: ./workshop-upload.sh <publishedfileid>"
+echo "Add it to your .env file as STEAM_WORKSHOP_ID for future updates."

@@ -23,6 +23,26 @@ The deploy scripts copy `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` 
 
 **Windows notes:** The PowerShell script supports `%APPDATA%` expansion in paths. See `.env.example` for Windows path examples.
 
+## Versioning
+
+Version is managed in `ModInfo.xml` (single source of truth) using semantic versioning.
+
+```bash
+# Bump version
+./bump-version.sh patch    # 0.0.2 -> 0.0.3
+./bump-version.sh minor    # 0.0.2 -> 0.1.0
+./bump-version.sh major    # 0.0.2 -> 1.0.0
+./bump-version.sh 1.2.3    # Set explicit version
+```
+
+**Release workflow:**
+1. `./bump-version.sh <type>` - Bump version in ModInfo.xml
+2. Update `CHANGELOG.md` with changes for the new version
+3. `./workshop-upload.sh` - Upload to Steam Workshop (reads version + changelog automatically)
+4. `./modio-upload.sh` - Upload to mod.io (reads version + changelog automatically)
+
+Both upload scripts extract the changelog for the current version from `CHANGELOG.md` automatically. You can override with a custom message: `./workshop-upload.sh "Custom changelog"`.
+
 ## Testing
 
 **Always use headless testing to verify API changes.** This is the primary testing method.

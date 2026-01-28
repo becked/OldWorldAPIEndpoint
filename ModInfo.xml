@@ -4,19 +4,27 @@
   <displayName>Old World API Endpoint</displayName>
   <description>Exposes game state data via TCP and HTTP APIs, enabling companion apps, overlays, and external tools to read live game information.
 
-Connection Options:
-- TCP (port 9876): Persistent connection that receives push notifications on game events
-- HTTP (port 9877): REST API for on-demand queries (GET /state, /players, /cities, /characters, /character-events, /tribes)
+[h1]Connection Options[/h1]
+[list]
+[*] [b]TCP (port 9876)[/b]: Persistent connection that receives push notifications on game events
+[*] [b]HTTP (port 9877)[/b]: REST API for on-demand queries (GET /state, /players, /cities, /characters, /character-events, /tribes)
+[/list]
 
-Data Exposed:
-- Players: Nation, stockpiles, yield rates, legitimacy, city/unit counts
-- Cities: Yields, improvements, build queues, religion, culture, happiness, governor, family
-- Characters: 75+ fields including traits, ratings, jobs, spouses, children, opinions, relationships, lifecycle timeline
-- Character Events: Births, deaths, marriages, leader changes, heir changes (detected between turns)
-- Diplomacy: Team relationships, war states, war scores, alliances, contact status
-- Tribes: Strength, cities, settlements, diplomacy with players, alliances
+[h1]Data Exposed[/h1]
+[list]
+[*] [b]Players[/b]: Nation, stockpiles, yield rates, legitimacy, city/unit counts
+[*] [b]Cities[/b]: Yields, improvements, build queues, religion, culture, happiness, governor, family
+[*] [b]Characters[/b]: 75+ fields including traits, ratings, jobs, spouses, children, opinions, relationships
+[*] [b]Character Events[/b]: Births, deaths, marriages, leader changes, heir changes
+[*] [b]Diplomacy[/b]: Team relationships, war states, war scores, alliances
+[*] [b]Tribes[/b]: Strength, cities, settlements, diplomacy with players
+[/list]
 
-Source code: https://github.com/becked/OldWorldAPIEndpoint</description>
+[h1]Documentation[/h1]
+[url=https://becked.github.io/OldWorldAPIEndpoint]API Documentation[/url]
+
+[h1]Source Code[/h1]
+[url=https://github.com/becked/OldWorldAPIEndpoint]GitHub Repository[/url]</description>
   <modpicture>logo.png</modpicture>
   <author>becked</author>
   <modplatform>Modio</modplatform>

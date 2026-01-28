@@ -20,3 +20,7 @@ test/data/
 
 # Environment configuration (contains local paths)
 .env
+
+# Steam Workshop upload artifacts
+workshop_content/
+workshop_upload.vdf

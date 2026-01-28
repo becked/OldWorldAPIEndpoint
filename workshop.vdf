@@ -1,0 +1,37 @@
+"workshopitem"
+{
+	"appid"		"597180"
+	"publishedfileid"		"3655289548"
+	"contentfolder"		"./workshop_content"
+	"previewfile"		"./logo.png"
+	"visibility"		"0"
+	"title"		"Old World API Endpoint"
+	"description"		"Exposes game state data via TCP and HTTP APIs, enabling companion apps, overlays, and external tools to read live game information.
+
+[h1]Connection Options[/h1]
+[list]
+[*] [b]TCP (port 9876)[/b]: Persistent connection that receives push notifications on game events
+[*] [b]HTTP (port 9877)[/b]: REST API for on-demand queries (GET /state, /players, /cities, /characters, /character-events, /tribes)
+[/list]
+
+[h1]Data Exposed[/h1]
+[list]
+[*] [b]Players[/b]: Nation, stockpiles, yield rates, legitimacy, city/unit counts
+[*] [b]Cities[/b]: Yields, improvements, build queues, religion, culture, happiness, governor, family
+[*] [b]Characters[/b]: 75+ fields including traits, ratings, jobs, spouses, children, opinions, relationships
+[*] [b]Character Events[/b]: Births, deaths, marriages, leader changes, heir changes
+[*] [b]Diplomacy[/b]: Team relationships, war states, war scores, alliances
+[*] [b]Tribes[/b]: Strength, cities, settlements, diplomacy with players
+[/list]
+
+[h1]Documentation[/h1]
+[url=https://becked.github.io/OldWorldAPIEndpoint]API Documentation[/url]
+
+[h1]Source Code[/h1]
+[url=https://github.com/becked/OldWorldAPIEndpoint]GitHub Repository[/url]"
+	"changenote"		"Initial Steam Workshop release"
+	"tags"
+	{
+		"0"		"GameInfo"
+	}
+}

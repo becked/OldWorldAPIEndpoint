@@ -11,6 +11,25 @@ namespace OldWorldAPIEndpoint
     /// </summary>
     public partial class APIEndpoint
     {
+        #region Player Validation Helpers
+
+        /// <summary>
+        /// Safely retrieves a player by index with bounds and null checking.
+        /// </summary>
+        public static bool TryGetPlayer(Game game, int index, out Player player)
+        {
+            player = null;
+            if (game == null) return false;
+
+            var players = game.getPlayers();
+            if (index < 0 || index >= players.Length) return false;
+
+            player = players[index];
+            return player != null;
+        }
+
+        #endregion
+
         #region Single Entity Lookup Methods
 
         /// <summary>

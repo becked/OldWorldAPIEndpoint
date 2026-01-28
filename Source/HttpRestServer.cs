@@ -494,97 +494,89 @@ namespace OldWorldAPIEndpoint
 
         private void HandlePlayerTechsRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var techs = APIEndpoint.BuildPlayerTechs(players[index], game, game.infos());
+            var techs = APIEndpoint.BuildPlayerTechs(player, game, game.infos());
             SendJsonResponse(context.Response, techs);
         }
 
         private void HandlePlayerFamiliesRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var families = APIEndpoint.BuildPlayerFamilies(players[index], game, game.infos());
+            var families = APIEndpoint.BuildPlayerFamilies(player, game, game.infos());
             SendJsonResponse(context.Response, families);
         }
 
         private void HandlePlayerReligionRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var religion = APIEndpoint.BuildPlayerReligion(players[index], game, game.infos());
+            var religion = APIEndpoint.BuildPlayerReligion(player, game, game.infos());
             SendJsonResponse(context.Response, religion);
         }
 
         private void HandlePlayerGoalsRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var goals = APIEndpoint.BuildPlayerGoals(players[index], game, game.infos());
+            var goals = APIEndpoint.BuildPlayerGoals(player, game, game.infos());
             SendJsonResponse(context.Response, goals);
         }
 
         private void HandlePlayerDecisionsRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var decisions = APIEndpoint.BuildPlayerDecisions(players[index], game, game.infos());
+            var decisions = APIEndpoint.BuildPlayerDecisions(player, game, game.infos());
             SendJsonResponse(context.Response, decisions);
         }
 
         private void HandlePlayerLawsRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var laws = APIEndpoint.BuildPlayerLaws(players[index], game, game.infos());
+            var laws = APIEndpoint.BuildPlayerLaws(player, game, game.infos());
             SendJsonResponse(context.Response, laws);
         }
 
         private void HandlePlayerMissionsRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var missions = APIEndpoint.BuildPlayerMissions(players[index], game, game.infos());
+            var missions = APIEndpoint.BuildPlayerMissions(player, game, game.infos());
             SendJsonResponse(context.Response, missions);
         }
 
         private void HandlePlayerResourcesRequest(HttpListenerContext context, Game game, int index)
         {
-            Player[] players = game.getPlayers();
-            if (index < 0 || index >= players.Length || players[index] == null)
+            if (!APIEndpoint.TryGetPlayer(game, index, out var player))
             {
                 SendErrorResponse(context.Response, $"Player not found: {index}", 404);
                 return;
             }
-            var resources = APIEndpoint.BuildPlayerResources(players[index], game, game.infos());
+            var resources = APIEndpoint.BuildPlayerResources(player, game, game.infos());
             SendJsonResponse(context.Response, resources);
         }
 

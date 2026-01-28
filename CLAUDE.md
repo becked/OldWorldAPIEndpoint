@@ -137,6 +137,29 @@ int stockpile = player.getYieldStockpileWhole(yieldType);
 
 Use `mzType` field on Info objects to get string identifiers (enum `.ToString()` returns numeric values).
 
+## Null Checking Patterns
+
+For new code, follow these conventions:
+
+1. **Control flow** (early return/continue): Use traditional checks
+   ```csharp
+   if (player == null) return;
+   if (unit == null) continue;
+   ```
+
+2. **Property chain access**: Use null-conditional
+   ```csharp
+   infos.nation(city.getNation())?.mzType
+   ```
+
+3. **Default values**: Use null-coalescing
+   ```csharp
+   value?.ToString() ?? "default"
+   ```
+
+Existing code uses these patterns consistently within their contexts.
+Do not refactor working null checks without clear benefit.
+
 ## Post-Implementation Checklist
 
 After making code changes, always complete these steps:

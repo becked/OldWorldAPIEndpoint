@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-01-28
+
+### Changed
+- Refactored APIEndpoint.cs into partial classes for improved maintainability
+- Optimized event detection lookups with secondary indexes and HashSet for better performance
+
+### Fixed
+- Fixed misleading error messages for invalid command parameters
+- Fixed thread safety issues in HTTP request handling
+- Added defense-in-depth exception handling for HTTP thread pool work
+
+### Added
+- Added TryGetPlayer helper method and documented null checking patterns
+
 ## [2.0.0] - 2025-01-28
 
 ### Added

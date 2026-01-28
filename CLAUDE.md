@@ -160,6 +160,35 @@ For new code, follow these conventions:
 Existing code uses these patterns consistently within their contexts.
 Do not refactor working null checks without clear benefit.
 
+## Comment Guidelines
+
+Write comments that describe **current behavior**, not history:
+
+**Good:**
+```csharp
+// Queue methods execute synchronously on the main thread
+// Bare catch blocks used for graceful degradation
+// sendEndTurn(int iTurn, bool bForce) - iTurn is Game.getTurn(), not player index!
+```
+
+**Avoid:**
+```csharp
+// Legacy method - kept for API compatibility
+// Previously this used async, now synchronous
+// Refactored from the old system in v1.2
+// TODO: Remove after migration complete
+```
+
+**When to comment:**
+- Non-obvious behavior or gotchas
+- Design rationale for unusual patterns (e.g., bare catch blocks)
+- API signatures discovered through reflection
+
+**When not to comment:**
+- Self-explanatory code
+- Implementation history or past versions
+- Obvious parameter descriptions
+
 ## Post-Implementation Checklist
 
 After making code changes, always complete these steps:

@@ -23,7 +23,7 @@ namespace OldWorldAPIEndpoint
             public bool IsHeir;
             public bool IsRegent;
             public int NumSpouses;
-            public List<int> SpouseIds;
+            public HashSet<int> SpouseIds;
             public int PlayerId;  // -1 if none
         }
 
@@ -31,6 +31,10 @@ namespace OldWorldAPIEndpoint
         private static Dictionary<int, CharacterSnapshot> _previousCharacters = new Dictionary<int, CharacterSnapshot>();
         private static int _previousTurn = -1;
         private static List<object> _lastCharacterEvents = new List<object>();
+
+        // Secondary indexes for O(1) lookups by player ID
+        private static Dictionary<int, int> _leaderByPlayerId = new Dictionary<int, int>();
+        private static Dictionary<int, int> _heirByPlayerId = new Dictionary<int, int>();
 
         /// <summary>
         /// Detect character events by diffing current state against previous turn's state.
@@ -90,17 +94,9 @@ namespace OldWorldAPIEndpoint
                     // Check for new leadership
                     if (character.isLeader() && !prev.IsLeader)
                     {
-                        // Find old leader for this player
-                        int? oldLeaderId = null;
                         int playerId = character.hasPlayer() ? (int)character.getPlayer() : -1;
-                        foreach (var kvp in _previousCharacters)
-                        {
-                            if (kvp.Value.IsLeader && kvp.Value.PlayerId == playerId)
-                            {
-                                oldLeaderId = kvp.Key;
-                                break;
-                            }
-                        }
+                        // Use secondary index for O(1) lookup
+                        int? oldLeaderId = _leaderByPlayerId.TryGetValue(playerId, out var lid) ? lid : (int?)null;
 
                         events.Add(new
                         {
@@ -134,15 +130,8 @@ namespace OldWorldAPIEndpoint
                     if (character.isHeir() && !prev.IsHeir)
                     {
                         int playerId = character.hasPlayer() ? (int)character.getPlayer() : -1;
-                        int? oldHeirId = null;
-                        foreach (var kvp in _previousCharacters)
-                        {
-                            if (kvp.Value.IsHeir && kvp.Value.PlayerId == playerId)
-                            {
-                                oldHeirId = kvp.Key;
-                                break;
-                            }
-                        }
+                        // Use secondary index for O(1) lookup
+                        int? oldHeirId = _heirByPlayerId.TryGetValue(playerId, out var hid) ? hid : (int?)null;
 
                         events.Add(new
                         {
@@ -165,25 +154,41 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Update the character snapshots for the next turn comparison.
+        /// Also rebuilds secondary indexes for O(1) leader/heir lookups.
         /// </summary>
         private static void UpdateCharacterSnapshots(Game game)
         {
             _previousCharacters.Clear();
+            _leaderByPlayerId.Clear();
+            _heirByPlayerId.Clear();
+
             foreach (var character in game.getCharacters())
             {
                 if (character == null) continue;
-                _previousCharacters[character.getID()] = new CharacterSnapshot
+
+                int characterId = character.getID();
+                int playerId = character.hasPlayer() ? (int)character.getPlayer() : -1;
+                bool isLeader = character.isLeader();
+                bool isHeir = character.isHeir();
+
+                _previousCharacters[characterId] = new CharacterSnapshot
                 {
-                    Id = character.getID(),
+                    Id = characterId,
                     IsAlive = character.isAlive(),
                     IsDead = character.isDead(),
-                    IsLeader = character.isLeader(),
-                    IsHeir = character.isHeir(),
+                    IsLeader = isLeader,
+                    IsHeir = isHeir,
                     IsRegent = character.isRegent(),
                     NumSpouses = character.getNumSpouses(),
-                    SpouseIds = GetCharacterSpouseIds(character),
-                    PlayerId = character.hasPlayer() ? (int)character.getPlayer() : -1
+                    SpouseIds = new HashSet<int>(GetCharacterSpouseIds(character)),
+                    PlayerId = playerId
                 };
+
+                // Build secondary indexes for O(1) lookups
+                if (isLeader && playerId >= 0)
+                    _leaderByPlayerId[playerId] = characterId;
+                if (isHeir && playerId >= 0)
+                    _heirByPlayerId[playerId] = characterId;
             }
         }
 

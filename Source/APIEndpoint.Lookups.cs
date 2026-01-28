@@ -70,50 +70,35 @@ namespace OldWorldAPIEndpoint
         }
 
         /// <summary>
-        /// Get a specific unit by ID.
+        /// Get a specific unit by ID using Game API O(log n) lookup.
         /// </summary>
         public static object GetUnitById(Game game, int unitId)
         {
-            var units = game.getUnits();
-            Infos infos = game.infos();
-
-            foreach (var unit in units)
-            {
-                if (unit != null && !unit.isDead() && unit.getID() == unitId)
-                    return BuildUnitObject(unit, game, infos);
-            }
+            var unit = game.unit(unitId);
+            if (unit != null && !unit.isDead())
+                return BuildUnitObject(unit, game, game.infos());
             return null;
         }
 
         /// <summary>
-        /// Get a specific city by ID.
+        /// Get a specific city by ID using Game API O(log n) lookup.
         /// </summary>
         public static object GetCityById(Game game, int cityId)
         {
-            var cities = game.getCities();
-            Infos infos = game.infos();
-
-            foreach (var city in cities)
-            {
-                if (city != null && city.getID() == cityId)
-                    return BuildCityObject(city, game, infos);
-            }
+            var city = game.city(cityId);
+            if (city != null)
+                return BuildCityObject(city, game, game.infos());
             return null;
         }
 
         /// <summary>
-        /// Get a specific character by ID.
+        /// Get a specific character by ID using Game API O(log n) lookup.
         /// </summary>
         public static object GetCharacterById(Game game, int characterId)
         {
-            var characters = game.getCharacters();
-            Infos infos = game.infos();
-
-            foreach (var character in characters)
-            {
-                if (character != null && character.getID() == characterId)
-                    return BuildCharacterObject(character, game, infos);
-            }
+            var character = game.character(characterId);
+            if (character != null)
+                return BuildCharacterObject(character, game, game.infos());
             return null;
         }
 
@@ -161,20 +146,21 @@ namespace OldWorldAPIEndpoint
         }
 
         /// <summary>
-        /// Get a single tile by ID.
+        /// Get a single tile by ID using Game API O(1) direct array lookup.
+        /// Falls back to iteration if direct access fails (edge cases).
         /// </summary>
         public static object GetTileById(Game game, int tileId)
         {
+            // Try direct O(1) array access first
             try
             {
-                // Try direct access first
                 var tile = game.tile(tileId);
                 if (tile != null)
                     return BuildTileObject(tile, game, game.infos());
             }
             catch { }
 
-            // Fallback to iterating all tiles
+            // Fallback for edge cases where direct access fails
             try
             {
                 foreach (var tile in game.allTiles())
@@ -188,20 +174,21 @@ namespace OldWorldAPIEndpoint
         }
 
         /// <summary>
-        /// Get a single tile by coordinates.
+        /// Get a single tile by coordinates using Game API O(1) grid lookup.
+        /// Falls back to iteration if grid access fails (edge cases).
         /// </summary>
         public static object GetTileByCoords(Game game, int x, int y)
         {
+            // Try direct O(1) grid access first
             try
             {
-                // Try grid access first
                 var tile = game.tileGrid(x, y);
                 if (tile != null)
                     return BuildTileObject(tile, game, game.infos());
             }
             catch { }
 
-            // Fallback to iterating all tiles
+            // Fallback for edge cases where grid access fails
             try
             {
                 foreach (var tile in game.allTiles())

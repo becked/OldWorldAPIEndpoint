@@ -9,15 +9,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 cp .env.example .env
 # Edit .env with your Old World installation path
 
-# Build and deploy to Old World mods folder
+# Build and deploy (preferred - handles everything)
 ./deploy.sh            # macOS/Linux
 .\deploy.ps1           # Windows (PowerShell)
 
-# Or build manually (after configuring .env)
-source .env
-export OldWorldPath="$OLDWORLD_PATH"
-dotnet build -c Release
+# Build only (if needed separately)
+source .env && export OldWorldPath="$OLDWORLD_PATH" && dotnet build -c Release
 ```
+
+**Important:** Never run bare `dotnet build` - it will fail because `OldWorldPath` won't be set. Always use `./deploy.sh` or the full command above.
 
 The deploy scripts copy `ModInfo.xml`, the built DLL, and `Newtonsoft.Json.dll` to the mods directory configured in `.env`.
 
@@ -116,3 +116,14 @@ int stockpile = player.getYieldStockpileWhole(yieldType);
 ```
 
 Use `mzType` field on Info objects to get string identifiers (enum `.ToString()` returns numeric values).
+
+## Post-Implementation Checklist
+
+After making code changes, always complete these steps:
+
+1. **Build & Deploy:** `./deploy.sh`
+2. **Test:** `./test-headless.sh "/Users/jeff/Library/Application Support/OldWorld/Saves/APITestSave.zip" 2`
+3. **Verify:** Check the test output for:
+   - No errors in game log
+   - New fields appear in JSON output
+   - Expected event counts in log messages

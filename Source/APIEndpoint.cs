@@ -1022,6 +1022,291 @@ namespace OldWorldAPIEndpoint
 
         #endregion
 
+        #region Unit Events
+
+        // Snapshot class for storing previous turn's unit state (used for event detection)
+        private class UnitSnapshot
+        {
+            public int Id;
+            public bool IsAlive;
+            public int PlayerId;        // -1 if none (tribe units)
+            public string UnitType;     // e.g., "UNIT_WARRIOR"
+            public int HP;
+            public int TileId;
+            public int X;
+            public int Y;
+        }
+
+        // Storage for previous turn's unit state
+        private static Dictionary<int, UnitSnapshot> _previousUnits = new Dictionary<int, UnitSnapshot>();
+        private static List<object> _lastUnitEvents = new List<object>();
+
+        /// <summary>
+        /// Detect unit events by diffing current state against previous turn's state.
+        /// Returns list of event objects (unitKilled, unitCreated).
+        /// </summary>
+        public static List<object> DetectUnitEvents(Game game, Infos infos)
+        {
+            var events = new List<object>();
+            int currentTurn = game.getTurn();
+
+            // Skip event detection on first turn or if turn hasn't changed
+            if (_previousTurn < 0 || currentTurn <= _previousTurn)
+            {
+                UpdateUnitSnapshots(game, infos);
+                _lastUnitEvents = events;
+                return events;
+            }
+
+            // Build dictionary of current units
+            var currentUnits = new Dictionary<int, Unit>();
+            try
+            {
+                var units = game.getUnits();
+                foreach (var unit in units)
+                {
+                    if (unit != null)
+                        currentUnits[unit.getID()] = unit;
+                }
+            }
+            catch { }
+
+            // Check for killed units (in previous but not in current or now dead)
+            foreach (var kvp in _previousUnits)
+            {
+                int unitId = kvp.Key;
+                var prev = kvp.Value;
+
+                if (!currentUnits.TryGetValue(unitId, out var currentUnit) || currentUnit.isDead())
+                {
+                    events.Add(new
+                    {
+                        eventType = "unitKilled",
+                        unitId = unitId,
+                        unitType = prev.UnitType,
+                        lastOwnerId = prev.PlayerId,
+                        lastLocation = new
+                        {
+                            tileId = prev.TileId,
+                            x = prev.X,
+                            y = prev.Y
+                        }
+                    });
+                }
+            }
+
+            // Check for created units (in current but not in previous)
+            foreach (var kvp in currentUnits)
+            {
+                int unitId = kvp.Key;
+                var unit = kvp.Value;
+
+                if (!_previousUnits.ContainsKey(unitId) && !unit.isDead())
+                {
+                    var tile = unit.tile();
+                    int playerId = unit.hasPlayer() ? (int)unit.getPlayer() : -1;
+
+                    events.Add(new
+                    {
+                        eventType = "unitCreated",
+                        unitId = unitId,
+                        unitType = infos.unit(unit.getType())?.mzType ?? "UNKNOWN",
+                        playerId = playerId,
+                        location = new
+                        {
+                            tileId = tile?.getID() ?? -1,
+                            x = tile?.getX() ?? 0,
+                            y = tile?.getY() ?? 0
+                        }
+                    });
+                }
+            }
+
+            // Update snapshots for next turn
+            UpdateUnitSnapshots(game, infos);
+            _lastUnitEvents = events;
+
+            return events;
+        }
+
+        /// <summary>
+        /// Update the unit snapshots for the next turn comparison.
+        /// </summary>
+        private static void UpdateUnitSnapshots(Game game, Infos infos)
+        {
+            _previousUnits.Clear();
+            try
+            {
+                var units = game.getUnits();
+                foreach (var unit in units)
+                {
+                    if (unit == null || unit.isDead()) continue;
+
+                    var tile = unit.tile();
+                    _previousUnits[unit.getID()] = new UnitSnapshot
+                    {
+                        Id = unit.getID(),
+                        IsAlive = !unit.isDead(),
+                        PlayerId = unit.hasPlayer() ? (int)unit.getPlayer() : -1,
+                        UnitType = infos.unit(unit.getType())?.mzType ?? "UNKNOWN",
+                        HP = unit.getHP(),
+                        TileId = tile?.getID() ?? -1,
+                        X = tile?.getX() ?? 0,
+                        Y = tile?.getY() ?? 0
+                    };
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Get the last detected unit events (for HTTP endpoint).
+        /// </summary>
+        public static List<object> GetLastUnitEvents()
+        {
+            return _lastUnitEvents;
+        }
+
+        #endregion
+
+        #region City Events
+
+        // Snapshot class for storing previous turn's city ownership state (used for event detection)
+        private class CitySnapshot
+        {
+            public int Id;
+            public int OwnerId;
+            public string Name;
+            public bool IsTribe;
+        }
+
+        // Storage for previous turn's city state
+        private static Dictionary<int, CitySnapshot> _previousCities = new Dictionary<int, CitySnapshot>();
+        private static List<object> _lastCityEvents = new List<object>();
+
+        /// <summary>
+        /// Detect city events by diffing current state against previous turn's state.
+        /// Returns list of event objects (cityCapture, cityFounded).
+        /// </summary>
+        public static List<object> DetectCityEvents(Game game, Infos infos)
+        {
+            var events = new List<object>();
+            int currentTurn = game.getTurn();
+
+            // Skip event detection on first turn or if turn hasn't changed
+            if (_previousTurn < 0 || currentTurn <= _previousTurn)
+            {
+                UpdateCitySnapshots(game);
+                _lastCityEvents = events;
+                return events;
+            }
+
+            // Build dictionary of current cities
+            var currentCities = new Dictionary<int, City>();
+            try
+            {
+                var cities = game.getCities();
+                foreach (var city in cities)
+                {
+                    if (city != null)
+                        currentCities[city.getID()] = city;
+                }
+            }
+            catch { }
+
+            // Check for city captures (owner changed)
+            foreach (var kvp in _previousCities)
+            {
+                int cityId = kvp.Key;
+                var prev = kvp.Value;
+
+                if (currentCities.TryGetValue(cityId, out var currentCity))
+                {
+                    int currentOwnerId = (int)currentCity.getPlayer();
+                    if (currentOwnerId != prev.OwnerId)
+                    {
+                        events.Add(new
+                        {
+                            eventType = "cityCapture",
+                            cityId = cityId,
+                            cityName = currentCity.getName(),
+                            oldOwnerId = prev.OwnerId,
+                            newOwnerId = currentOwnerId,
+                            wasTribe = prev.IsTribe
+                        });
+                    }
+                }
+            }
+
+            // Check for founded cities (in current but not in previous)
+            foreach (var kvp in currentCities)
+            {
+                int cityId = kvp.Key;
+                var city = kvp.Value;
+
+                if (!_previousCities.ContainsKey(cityId))
+                {
+                    var tile = city.tile();
+                    int playerId = (int)city.getPlayer();
+
+                    events.Add(new
+                    {
+                        eventType = "cityFounded",
+                        cityId = cityId,
+                        cityName = city.getName(),
+                        playerId = playerId,
+                        location = new
+                        {
+                            tileId = tile?.getID() ?? -1,
+                            x = tile?.getX() ?? 0,
+                            y = tile?.getY() ?? 0
+                        }
+                    });
+                }
+            }
+
+            // Update snapshots for next turn
+            UpdateCitySnapshots(game);
+            _lastCityEvents = events;
+
+            return events;
+        }
+
+        /// <summary>
+        /// Update the city snapshots for the next turn comparison.
+        /// </summary>
+        private static void UpdateCitySnapshots(Game game)
+        {
+            _previousCities.Clear();
+            try
+            {
+                var cities = game.getCities();
+                foreach (var city in cities)
+                {
+                    if (city == null) continue;
+
+                    _previousCities[city.getID()] = new CitySnapshot
+                    {
+                        Id = city.getID(),
+                        OwnerId = (int)city.getPlayer(),
+                        Name = city.getName(),
+                        IsTribe = city.isTribe()
+                    };
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Get the last detected city events (for HTTP endpoint).
+        /// </summary>
+        public static List<object> GetLastCityEvents()
+        {
+            return _lastCityEvents;
+        }
+
+        #endregion
+
         #region Team Diplomacy Methods
 
         /// <summary>
@@ -1443,8 +1728,10 @@ namespace OldWorldAPIEndpoint
                     int year = game.getYear();
                     Infos infos = game.infos();
 
-                    // Detect character events (births, deaths, marriages, etc.)
+                    // Detect events by diffing against previous turn's state
                     var characterEvents = DetectCharacterEvents(game, infos);
+                    var unitEvents = DetectUnitEvents(game, infos);
+                    var cityEvents = DetectCityEvents(game, infos);
 
                     var message = new
                     {
@@ -1453,6 +1740,8 @@ namespace OldWorldAPIEndpoint
                         year = year,
                         currentPlayer = (int)game.getPlayerTurn(),
                         characterEvents = characterEvents,
+                        unitEvents = unitEvents,
+                        cityEvents = cityEvents,
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),
@@ -1464,7 +1753,7 @@ namespace OldWorldAPIEndpoint
                     };
                     json = JsonConvert.SerializeObject(message, _jsonSettings);
 
-                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}, events={characterEvents.Count}");
+                    Debug.Log($"[APIEndpoint] OnNewTurnServer: turn={turn}, year={year}, charEvents={characterEvents.Count}, unitEvents={unitEvents.Count}, cityEvents={cityEvents.Count}");
                 }
                 else
                 {
@@ -1515,9 +1804,13 @@ namespace OldWorldAPIEndpoint
                     int turn = game.getTurn();
                     int year = game.getYear();
 
-                    // Initialize character snapshots for event detection
+                    Infos infos = game.infos();
+
+                    // Initialize snapshots for event detection
                     // (no events emitted on game start, just baseline state)
                     UpdateCharacterSnapshots(game);
+                    UpdateUnitSnapshots(game, infos);
+                    UpdateCitySnapshots(game);
                     _previousTurn = turn;
 
                     var message = new
@@ -1526,6 +1819,8 @@ namespace OldWorldAPIEndpoint
                         turn = turn,
                         year = year,
                         characterEvents = new List<object>(),  // Empty on game start
+                        unitEvents = new List<object>(),       // Empty on game start
+                        cityEvents = new List<object>(),       // Empty on game start
                         players = BuildPlayersObject(game),
                         characters = BuildCharactersObject(game),
                         cities = BuildCitiesObject(game),

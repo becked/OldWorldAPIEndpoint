@@ -150,7 +150,7 @@ namespace OldWorldAPIEndpoint
 
             if (segments.Length == 0)
             {
-                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /character-events, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
+                SendErrorResponse(context.Response, "Use /state, /players, /cities, /characters, /character-events, /unit-events, /city-events, /tribes, /team-diplomacy, /team-alliances, /tribe-diplomacy, /tribe-alliances", 404);
                 return;
             }
 
@@ -195,6 +195,14 @@ namespace OldWorldAPIEndpoint
 
                 case "character-events":
                     HandleCharacterEventsRequest(context);
+                    break;
+
+                case "unit-events":
+                    HandleUnitEventsRequest(context);
+                    break;
+
+                case "city-events":
+                    HandleCityEventsRequest(context);
                     break;
 
                 case "tribes":
@@ -299,6 +307,18 @@ namespace OldWorldAPIEndpoint
         private void HandleCharacterEventsRequest(HttpListenerContext context)
         {
             var events = APIEndpoint.GetLastCharacterEvents();
+            SendJsonResponse(context.Response, events);
+        }
+
+        private void HandleUnitEventsRequest(HttpListenerContext context)
+        {
+            var events = APIEndpoint.GetLastUnitEvents();
+            SendJsonResponse(context.Response, events);
+        }
+
+        private void HandleCityEventsRequest(HttpListenerContext context)
+        {
+            var events = APIEndpoint.GetLastCityEvents();
             SendJsonResponse(context.Response, events);
         }
 

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-01-29
+
+### Added
+- **Complete Command API**: 33 new commands bringing total to 51
+  - Unit commands: heal, march, lock, pillage, burn, upgrade, spreadReligion
+  - Worker commands: buildImprovement, upgradeImprovement, addRoad
+  - City foundation: foundCity, joinCity
+  - City production: buildQueue
+  - Research & decisions: redrawTech, targetTech, makeDecision, removeDecision
+  - Diplomacy: declareWar, makePeace, declareTruce, tribe variants, giftCity, giftYield, allyTribe
+  - Character management: assignGovernor, releaseGovernor, assignGeneral, releaseGeneral, assignAgent, releaseAgent, startMission
+- New type resolvers: ImprovementType, FamilyType, NationType, TribeType, MissionType
+- Automated API schema validation script (`scripts/validate-api.py`)
+
+### Fixed
+- Fixed hurry commands: separate handlers for hurryCivics, hurryTraining, hurryMoney, hurryPopulation, hurryOrders
+- Fixed buildProject to correctly use sendBuildProject with projectType parameter
+- Fixed moveUnit to support waypointTileId with correct march parameter
+- Fixed character.gender to return "Male"/"Female" instead of "0"/"1"
+
+### Changed
+- Synced OpenAPI spec with JSON schemas (~100 missing fields added)
+- Updated documentation with full command reference, parameters, and examples
+
 ## [2.1.0] - 2025-01-28
 
 ### Changed

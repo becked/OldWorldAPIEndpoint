@@ -45,6 +45,8 @@ Both upload scripts extract the changelog for the current version from `CHANGELO
 
 ## Testing
 
+**CRITICAL: Never kill Old World processes.** The user may be actively playing the game. If headless tests fail due to "Address already in use" errors, inform the user and ask them to close the game first. Do NOT run `pkill -f OldWorld` or similar commands.
+
 **Always use headless testing to verify API changes.** This is the primary testing method.
 
 ```bash

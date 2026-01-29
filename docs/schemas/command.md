@@ -70,7 +70,7 @@ The Command API allows you to execute game actions via HTTP POST requests. Comma
 
 | Action | Required Params | Optional Params | Description |
 |--------|-----------------|-----------------|-------------|
-| `moveUnit` | `unitId`, `targetTileId` | `queue`, `force` | Move unit to tile |
+| `moveUnit` | `unitId`, `targetTileId` | `queue`, `march`, `waypointTileId` | Move unit to tile |
 | `attack` | `unitId`, `targetTileId` | | Attack target tile |
 | `fortify` | `unitId` | | Fortify unit in place |
 | `pass` / `skip` | `unitId` | | Skip unit's turn |
@@ -84,10 +84,13 @@ The Command API allows you to execute game actions via HTTP POST requests. Comma
 
 | Action | Required Params | Optional Params | Description |
 |--------|-----------------|-----------------|-------------|
-| `build` | `cityId`, `unitType` | `rush` | Build unit in city |
-| `buildUnit` | `cityId`, `unitType` | `rush` | Alias for build |
-| `buildProject` | `cityId`, `unitType` | `rush` | Build project |
-| `hurry` | `cityId` | `yield` | Rush production |
+| `build` / `buildUnit` | `cityId`, `unitType` | `buyGoods`, `first` | Build unit in city |
+| `buildProject` | `cityId`, `projectType` | `buyGoods`, `first`, `repeat` | Build project in city |
+| `hurryCivics` / `hurry` | `cityId` | | Rush production with civics |
+| `hurryTraining` | `cityId` | | Rush production with training |
+| `hurryMoney` | `cityId` | | Rush production with money |
+| `hurryPopulation` | `cityId` | | Rush production with population |
+| `hurryOrders` | `cityId` | | Rush production with orders |
 
 ### Research Commands
 
@@ -120,20 +123,23 @@ curl http://localhost:9877/tile/661
 
 ### Game Type Strings
 
-Parameters like `unitType`, `tech`, `promotion`, and `yield` use game type strings:
+Parameters like `unitType`, `projectType`, `tech`, and `promotion` use game type strings:
 
 - Units: `UNIT_WARRIOR`, `UNIT_WORKER`, `UNIT_SETTLER`, etc.
+- Projects: `PROJECT_GRANARY`, `PROJECT_BARRACKS`, `PROJECT_SHRINE`, etc.
 - Techs: `TECH_FORESTRY`, `TECH_MINING`, `TECH_STONECUTTING`, etc.
 - Promotions: `PROMOTION_FIERCE`, `PROMOTION_SHIELDBEARER`, etc.
-- Yields: `YIELD_FOOD`, `YIELD_CIVICS`, `YIELD_TRAINING`, etc.
 
 ### Boolean Parameters
 
 Boolean parameters default to `false` unless specified:
 
 - `queue` - Queue the move instead of immediate
+- `march` - Force march (spend extra fatigue for movement)
 - `force` - Force action even with warnings
-- `rush` - Rush production using resources
+- `buyGoods` - Buy required goods for production
+- `first` - Add to front of build queue
+- `repeat` - Repeat project when complete
 - `stopOnError` - Stop batch on first failure (default: `true`)
 
 ## Error Handling
@@ -156,6 +162,7 @@ Common errors:
 - `"Tile not found: {id}"` - Invalid tile ID
 - `"City not found: {id}"` - Invalid city ID
 - `"Unknown unit type: {type}"` - Invalid type string
+- `"Unknown project type: {type}"` - Invalid project string
 - `"Unknown tech type: {type}"` - Invalid tech string
 
 ## Examples
@@ -173,17 +180,58 @@ curl -X POST http://localhost:9877/commands \
   }'
 ```
 
+### Move with Waypoint
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "moveUnit",
+    "params": {
+      "unitId": 42,
+      "targetTileId": 700,
+      "waypointTileId": 661,
+      "march": true
+    }
+  }'
+```
+
 ### Build a Unit
 
 ```bash
 curl -X POST http://localhost:9877/command \
   -H "Content-Type: application/json" \
   -d '{
-    "action": "build",
+    "action": "buildUnit",
     "params": {
       "cityId": 5,
       "unitType": "UNIT_WARRIOR"
     }
+  }'
+```
+
+### Build a Project
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "buildProject",
+    "params": {
+      "cityId": 5,
+      "projectType": "PROJECT_GRANARY"
+    }
+  }'
+```
+
+### Rush Production with Money
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "hurryMoney",
+    "params": {"cityId": 5}
   }'
 ```
 

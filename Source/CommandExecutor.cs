@@ -25,8 +25,13 @@ namespace OldWorldAPIEndpoint
         private static MethodInfo _sendUnitWakeMethod;
         private static MethodInfo _sendUnitDisbandMethod;
         private static MethodInfo _sendUnitPromoteMethod;
-        private static MethodInfo _sendCityBuildMethod;
-        private static MethodInfo _sendCityHurryMethod;
+        private static MethodInfo _sendCityBuildUnitMethod;
+        private static MethodInfo _sendCityBuildProjectMethod;
+        private static MethodInfo _sendHurryCivicsMethod;
+        private static MethodInfo _sendHurryTrainingMethod;
+        private static MethodInfo _sendHurryMoneyMethod;
+        private static MethodInfo _sendHurryPopulationMethod;
+        private static MethodInfo _sendHurryOrdersMethod;
         private static MethodInfo _sendResearchMethod;
         private static MethodInfo _sendEndTurnMethod;
         private static PropertyInfo _gameClientProperty;
@@ -82,10 +87,21 @@ namespace OldWorldAPIEndpoint
 
                 // City commands
                 // sendBuildUnit(City, UnitType, Boolean, Tile, Boolean)
-                _sendCityBuildMethod = _clientManagerType.GetMethod("sendBuildUnit",
+                _sendCityBuildUnitMethod = _clientManagerType.GetMethod("sendBuildUnit",
                     BindingFlags.Public | BindingFlags.Instance);
-                // sendHurryCivics(City), sendHurryTraining(City), etc.
-                _sendCityHurryMethod = _clientManagerType.GetMethod("sendHurryCivics",
+                // sendBuildProject(City, ProjectType, Boolean, Boolean, Boolean)
+                _sendCityBuildProjectMethod = _clientManagerType.GetMethod("sendBuildProject",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // Hurry methods - each takes just (City)
+                _sendHurryCivicsMethod = _clientManagerType.GetMethod("sendHurryCivics",
+                    BindingFlags.Public | BindingFlags.Instance);
+                _sendHurryTrainingMethod = _clientManagerType.GetMethod("sendHurryTraining",
+                    BindingFlags.Public | BindingFlags.Instance);
+                _sendHurryMoneyMethod = _clientManagerType.GetMethod("sendHurryMoney",
+                    BindingFlags.Public | BindingFlags.Instance);
+                _sendHurryPopulationMethod = _clientManagerType.GetMethod("sendHurryPopulation",
+                    BindingFlags.Public | BindingFlags.Instance);
+                _sendHurryOrdersMethod = _clientManagerType.GetMethod("sendHurryOrders",
                     BindingFlags.Public | BindingFlags.Instance);
 
                 // Research - sendResearchTech(TechType)
@@ -99,7 +115,10 @@ namespace OldWorldAPIEndpoint
                 // Log what we found
                 Debug.Log($"[APIEndpoint] CommandExecutor reflection on {_clientManagerType.Name}:");
                 Debug.Log($"[APIEndpoint]   canDoActions: {_canDoActionsMethod != null}");
-                Debug.Log($"[APIEndpoint]   sendUnitMove: {_sendUnitMoveMethod != null}");
+                Debug.Log($"[APIEndpoint]   sendMoveUnit: {_sendUnitMoveMethod != null}");
+                Debug.Log($"[APIEndpoint]   sendBuildUnit: {_sendCityBuildUnitMethod != null}");
+                Debug.Log($"[APIEndpoint]   sendBuildProject: {_sendCityBuildProjectMethod != null}");
+                Debug.Log($"[APIEndpoint]   sendHurryCivics: {_sendHurryCivicsMethod != null}");
                 Debug.Log($"[APIEndpoint]   sendEndTurn: {_sendEndTurnMethod != null}");
 
                 // Log methods containing "unit", "move", "send", "attack"
@@ -209,10 +228,25 @@ namespace OldWorldAPIEndpoint
                 // City Production
                 case "build":
                 case "buildunit":
+                    return ExecuteBuildUnit(clientManager, game, cmd, result);
                 case "buildproject":
-                    return ExecuteBuild(clientManager, game, cmd, result);
+                    return ExecuteBuildProject(clientManager, game, cmd, result);
                 case "hurry":
-                    return ExecuteHurry(clientManager, game, cmd, result);
+                case "hurryCivics":
+                case "hurrycivics":
+                    return ExecuteHurryCivics(clientManager, game, cmd, result);
+                case "hurryTraining":
+                case "hurrytraining":
+                    return ExecuteHurryTraining(clientManager, game, cmd, result);
+                case "hurryMoney":
+                case "hurrymoney":
+                    return ExecuteHurryMoney(clientManager, game, cmd, result);
+                case "hurryPopulation":
+                case "hurrypopulation":
+                    return ExecuteHurryPopulation(clientManager, game, cmd, result);
+                case "hurryOrders":
+                case "hurryorders":
+                    return ExecuteHurryOrders(clientManager, game, cmd, result);
 
                 // Research
                 case "research":
@@ -466,7 +500,8 @@ namespace OldWorldAPIEndpoint
             int unitId = unitIdResult.Value;
             int targetTileId = targetTileIdResult.Value;
             bool queueMove = GetBoolParam(cmd, "queue", false);
-            bool forceMove = GetBoolParam(cmd, "force", false);
+            bool marchMove = GetBoolParam(cmd, "march", false);
+            int waypointTileId = GetIntParam(cmd, "waypointTileId", -1);
 
             if (game == null)
             {
@@ -497,10 +532,13 @@ namespace OldWorldAPIEndpoint
                     return result;
                 }
 
-                // sendMoveUnit(Unit, Tile, Boolean queue, Boolean force, Tile waypoint)
-                _sendUnitMoveMethod.Invoke(clientManager, new object[] { unit, targetTile, queueMove, forceMove, null });
+                // Optional waypoint tile
+                Tile waypointTile = waypointTileId >= 0 ? game.tile(waypointTileId) : null;
+
+                // sendMoveUnit(Unit, Tile, Boolean march, Boolean queue, Tile waypoint)
+                _sendUnitMoveMethod.Invoke(clientManager, new object[] { unit, targetTile, marchMove, queueMove, waypointTile });
                 result.Success = true;
-                Debug.Log($"[APIEndpoint] Moved unit {unitId} to tile {targetTileId}");
+                Debug.Log($"[APIEndpoint] Moved unit {unitId} to tile {targetTileId}{(waypointTile != null ? $" via waypoint {waypointTileId}" : "")}");
             }
             catch (Exception ex)
             {
@@ -827,7 +865,7 @@ namespace OldWorldAPIEndpoint
             return result;
         }
 
-        private static CommandResult ExecuteBuild(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        private static CommandResult ExecuteBuildUnit(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
             if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
             {
@@ -843,7 +881,8 @@ namespace OldWorldAPIEndpoint
 
             int cityId = cityIdResult.Value;
             string unitTypeStr = unitTypeResult.Value;
-            bool rush = GetBoolParam(cmd, "rush", false);
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+            bool first = GetBoolParam(cmd, "first", false);
 
             if (game == null)
             {
@@ -867,27 +906,91 @@ namespace OldWorldAPIEndpoint
                 return result;
             }
 
-            if (_sendCityBuildMethod == null)
+            if (_sendCityBuildUnitMethod == null)
             {
-                result.Error = "Build command not available";
+                result.Error = "BuildUnit command not available";
                 return result;
             }
 
             try
             {
-                // sendBuildUnit(City, UnitType, Boolean rush, Tile rallyTile, Boolean queue)
-                _sendCityBuildMethod.Invoke(clientManager, new object[] { city, unitType, rush, null, false });
+                // sendBuildUnit(City, UnitType, Boolean buyGoods, Tile rallyTile, Boolean first)
+                _sendCityBuildUnitMethod.Invoke(clientManager, new object[] { city, unitType, buyGoods, city.tile(), first });
                 result.Success = true;
+                Debug.Log($"[APIEndpoint] Building unit {unitTypeStr} in city {cityId}");
             }
             catch (Exception ex)
             {
-                result.Error = $"Build failed: {ex.InnerException?.Message ?? ex.Message}";
+                result.Error = $"BuildUnit failed: {ex.InnerException?.Message ?? ex.Message}";
             }
 
             return result;
         }
 
-        private static CommandResult ExecuteHurry(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        private static CommandResult ExecuteBuildProject(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetStringParam(cmd, "projectType", out var projectTypeResult))
+            {
+                result.Error = GetParamError("projectType", projectTypeResult, "string");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            string projectTypeStr = projectTypeResult.Value;
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+            bool first = GetBoolParam(cmd, "first", false);
+            bool repeat = GetBoolParam(cmd, "repeat", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            // Resolve project type
+            ProjectType projectType = ResolveProjectType(game, projectTypeStr);
+            if (projectType == ProjectType.NONE)
+            {
+                result.Error = $"Unknown project type: {projectTypeStr}";
+                return result;
+            }
+
+            // Get the city object
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendCityBuildProjectMethod == null)
+            {
+                result.Error = "BuildProject command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendBuildProject(City, ProjectType, Boolean buyGoods, Boolean first, Boolean repeat)
+                _sendCityBuildProjectMethod.Invoke(clientManager, new object[] { city, projectType, buyGoods, first, repeat });
+                result.Success = true;
+                Debug.Log($"[APIEndpoint] Building project {projectTypeStr} in city {cityId}");
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"BuildProject failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteHurryCivics(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {
             if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
             {
@@ -896,29 +999,212 @@ namespace OldWorldAPIEndpoint
             }
 
             int cityId = cityIdResult.Value;
-            string yieldStr = GetStringParam(cmd, "yield", "YIELD_CIVICS");
 
-            YieldType yieldType = ResolveYieldType(game, yieldStr);
-            if (yieldType == YieldType.NONE)
+            if (game == null)
             {
-                result.Error = $"Unknown yield type: {yieldStr}";
+                result.Error = "Game not available";
                 return result;
             }
 
-            if (_sendCityHurryMethod == null)
+            City city = game.city(cityId);
+            if (city == null)
             {
-                result.Error = "Hurry command not available";
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendHurryCivicsMethod == null)
+            {
+                result.Error = "HurryCivics command not available";
                 return result;
             }
 
             try
             {
-                _sendCityHurryMethod.Invoke(clientManager, new object[] { cityId, yieldType });
+                // sendHurryCivics(City)
+                _sendHurryCivicsMethod.Invoke(clientManager, new object[] { city });
                 result.Success = true;
+                Debug.Log($"[APIEndpoint] Hurried production with civics in city {cityId}");
             }
             catch (Exception ex)
             {
-                result.Error = $"Hurry failed: {ex.InnerException?.Message ?? ex.Message}";
+                result.Error = $"HurryCivics failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteHurryTraining(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendHurryTrainingMethod == null)
+            {
+                result.Error = "HurryTraining command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendHurryTraining(City)
+                _sendHurryTrainingMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+                Debug.Log($"[APIEndpoint] Hurried production with training in city {cityId}");
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"HurryTraining failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteHurryMoney(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendHurryMoneyMethod == null)
+            {
+                result.Error = "HurryMoney command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendHurryMoney(City)
+                _sendHurryMoneyMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+                Debug.Log($"[APIEndpoint] Hurried production with money in city {cityId}");
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"HurryMoney failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteHurryPopulation(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendHurryPopulationMethod == null)
+            {
+                result.Error = "HurryPopulation command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendHurryPopulation(City)
+                _sendHurryPopulationMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+                Debug.Log($"[APIEndpoint] Hurried production with population in city {cityId}");
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"HurryPopulation failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteHurryOrders(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendHurryOrdersMethod == null)
+            {
+                result.Error = "HurryOrders command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendHurryOrders(City)
+                _sendHurryOrdersMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+                Debug.Log($"[APIEndpoint] Hurried production with orders in city {cityId}");
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"HurryOrders failed: {ex.InnerException?.Message ?? ex.Message}";
             }
 
             return result;

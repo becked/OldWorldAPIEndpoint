@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Rules
+
+**CRITICAL: Never commit or push without explicit user direction.** Always wait for the user to explicitly ask for a commit or push before running git commit or git push commands.
+
 ## Build & Deploy
 
 ```bash
@@ -202,6 +206,10 @@ After making code changes, always complete these steps:
    - New fields appear in JSON output
    - Expected event counts in log messages
 4. **Update Documentation** (if API changed) - see below
+
+**IMPORTANT: When adding new commands to CommandExecutor.cs, you MUST also update:**
+- `docs/openapi.yaml` - Add command to the Available Actions list and examples
+- `docs/api-reference.md` - Document the command with parameters and examples
 
 ## Documentation
 

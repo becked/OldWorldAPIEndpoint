@@ -64,9 +64,9 @@ The Command API allows you to execute game actions via HTTP POST requests. Comma
 }
 ```
 
-## Available Actions
+## Available Actions (51 commands)
 
-### Unit Commands
+### Unit Movement & State
 
 | Action | Required Params | Optional Params | Description |
 |--------|-----------------|-----------------|-------------|
@@ -77,26 +77,94 @@ The Command API allows you to execute game actions via HTTP POST requests. Comma
 | `sleep` | `unitId` | | Put unit to sleep |
 | `sentry` | `unitId` | | Set unit to sentry mode |
 | `wake` | `unitId` | | Wake sleeping/sentry unit |
+| `heal` | `unitId` | `auto` | Heal unit |
+| `march` | `unitId` | | Set unit to march mode |
+| `lock` | `unitId` | | Lock unit in place |
+
+### Unit Actions
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
 | `disband` | `unitId` | `force` | Disband unit |
 | `promote` | `unitId`, `promotion` | | Apply promotion |
+| `pillage` | `unitId` | | Pillage with unit |
+| `burn` | `unitId` | | Burn with unit |
+| `upgrade` | `unitId`, `unitType` | `buyGoods` | Upgrade to new unit type |
+| `spreadReligion` | `unitId`, `cityId` | | Spread religion to city |
 
-### City Commands
+### Worker Commands
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `buildImprovement` | `unitId`, `improvementType`, `tileId` | `buyGoods`, `queue` | Build improvement on tile |
+| `upgradeImprovement` | `unitId` | `buyGoods` | Upgrade existing improvement |
+| `addRoad` | `unitId`, `tileId` | `buyGoods`, `queue` | Add road to tile |
+
+### City Foundation
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `foundCity` | `unitId`, `familyType` | `nationType` | Found city with settler |
+| `joinCity` | `unitId` | | Join unit to city |
+
+### City Production
 
 | Action | Required Params | Optional Params | Description |
 |--------|-----------------|-----------------|-------------|
 | `build` / `buildUnit` | `cityId`, `unitType` | `buyGoods`, `first` | Build unit in city |
 | `buildProject` | `cityId`, `projectType` | `buyGoods`, `first`, `repeat` | Build project in city |
+| `buildQueue` | `cityId`, `oldSlot`, `newSlot` | | Reorder build queue |
 | `hurryCivics` / `hurry` | `cityId` | | Rush production with civics |
 | `hurryTraining` | `cityId` | | Rush production with training |
 | `hurryMoney` | `cityId` | | Rush production with money |
 | `hurryPopulation` | `cityId` | | Rush production with population |
 | `hurryOrders` | `cityId` | | Rush production with orders |
 
-### Research Commands
+### Research & Decisions
 
 | Action | Required Params | Optional Params | Description |
 |--------|-----------------|-----------------|-------------|
 | `research` | `tech` | | Set research target |
+| `redrawTech` | | | Redraw available technologies |
+| `targetTech` | `techType` | | Set long-term tech target |
+| `makeDecision` | `decisionId`, `choiceIndex` | `data` | Make a decision choice |
+| `removeDecision` | `decisionId` | | Remove/dismiss a decision |
+
+### Diplomacy - Players
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `declareWar` | `targetPlayer` | | Declare war on player |
+| `makePeace` | `targetPlayer` | | Make peace with player |
+| `declareTruce` | `targetPlayer` | | Declare truce with player |
+
+### Diplomacy - Tribes
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `declareWarTribe` | `tribeType` | | Declare war on tribe |
+| `makePeaceTribe` | `tribeType` | | Make peace with tribe |
+| `declareTruceTribe` | `tribeType` | | Declare truce with tribe |
+| `allyTribe` | `tribeType` | | Form alliance with tribe |
+
+### Diplomacy - Gifts
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `giftCity` | `cityId`, `targetPlayer` | | Gift city to player |
+| `giftYield` | `yieldType`, `targetPlayer` | `reverse` | Gift resources to player |
+
+### Character Management
+
+| Action | Required Params | Optional Params | Description |
+|--------|-----------------|-----------------|-------------|
+| `assignGovernor` | `cityId`, `characterId` | | Assign character as governor |
+| `releaseGovernor` | `cityId` | | Release city's governor |
+| `assignGeneral` | `unitId`, `characterId` | | Assign character as general |
+| `releaseGeneral` | `unitId` | | Release unit's general |
+| `assignAgent` | `cityId`, `characterId` | | Assign character as agent |
+| `releaseAgent` | `cityId` | | Release city's agent |
+| `startMission` | `missionType`, `characterId` | `target`, `cancel` | Start character mission |
 
 ### Turn Commands
 
@@ -129,6 +197,12 @@ Parameters like `unitType`, `projectType`, `tech`, and `promotion` use game type
 - Projects: `PROJECT_GRANARY`, `PROJECT_BARRACKS`, `PROJECT_SHRINE`, etc.
 - Techs: `TECH_FORESTRY`, `TECH_MINING`, `TECH_STONECUTTING`, etc.
 - Promotions: `PROMOTION_FIERCE`, `PROMOTION_SHIELDBEARER`, etc.
+- Improvements: `IMPROVEMENT_FARM`, `IMPROVEMENT_MINE`, `IMPROVEMENT_QUARRY`, etc.
+- Families: `FAMILY_CHAMPIONS`, `FAMILY_ARTISANS`, `FAMILY_SAGES`, etc.
+- Nations: `NATION_ROME`, `NATION_GREECE`, `NATION_EGYPT`, etc.
+- Tribes: `TRIBE_GAULS`, `TRIBE_GOTHS`, `TRIBE_VANDALS`, etc.
+- Yields: `YIELD_FOOD`, `YIELD_WOOD`, `YIELD_STONE`, `YIELD_IRON`, `YIELD_CIVICS`, etc.
+- Missions: `MISSION_NETWORK`, `MISSION_INFLUENCE`, `MISSION_SLANDER`, etc.
 
 ### Boolean Parameters
 
@@ -252,4 +326,86 @@ curl -X POST http://localhost:9877/command \
 curl -X POST http://localhost:9877/command \
   -H "Content-Type: application/json" \
   -d '{"action": "endTurn"}'
+```
+
+### Build an Improvement
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "buildImprovement",
+    "params": {
+      "unitId": 15,
+      "improvementType": "IMPROVEMENT_FARM",
+      "tileId": 500
+    }
+  }'
+```
+
+### Found a City
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "foundCity",
+    "params": {
+      "unitId": 8,
+      "familyType": "FAMILY_ARTISANS"
+    }
+  }'
+```
+
+### Declare War on Another Player
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "declareWar",
+    "params": {"targetPlayer": 1}
+  }'
+```
+
+### Assign a Governor
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "assignGovernor",
+    "params": {
+      "cityId": 2,
+      "characterId": 15
+    }
+  }'
+```
+
+### Make a Decision
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "makeDecision",
+    "params": {
+      "decisionId": 42,
+      "choiceIndex": 0
+    }
+  }'
+```
+
+### Upgrade a Unit
+
+```bash
+curl -X POST http://localhost:9877/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "upgrade",
+    "params": {
+      "unitId": 12,
+      "unitType": "UNIT_SWORDSMAN"
+    }
+  }'
 ```

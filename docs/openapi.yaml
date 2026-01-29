@@ -809,9 +809,9 @@ paths:
         Execute a game command such as moving units, attacking, building, or ending the turn.
         Commands are only available in single-player games.
 
-        ## Available Actions
+        ## Available Actions (51 commands)
 
-        ### Unit Commands
+        ### Unit Movement & State
         - `moveUnit` - Move a unit to a target tile
         - `attack` - Attack a target tile
         - `fortify` - Fortify a unit
@@ -819,15 +819,63 @@ paths:
         - `sleep` - Put a unit to sleep
         - `sentry` - Set a unit to sentry mode
         - `wake` - Wake a sleeping/sentry unit
+        - `heal` - Heal a unit
+        - `march` - Set unit to march mode
+        - `lock` - Lock a unit in place
+
+        ### Unit Actions
         - `disband` - Disband a unit
         - `promote` - Apply a promotion to a unit
+        - `pillage` - Pillage with a unit
+        - `burn` - Burn with a unit
+        - `upgrade` - Upgrade a unit to a new type
+        - `spreadReligion` - Spread religion to a city
 
-        ### City Commands
-        - `build` / `buildUnit` / `buildProject` - Start building in a city
-        - `hurry` - Rush production with a yield
+        ### Worker Commands
+        - `buildImprovement` - Build an improvement on a tile
+        - `upgradeImprovement` - Upgrade an existing improvement
+        - `addRoad` - Add a road to a tile
 
-        ### Research Commands
+        ### City Foundation
+        - `foundCity` - Found a new city with a settler
+        - `joinCity` - Join a unit to a city
+
+        ### City Production
+        - `build` / `buildUnit` - Start building a unit in a city
+        - `buildProject` - Start building a project in a city
+        - `buildQueue` - Reorder the build queue
+        - `hurryCivics` / `hurryTraining` / `hurryMoney` / `hurryPopulation` / `hurryOrders` - Rush production
+
+        ### Research & Decisions
         - `research` - Set the current research target
+        - `redrawTech` - Redraw available technologies
+        - `targetTech` - Set a long-term tech target
+        - `makeDecision` - Make a decision choice
+        - `removeDecision` - Remove/dismiss a decision
+
+        ### Diplomacy - Players
+        - `declareWar` - Declare war on another player
+        - `makePeace` - Make peace with another player
+        - `declareTruce` - Declare a truce with another player
+
+        ### Diplomacy - Tribes
+        - `declareWarTribe` - Declare war on a tribe
+        - `makePeaceTribe` - Make peace with a tribe
+        - `declareTruceTribe` - Declare a truce with a tribe
+        - `allyTribe` - Form an alliance with a tribe
+
+        ### Diplomacy - Gifts
+        - `giftCity` - Gift a city to another player
+        - `giftYield` - Gift resources to another player
+
+        ### Character Management
+        - `assignGovernor` - Assign a character as city governor
+        - `releaseGovernor` - Release a city's governor
+        - `assignGeneral` - Assign a character as unit general
+        - `releaseGeneral` - Release a unit's general
+        - `assignAgent` - Assign a character as city agent
+        - `releaseAgent` - Release a city's agent
+        - `startMission` - Start a character mission
 
         ### Turn Commands
         - `endTurn` - End the current turn
@@ -2129,11 +2177,18 @@ components:
           type: string
           description: |
             The action to perform. Available actions:
-            - Unit: moveUnit, attack, fortify, pass, skip, sleep, sentry, wake, disband, promote
-            - City: build, buildUnit, buildProject, hurry
-            - Research: research
+            - Unit Movement: moveUnit, attack, fortify, pass, skip, sleep, sentry, wake, heal, march, lock
+            - Unit Actions: disband, promote, pillage, burn, upgrade, spreadReligion
+            - Worker: buildImprovement, upgradeImprovement, addRoad
+            - City Foundation: foundCity, joinCity
+            - City Production: build, buildUnit, buildProject, buildQueue, hurryCivics, hurryTraining, hurryMoney, hurryPopulation, hurryOrders
+            - Research: research, redrawTech, targetTech
+            - Decisions: makeDecision, removeDecision
+            - Diplomacy: declareWar, makePeace, declareTruce, declareWarTribe, makePeaceTribe, declareTruceTribe, giftCity, giftYield, allyTribe
+            - Character: assignGovernor, releaseGovernor, assignGeneral, releaseGeneral, assignAgent, releaseAgent, startMission
             - Turn: endTurn
           enum:
+            # Unit Movement
             - moveUnit
             - attack
             - fortify
@@ -2142,13 +2197,58 @@ components:
             - sleep
             - sentry
             - wake
+            - heal
+            - march
+            - lock
+            # Unit Actions
             - disband
             - promote
+            - pillage
+            - burn
+            - upgrade
+            - spreadReligion
+            # Worker
+            - buildImprovement
+            - upgradeImprovement
+            - addRoad
+            # City Foundation
+            - foundCity
+            - joinCity
+            # City Production
             - build
             - buildUnit
             - buildProject
-            - hurry
+            - buildQueue
+            - hurryCivics
+            - hurryTraining
+            - hurryMoney
+            - hurryPopulation
+            - hurryOrders
+            # Research & Decisions
             - research
+            - redrawTech
+            - targetTech
+            - makeDecision
+            - removeDecision
+            # Diplomacy
+            - declareWar
+            - makePeace
+            - declareTruce
+            - declareWarTribe
+            - makePeaceTribe
+            - declareTruceTribe
+            - giftCity
+            - giftYield
+            - allyTribe
+            # Character Management
+            - assignGovernor
+            - releaseGovernor
+            - assignGeneral
+            - releaseGeneral
+            - assignAgent
+            - releaseAgent
+            - startMission
+            # Turn
             - endTurn
         requestId:
           type: string
@@ -2157,18 +2257,60 @@ components:
           type: object
           description: |
             Action-specific parameters. Required params by action:
-            - moveUnit: unitId (int), targetTileId (int), queue? (bool), force? (bool)
+
+            Unit Movement:
+            - moveUnit: unitId (int), targetTileId (int), queue? (bool), march? (bool), waypointTileId? (int)
             - attack: unitId (int), targetTileId (int)
-            - fortify: unitId (int)
-            - pass/skip: unitId (int)
-            - sleep: unitId (int)
-            - sentry: unitId (int)
-            - wake: unitId (int)
+            - fortify/pass/skip/sleep/sentry/wake: unitId (int)
+            - heal: unitId (int), auto? (bool)
+            - march/lock: unitId (int)
+
+            Unit Actions:
             - disband: unitId (int), force? (bool)
             - promote: unitId (int), promotion (string, e.g., "PROMOTION_FIERCE")
-            - build/buildUnit/buildProject: cityId (int), unitType (string, e.g., "UNIT_WARRIOR"), rush? (bool)
-            - hurry: cityId (int), yield? (string, default "YIELD_CIVICS")
+            - pillage/burn: unitId (int)
+            - upgrade: unitId (int), unitType (string), buyGoods? (bool)
+            - spreadReligion: unitId (int), cityId (int)
+
+            Worker:
+            - buildImprovement: unitId (int), improvementType (string), tileId (int), buyGoods? (bool), queue? (bool)
+            - upgradeImprovement: unitId (int), buyGoods? (bool)
+            - addRoad: unitId (int), tileId (int), buyGoods? (bool), queue? (bool)
+
+            City Foundation:
+            - foundCity: unitId (int), familyType (string), nationType? (string)
+            - joinCity: unitId (int)
+
+            City Production:
+            - buildUnit: cityId (int), unitType (string), buyGoods? (bool), first? (bool)
+            - buildProject: cityId (int), projectType (string), buyGoods? (bool), first? (bool), repeat? (bool)
+            - buildQueue: cityId (int), oldSlot (int), newSlot (int)
+            - hurryCivics/hurryTraining/hurryMoney/hurryPopulation/hurryOrders: cityId (int)
+
+            Research & Decisions:
             - research: tech (string, e.g., "TECH_FORESTRY")
+            - redrawTech: (no params)
+            - targetTech: techType (string)
+            - makeDecision: decisionId (int), choiceIndex (int), data? (int)
+            - removeDecision: decisionId (int)
+
+            Diplomacy:
+            - declareWar/makePeace/declareTruce: targetPlayer (int)
+            - declareWarTribe/makePeaceTribe/declareTruceTribe: tribeType (string)
+            - giftCity: cityId (int), targetPlayer (int)
+            - giftYield: yieldType (string), targetPlayer (int), reverse? (bool)
+            - allyTribe: tribeType (string)
+
+            Character Management:
+            - assignGovernor: cityId (int), characterId (int)
+            - releaseGovernor: cityId (int)
+            - assignGeneral: unitId (int), characterId (int)
+            - releaseGeneral: unitId (int)
+            - assignAgent: cityId (int), characterId (int)
+            - releaseAgent: cityId (int)
+            - startMission: missionType (string), characterId (int), target? (string), cancel? (bool)
+
+            Turn:
             - endTurn: force? (bool, default true)
           additionalProperties: true
 

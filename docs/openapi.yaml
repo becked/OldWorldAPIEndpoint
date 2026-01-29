@@ -809,7 +809,7 @@ paths:
         Execute a game command such as moving units, attacking, building, or ending the turn.
         Commands are only available in single-player games.
 
-        ## Available Actions (51 commands)
+        ## Available Actions (130 commands)
 
         ### Unit Movement & State
         - `moveUnit` - Move a unit to a target tile
@@ -879,6 +879,151 @@ paths:
 
         ### Turn Commands
         - `endTurn` - End the current turn
+
+        ### Laws & Economy
+        - `chooseLaw` - Enact a law
+        - `cancelLaw` - Cancel an active law
+        - `buyYield` - Buy resources with money
+        - `sellYield` - Sell resources for money
+        - `convertOrders` - Convert orders to money
+        - `convertLegitimacy` - Convert legitimacy
+        - `convertOrdersToScience` - Convert orders to science
+
+        ### Luxury Trading
+        - `tradeCityLuxury` - Toggle luxury trading for a city
+        - `tradeFamilyLuxury` - Toggle luxury trading for a family
+        - `tradeTribeLuxury` - Toggle luxury trading with a tribe
+        - `tradePlayerLuxury` - Toggle luxury trading with another player
+        - `tribute` - Send tribute to a player or tribe
+
+        ### Unit Special Actions
+        - `swap` - Swap unit position with another unit
+        - `doUnitQueue` - Execute unit's queued actions
+        - `cancelUnitQueue` - Cancel unit's queued actions
+        - `formation` - Set unit formation
+        - `unlimber` - Unlimber artillery unit
+        - `anchor` - Anchor ship
+        - `repair` - Repair a unit
+        - `cancelImprovement` - Cancel improvement being built
+        - `removeVegetation` - Remove vegetation from tile
+        - `harvestResource` - Harvest resource with worker
+        - `unitAutomate` - Toggle unit automation
+        - `addUrban` - Add urban tile
+        - `roadTo` - Build road to tiles
+        - `buyTile` - Buy a tile for a city
+        - `recruitMercenary` - Recruit mercenary
+        - `hireMercenary` - Hire mercenary
+        - `giftUnit` - Gift unit to another player
+        - `launchOffensive` - Launch offensive with general
+        - `applyEffectUnit` - Apply effect to unit
+        - `selectUnit` - Select a unit
+
+        ### Agent & Caravan Units
+        - `createAgentNetwork` - Create agent network in city
+        - `createTradeOutpost` - Create trade outpost on tile
+        - `caravanMissionStart` - Start caravan mission
+        - `caravanMissionCancel` - Cancel caravan mission
+
+        ### Religious Units
+        - `purgeReligion` - Purge religion from city
+        - `spreadReligionTribe` - Spread religion to tribe
+        - `establishTheology` - Establish theology
+
+        ### Character Management
+        - `characterName` - Set character name
+        - `addCharacterTrait` - Add or remove character trait
+        - `setCharacterRating` - Set character rating value
+        - `setCharacterExperience` - Set character XP
+        - `setCharacterCognomen` - Set character cognomen/title
+        - `setCharacterNation` - Set character nation
+        - `setCharacterFamily` - Set character family
+        - `setCharacterReligion` - Set character religion
+        - `setCharacterCourtier` - Set character courtier role
+        - `setCharacterCouncil` - Set character council position
+        - `playerLeader` - Set player leader
+        - `familyHead` - Set family head
+        - `pinCharacter` - Pin character in UI
+
+        ### City Management
+        - `cityRename` - Rename a city
+        - `cityAutomate` - Toggle city automation
+        - `buildSpecialist` - Build specialist on tile
+        - `setSpecialist` - Set tile specialist
+        - `changeCitizens` - Change city citizen count
+        - `changeReligion` - Add/remove religion in city
+        - `changeFamily` - Change city family
+        - `changeFamilySeat` - Change family seat city
+
+        ### Goals & Communication
+        - `abandonAmbition` - Abandon an ambition
+        - `addPlayerGoal` - Add a goal to player
+        - `removePlayerGoal` - Remove player goal
+        - `eventStory` - Trigger event story
+        - `finishGoal` - Complete or fail a goal
+        - `chat` - Send chat message
+        - `ping` - Ping a map location
+        - `customReminder` - Create custom reminder
+        - `clearChat` - Clear chat history
+
+        ### Game State & Turn
+        - `extendTime` - Extend game time
+        - `pause` - Pause the game
+        - `undo` - Undo last action
+        - `redo` - Redo undone action
+        - `replayTurn` - Replay previous turns
+        - `aiFinishTurn` - Let AI finish turn
+        - `toggleNoReplay` - Toggle turn replay setting
+
+        ### Diplomacy Extended
+        - `teamAlliance` - Create team alliance
+        - `tribeInvasion` - Trigger tribe invasion
+        - `victoryTeam` - Set victory for team
+
+        ### Editor/Debug - Units
+        - `createUnit` - Create a unit at a tile
+        - `unitName` - Set unit name
+        - `setUnitFamily` - Change unit's family
+        - `changeUnitOwner` - Transfer unit to player/tribe
+        - `changeCooldown` - Modify unit cooldown
+        - `changeDamage` - Modify unit damage
+        - `unitIncrementLevel` - Increase unit level
+        - `unitChangePromotion` - Add/remove promotion
+
+        ### Editor/Debug - Cities
+        - `createCity` - Create a city at a tile
+        - `removeCity` - Remove a city
+        - `cityOwner` - Change city owner
+        - `changeCityDamage` - Modify city damage
+        - `changeCulture` - Grow/shrink city culture
+        - `changeCityBuildTurns` - Modify build progress
+        - `changeCityDiscontentLevel` - Modify discontent
+        - `changeProject` - Modify project progress
+
+        ### Editor/Debug - Tiles
+        - `setTerrain` - Set tile terrain type
+        - `setTerrainHeight` - Set tile height
+        - `setVegetation` - Set tile vegetation
+        - `setResource` - Set tile resource
+        - `setRoad` - Add/remove road
+        - `setImprovement` - Set tile improvement
+        - `setTileOwner` - Set tile owner
+        - `setCitySite` - Set city site marker
+        - `improvementBuildTurns` - Set improvement build turns
+
+        ### Editor/Debug - Map & Player
+        - `mapReveal` - Reveal entire map
+        - `mapUnreveal` - Hide entire map
+        - `addTech` - Grant technology to player
+        - `addYield` - Add yield to player stockpile
+        - `addMoney` - Add money to player
+        - `cheat` - Execute cheat hotkey
+
+        ### Editor/Debug - Characters
+        - `makeCharacterDead` - Kill a character
+        - `makeCharacterSafe` - Make character immune to death
+        - `newCharacter` - Create random character
+        - `addCharacter` - Add specific character type
+        - `tribeLeader` - Set tribe leader
       operationId: executeCommand
       requestBody:
         required: true
@@ -925,6 +1070,127 @@ paths:
                 summary: End the turn
                 value:
                   action: endTurn
+              chooseLaw:
+                summary: Enact a law
+                value:
+                  action: chooseLaw
+                  params:
+                    lawType: "LAW_SLAVERY"
+              buyYield:
+                summary: Buy training with money
+                value:
+                  action: buyYield
+                  params:
+                    yieldType: "YIELD_TRAINING"
+                    amount: 100
+              tradeCityLuxury:
+                summary: Toggle luxury for a city
+                value:
+                  action: tradeCityLuxury
+                  params:
+                    cityId: 5
+                    resourceType: "RESOURCE_WINE"
+                    enable: true
+              tribute:
+                summary: Send tribute to a tribe
+                value:
+                  action: tribute
+                  params:
+                    toTribe: "TRIBE_GAULS"
+                    yieldType: "YIELD_MONEY"
+                    amount: 200
+              formation:
+                summary: Set unit formation
+                value:
+                  action: formation
+                  params:
+                    unitId: 42
+                    effectUnitType: "EFFECTUNIT_TESTUDO"
+              repair:
+                summary: Repair a unit
+                value:
+                  action: repair
+                  params:
+                    unitId: 42
+                    buyGoods: false
+              giftUnit:
+                summary: Gift unit to player
+                value:
+                  action: giftUnit
+                  params:
+                    unitId: 42
+                    targetPlayer: 1
+              createAgentNetwork:
+                summary: Create agent network
+                value:
+                  action: createAgentNetwork
+                  params:
+                    unitId: 42
+                    cityId: 5
+              establishTheology:
+                summary: Establish theology
+                value:
+                  action: establishTheology
+                  params:
+                    unitId: 42
+                    theologyType: "THEOLOGY_CLERGY"
+              characterName:
+                summary: Rename a character
+                value:
+                  action: characterName
+                  params:
+                    characterId: 5
+                    name: "Alexander"
+              addCharacterTrait:
+                summary: Add trait to character
+                value:
+                  action: addCharacterTrait
+                  params:
+                    characterId: 5
+                    traitType: "TRAIT_WARRIOR"
+              cityRename:
+                summary: Rename a city
+                value:
+                  action: cityRename
+                  params:
+                    cityId: 0
+                    name: "New Rome"
+              buildSpecialist:
+                summary: Build specialist on tile
+                value:
+                  action: buildSpecialist
+                  params:
+                    tileId: 123
+                    specialistType: "SPECIALIST_SAGE"
+              createUnit:
+                summary: Create a unit (editor)
+                value:
+                  action: createUnit
+                  params:
+                    tileId: 100
+                    unitType: "UNIT_WARRIOR"
+                    playerType: 0
+              setTerrain:
+                summary: Set tile terrain (editor)
+                value:
+                  action: setTerrain
+                  params:
+                    tileId: 100
+                    terrainType: "TERRAIN_PLAINS"
+              addTech:
+                summary: Grant technology (editor)
+                value:
+                  action: addTech
+                  params:
+                    playerType: 0
+                    techType: "TECH_IRONWORKING"
+              addMoney:
+                summary: Add money (editor)
+                value:
+                  action: addMoney
+                  params:
+                    playerType: 0
+                    amount: 1000
       responses:
         '200':
           description: Command executed (check success field for result)

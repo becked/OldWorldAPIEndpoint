@@ -919,7 +919,7 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Build player family relationships for JSON serialization.
-        /// Note: Limited data available from public API
+        /// Only includes families that belong to this player (from getFamilies()).
         /// </summary>
         public static object BuildPlayerFamilies(Player player, Game game, Infos infos)
         {
@@ -927,10 +927,13 @@ namespace OldWorldAPIEndpoint
 
             try
             {
-                int familyCount = (int)infos.familiesNum();
-                for (int f = 0; f < familyCount; f++)
+                // Get only families that belong to this player
+                var playerFamilies = player.getFamilies();
+                if (playerFamilies == null)
+                    return new { families };
+
+                foreach (var familyType in playerFamilies)
                 {
-                    var familyType = (FamilyType)f;
                     var familyInfo = infos.family(familyType);
                     if (familyInfo == null) continue;
 
@@ -939,16 +942,44 @@ namespace OldWorldAPIEndpoint
                         ["family"] = familyInfo.mzType
                     };
 
-                    // Try to get opinion rate - may not be available
+                    // Opinion rate
                     try
                     {
                         familyData["opinionRate"] = player.getFamilyOpinionRate(familyType);
                     }
                     catch { }
 
-                    // Only add if we got some data
-                    if (familyData.Count > 1)
-                        families.Add(familyData);
+                    // Seat city ID
+                    try
+                    {
+                        int seatCityId = player.getFamilySeatCityID(familyType);
+                        if (seatCityId >= 0)
+                            familyData["seatCityId"] = seatCityId;
+                    }
+                    catch { }
+
+                    // Family head character ID
+                    try
+                    {
+                        int headId = player.getFamilyHeadID(familyType);
+                        if (headId >= 0)
+                            familyData["headId"] = headId;
+                    }
+                    catch { }
+
+                    // Family opinion level
+                    try
+                    {
+                        var opinionLevel = player.getFamilyOpinion(familyType);
+                        if (opinionLevel != OpinionFamilyType.NONE)
+                        {
+                            var opinionInfo = infos.opinionFamily(opinionLevel);
+                            familyData["opinion"] = opinionInfo?.mzType ?? opinionLevel.ToString();
+                        }
+                    }
+                    catch { }
+
+                    families.Add(familyData);
                 }
             }
             catch (Exception ex)
@@ -1006,72 +1037,258 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Build player goals and ambitions for JSON serialization.
-        /// Note: Goal data is not accessible from public API - returns empty structure
         /// </summary>
         public static object BuildPlayerGoals(Player player, Game game, Infos infos)
         {
-            // Goal data (getGoalDataList) is protected - cannot access
-            return new
+            var goals = new List<object>();
+
+            try
             {
-                goals = new List<object>(),
-                note = "Goal data not accessible from mod API"
-            };
+                int numGoals = player.getNumGoals();
+                for (int i = 0; i < numGoals; i++)
+                {
+                    try
+                    {
+                        var goalData = player.getGoalDataAtIndex(i);
+                        if (goalData == null) continue;
+
+                        var goalInfo = infos.goal(goalData.meType);
+                        var goalObj = new Dictionary<string, object>
+                        {
+                            ["id"] = goalData.miID,
+                            ["type"] = goalInfo?.mzType ?? goalData.meType.ToString(),
+                            ["turn"] = goalData.miTurn,
+                            ["maxTurns"] = goalData.miMaxTurns,
+                            ["finished"] = goalData.mbFinished,
+                            ["isLegacy"] = goalData.mbLegacy,
+                            ["isQuest"] = goalData.mbQuest
+                        };
+
+                        // Add related entity IDs if present
+                        if (goalData.miCityID >= 0)
+                            goalObj["cityId"] = goalData.miCityID;
+                        if (goalData.miCharacterID >= 0)
+                            goalObj["characterId"] = goalData.miCharacterID;
+                        if (goalData.mePlayer != PlayerType.NONE)
+                            goalObj["targetPlayer"] = (int)goalData.mePlayer;
+                        if (goalData.meTribe != TribeType.NONE)
+                            goalObj["targetTribe"] = infos.tribe(goalData.meTribe)?.mzType;
+                        if (goalData.meFamily != FamilyType.NONE)
+                            goalObj["targetFamily"] = infos.family(goalData.meFamily)?.mzType;
+                        if (goalData.meReligion != ReligionType.NONE)
+                            goalObj["targetReligion"] = infos.religion(goalData.meReligion)?.mzType;
+
+                        goals.Add(goalObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[APIEndpoint] Error reading goal at index {i}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player goals: {ex.Message}");
+            }
+
+            return new { goals };
         }
 
         /// <summary>
         /// Build player pending decisions for JSON serialization.
-        /// Note: Decision data is not accessible from public API - returns empty structure
         /// </summary>
         public static object BuildPlayerDecisions(Player player, Game game, Infos infos)
         {
-            // Decision data (getDecisionList) is protected - cannot access
-            return new
+            var decisions = new List<object>();
+
+            try
             {
-                decisions = new List<object>(),
-                note = "Decision data not accessible from mod API"
-            };
+                int numDecisions = player.getNumDecisions();
+                for (int i = 0; i < numDecisions; i++)
+                {
+                    try
+                    {
+                        var decisionData = player.getDecisionAt(i);
+                        if (decisionData == null) continue;
+
+                        var decisionObj = new Dictionary<string, object>
+                        {
+                            ["id"] = decisionData.ID,
+                            ["type"] = decisionData.Type.ToString(),
+                            ["sortOrder"] = decisionData.SortOrder,
+                            ["modal"] = decisionData.Modal,
+                            ["prevTurn"] = decisionData.PrevTurn
+                        };
+
+                        if (!string.IsNullOrEmpty(decisionData.Bonus))
+                            decisionObj["bonus"] = decisionData.Bonus;
+
+                        decisions.Add(decisionObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[APIEndpoint] Error reading decision at index {i}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player decisions: {ex.Message}");
+            }
+
+            return new { decisions, hasDecisions = player.hasDecisions() };
         }
 
         /// <summary>
         /// Build player laws state for JSON serialization.
-        /// Note: Law data not accessible from mod API
         /// </summary>
         public static object BuildPlayerLaws(Player player, Game game, Infos infos)
         {
-            // isLaw method is not available in public API
+            var activeLaws = new Dictionary<string, string>();
+
+            try
+            {
+                int lawClassCount = (int)infos.lawClassesNum();
+                for (int i = 0; i < lawClassCount; i++)
+                {
+                    var lawClassType = (LawClassType)i;
+                    var lawClassInfo = infos.lawClass(lawClassType);
+                    if (lawClassInfo == null) continue;
+
+                    try
+                    {
+                        var activeLaw = player.getActiveLaw(lawClassType);
+                        if (activeLaw != LawType.NONE)
+                        {
+                            var lawInfo = infos.law(activeLaw);
+                            activeLaws[lawClassInfo.mzType] = lawInfo?.mzType ?? activeLaw.ToString();
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player laws: {ex.Message}");
+            }
+
             return new
             {
-                activeLaws = new Dictionary<string, string>(),
-                note = "Law data not accessible from mod API"
+                activeLaws,
+                activeLawCount = player.countActiveLaws()
             };
         }
 
         /// <summary>
         /// Build player missions state for JSON serialization.
-        /// Note: Mission data not accessible from mod API
         /// </summary>
         public static object BuildPlayerMissions(Player player, Game game, Infos infos)
         {
-            return new
+            var missions = new List<object>();
+            var cooldowns = new Dictionary<string, int>();
+
+            try
             {
-                missions = new List<object>(),
-                note = "Mission data not accessible from mod API"
-            };
+                // Active missions
+                int numMissions = player.getNumMissions();
+                for (int i = 0; i < numMissions; i++)
+                {
+                    try
+                    {
+                        var missionData = player.getMissionAt(i);
+                        if (missionData == null) continue;
+
+                        var missionInfo = infos.mission(missionData.meType);
+                        var missionObj = new Dictionary<string, object>
+                        {
+                            ["type"] = missionInfo?.mzType ?? missionData.meType.ToString(),
+                            ["turn"] = missionData.miTurn,
+                            ["characterId"] = missionData.miCharacterID
+                        };
+
+                        if (!string.IsNullOrEmpty(missionData.mzTarget))
+                            missionObj["target"] = missionData.mzTarget;
+
+                        if (missionData.mlSubjects != null && missionData.mlSubjects.Count > 0)
+                            missionObj["subjects"] = missionData.mlSubjects;
+
+                        missions.Add(missionObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[APIEndpoint] Error reading mission at index {i}: {ex.Message}");
+                    }
+                }
+
+                // Mission cooldowns
+                int missionCount = (int)infos.missionsNum();
+                for (int m = 0; m < missionCount; m++)
+                {
+                    var missionType = (MissionType)m;
+                    var missionInfo = infos.mission(missionType);
+                    if (missionInfo == null) continue;
+
+                    try
+                    {
+                        int cooldownLeft = player.getMissionCooldownTurnsLeft(missionType);
+                        if (cooldownLeft > 0)
+                            cooldowns[missionInfo.mzType] = cooldownLeft;
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player missions: {ex.Message}");
+            }
+
+            return new { missions, cooldowns };
         }
 
         /// <summary>
         /// Build player resources/luxuries state for JSON serialization.
-        /// Note: Resource count data not accessible from mod API
         /// </summary>
         public static object BuildPlayerResources(Player player, Game game, Infos infos)
         {
-            // countResource method is not available in public API
-            return new
+            var luxuries = new Dictionary<string, int>();
+            var revealed = new Dictionary<string, int>();
+
+            try
             {
-                luxuries = new Dictionary<string, int>(),
-                resources = new Dictionary<string, int>(),
-                note = "Resource data not accessible from mod API"
-            };
+                int resourceCount = (int)infos.resourcesNum();
+                for (int i = 0; i < resourceCount; i++)
+                {
+                    var resourceType = (ResourceType)i;
+                    var resourceInfo = infos.resource(resourceType);
+                    if (resourceInfo == null) continue;
+
+                    string resourceName = resourceInfo.mzType;
+
+                    // Luxury count (how many of this resource the player has available)
+                    try
+                    {
+                        int luxuryCount = player.getLuxuryCount(resourceType);
+                        if (luxuryCount != 0)
+                            luxuries[resourceName] = luxuryCount;
+                    }
+                    catch { }
+
+                    // Revealed count (how many tiles with this resource have been revealed)
+                    try
+                    {
+                        int revealedCount = player.getResourceRevealed(resourceType);
+                        if (revealedCount > 0)
+                            revealed[resourceName] = revealedCount;
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[APIEndpoint] Error building player resources: {ex.Message}");
+            }
+
+            return new { luxuries, revealed };
         }
 
         #endregion

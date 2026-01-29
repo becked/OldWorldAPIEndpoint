@@ -591,6 +591,196 @@ Execute multiple commands in sequence.
 |--------|-----------------|-----------------|
 | `endTurn` | - | `force` |
 
+#### Laws & Economy
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `chooseLaw` | `lawType` | - |
+| `cancelLaw` | `lawType` | - |
+| `buyYield` | `yieldType`, `amount` | - |
+| `sellYield` | `yieldType`, `amount` | - |
+| `convertOrders` | - | - |
+| `convertLegitimacy` | - | - |
+| `convertOrdersToScience` | - | - |
+
+#### Luxury Trading
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `tradeCityLuxury` | `cityId`, `resourceType`, `enable` | - |
+| `tradeFamilyLuxury` | `familyType`, `resourceType`, `enable` | - |
+| `tradeTribeLuxury` | `tribeType`, `resourceType`, `enable` | - |
+| `tradePlayerLuxury` | `targetPlayer`, `resourceType`, `enable` | - |
+| `tribute` | `yieldType`, `amount` | `toPlayer`, `toTribe`, `fromPlayer` |
+
+#### Unit Special Actions
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `swap` | `unitId`, `targetTileId` | `forceMarch` |
+| `doUnitQueue` | `unitId` | - |
+| `cancelUnitQueue` | `unitId` | `clearAll` |
+| `formation` | `unitId`, `effectUnitType` | - |
+| `unlimber` | `unitId` | - |
+| `anchor` | `unitId` | - |
+| `repair` | `unitId` | `buyGoods`, `queue`, `tileId` |
+| `cancelImprovement` | `unitId` | - |
+| `removeVegetation` | `unitId` | - |
+| `harvestResource` | `unitId` | `autoHarvest` |
+| `unitAutomate` | `unitId` | - |
+| `addUrban` | `unitId` | `buyGoods` |
+| `roadTo` | `unitId`, `tileIds` | `buyGoods` |
+| `buyTile` | `unitId`, `cityId`, `yieldType` | - |
+| `recruitMercenary` | `unitId` | - |
+| `hireMercenary` | `unitId` | - |
+| `giftUnit` | `unitId`, `targetPlayer` | - |
+| `launchOffensive` | `unitId` | - |
+| `applyEffectUnit` | `unitId`, `effectUnitType` | - |
+| `selectUnit` | `unitId` | - |
+
+#### Agent & Caravan Units
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `createAgentNetwork` | `unitId`, `cityId` | - |
+| `createTradeOutpost` | `unitId`, `tileId` | - |
+| `caravanMissionStart` | `unitId`, `targetPlayer` | - |
+| `caravanMissionCancel` | `unitId` | - |
+
+#### Religious Units
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `purgeReligion` | `unitId`, `religionType` | - |
+| `spreadReligionTribe` | `unitId`, `tribeType` | - |
+| `establishTheology` | `unitId`, `theologyType` | - |
+
+#### Character Management
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `characterName` | `characterId`, `name` | - |
+| `addCharacterTrait` | `characterId`, `traitType` | `remove` |
+| `setCharacterRating` | `characterId`, `ratingType`, `value` | - |
+| `setCharacterExperience` | `characterId`, `xp` | - |
+| `setCharacterCognomen` | `characterId`, `cognomenType` | - |
+| `setCharacterNation` | `characterId`, `nationType` | - |
+| `setCharacterFamily` | `characterId`, `familyType` | - |
+| `setCharacterReligion` | `characterId`, `religionType` | - |
+| `setCharacterCourtier` | `characterId`, `courtierType` | - |
+| `setCharacterCouncil` | `characterId`, `councilType` | - |
+| `playerLeader` | `playerType`, `characterId` | - |
+| `familyHead` | `playerType`, `familyType`, `characterId` | - |
+| `pinCharacter` | `characterId` | - |
+
+#### City Management
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `cityRename` | `cityId`, `name` | - |
+| `cityAutomate` | `cityId` | `enable` |
+| `buildSpecialist` | `tileId`, `specialistType` | `buyGoods`, `addFirst` |
+| `setSpecialist` | `tileId`, `specialistType` | - |
+| `changeCitizens` | `cityId`, `delta` | - |
+| `changeReligion` | `cityId`, `religionType` | `add` |
+| `changeFamily` | `cityId`, `familyType` | - |
+| `changeFamilySeat` | `cityId`, `familyType` | - |
+
+#### Goals & Communication
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `abandonAmbition` | `goalId` | - |
+| `addPlayerGoal` | `playerType`, `goalType` | - |
+| `removePlayerGoal` | `playerType`, `goalId` | - |
+| `eventStory` | `playerType`, `eventStoryType` | - |
+| `finishGoal` | `goalType` | `fail` |
+| `chat` | `chatType`, `message` | `targetPlayer` |
+| `ping` | `tileId`, `pingType` | `message`, `reminderTurn` |
+| `customReminder` | `message` | - |
+| `clearChat` | - | - |
+
+#### Game State & Turn
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `extendTime` | - | - |
+| `pause` | - | - |
+| `undo` | - | `turnUndo` |
+| `redo` | - | - |
+| `replayTurn` | - | `numTurns`, `step` |
+| `aiFinishTurn` | - | `numTurns` |
+| `toggleNoReplay` | - | - |
+
+#### Diplomacy Extended
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `teamAlliance` | `player1`, `player2` | - |
+| `tribeInvasion` | `tribeType`, `targetPlayer` | - |
+| `victoryTeam` | `victoryType`, `teamType`, `actionType` | - |
+
+#### Editor/Debug - Unit Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `createUnit` | `tileId`, `unitType` | `playerType`, `tribeType` |
+| `unitName` | `unitId`, `name` | - |
+| `setUnitFamily` | `unitId`, `familyType` | - |
+| `changeUnitOwner` | `unitId` | `playerType`, `tribeType` |
+| `changeCooldown` | `unitId`, `delta` | - |
+| `changeDamage` | `unitId`, `delta` | - |
+| `unitIncrementLevel` | `unitId` | - |
+| `unitChangePromotion` | `unitId`, `promotionType` | `delta` |
+
+#### Editor/Debug - City Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `createCity` | `playerType`, `tileId`, `familyType` | `turn` |
+| `removeCity` | `cityId` | - |
+| `cityOwner` | `cityId`, `playerType` | - |
+| `changeCityDamage` | `cityId`, `delta` | - |
+| `changeCulture` | `cityId` | `grow` |
+| `changeCityBuildTurns` | `cityId`, `delta` | - |
+| `changeCityDiscontentLevel` | `cityId`, `delta` | - |
+| `changeProject` | `cityId`, `projectType` | `delta` |
+
+#### Editor/Debug - Tile Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `setTerrain` | `tileId`, `terrainType` | - |
+| `setTerrainHeight` | `tileId`, `heightType` | - |
+| `setVegetation` | `tileId`, `vegetationType` | - |
+| `setResource` | `tileId`, `resourceType` | - |
+| `setRoad` | `tileId` | `hasRoad` |
+| `setImprovement` | `tileId`, `improvementType` | - |
+| `setTileOwner` | `tileId` | `playerType`, `tribeType` |
+| `setCitySite` | `tileId`, `citySiteType` | - |
+| `improvementBuildTurns` | `tileId`, `turns` | - |
+
+#### Editor/Debug - Map & Player Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `mapReveal` | - | `teamType` |
+| `mapUnreveal` | - | `teamType` |
+| `addTech` | `playerType`, `techType` | - |
+| `addYield` | `playerType`, `yieldType`, `amount` | - |
+| `addMoney` | `playerType`, `amount` | - |
+| `cheat` | `hotkeyType` | - |
+
+#### Editor/Debug - Character Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `makeCharacterDead` | `characterId` | - |
+| `makeCharacterSafe` | `characterId` | `numTurns` |
+| `newCharacter` | `playerType`, `familyType` | `age`, `fillValue` |
+| `addCharacter` | `characterType`, `playerType`, `familyType` | - |
+| `tribeLeader` | `tribeType`, `characterId` | - |
+
 ### Type String Format
 
 Use game type strings exactly as they appear in GET responses:

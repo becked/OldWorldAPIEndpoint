@@ -1,11 +1,32 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.3.0] - 2025-01-29
+
+### Added
+- **115 new commands** bringing total to 166 commands (from 51)
+  - Laws & Economy (7): chooseLaw, cancelLaw, buyYield, sellYield, convertOrders, convertLegitimacy, convertOrdersToScience
+  - Luxury Trading (5): tradeCityLuxury, tradeFamilyLuxury, tradeTribeLuxury, tradePlayerLuxury, tribute
+  - Unit Special Actions (20): swap, doUnitQueue, cancelUnitQueue, formation, unlimber, anchor, repair, cancelImprovement, removeVegetation, harvestResource, unitAutomate, addUrban, roadTo, buyTile, recruitMercenary, hireMercenary, giftUnit, launchOffensive, applyEffectUnit, selectUnit
+  - Agent & Caravan (4): createAgentNetwork, createTradeOutpost, caravanMissionStart, caravanMissionCancel
+  - Religious Units (3): purgeReligion, spreadReligionTribe, establishTheology
+  - Character Management (13): characterName, addCharacterTrait, setCharacterRating, setCharacterExperience, setCharacterCognomen, setCharacterNation, setCharacterFamily, setCharacterReligion, setCharacterCourtier, setCharacterCouncil, playerLeader, familyHead, pinCharacter
+  - City Management (8): cityRename, cityAutomate, buildSpecialist, setSpecialist, changeCitizens, changeReligion, changeFamily, changeFamilySeat
+  - Goals & Communication (9): abandonAmbition, addPlayerGoal, removePlayerGoal, eventStory, finishGoal, chat, ping, customReminder, clearChat
+  - Game State & Turn (7): extendTime, pause, undo, redo, replayTurn, aiFinishTurn, toggleNoReplay
+  - Diplomacy Extended (3): teamAlliance, tribeInvasion, victoryTeam
+  - Editor/Debug (36): createUnit, createCity, removeCity, cityOwner, setTerrain, setTerrainHeight, setVegetation, setResource, setRoad, setImprovement, setTileOwner, setCitySite, improvementBuildTurns, mapReveal, mapUnreveal, addTech, addYield, addMoney, cheat, makeCharacterDead, makeCharacterSafe, newCharacter, addCharacter, tribeLeader, unitName, setUnitFamily, changeUnitOwner, changeCooldown, changeDamage, unitIncrementLevel, unitChangePromotion, changeCityDamage, changeCulture, changeCityBuildTurns, changeCityDiscontentLevel, changeProject
+- **21 new type resolvers** bringing total to 31: LawType, ResourceType, EffectUnitType, ReligionType, TheologyType, TraitType, RatingType, CognomenType, CouncilType, CourtierType, SpecialistType, GoalType, EventStoryType, PingType, VictoryType, TerrainType, HeightType, VegetationType, HotkeyType, CharacterType, CitySiteType
+
+### Changed
+- **Enhanced data endpoints** now return real game data instead of placeholders:
+  - `/player/{index}/goals` - Active goals with id, type, turn, maxTurns, finished flags, target entities
+  - `/player/{index}/decisions` - Pending decisions with id, type, sortOrder, modal flags
+  - `/player/{index}/laws` - Active laws per law class with active law count
+  - `/player/{index}/missions` - Active missions with type, turn, characterId, target; mission cooldowns
+  - `/player/{index}/resources` - Luxury counts per resource type, revealed resource counts
+  - `/player/{index}/families` - Filtered to player's families only, with opinionRate, seatCityId, headId, opinion level
 
 ## [2.2.0] - 2025-01-29
 

@@ -14,18 +14,26 @@ This document compares the planned command support design (`docs/command-support
 
 ## Executive Summary
 
-The command API is **fully implemented**. All **51 commands** specified in the design document are now functional (100% coverage).
+The command API is **fully implemented** with **166 total commands** - far exceeding the original 51-command design specification.
 
-| Category | Planned | Implemented | Coverage |
-|----------|---------|-------------|----------|
-| Unit Movement & Combat | 10 | 10 | 100% |
-| Unit Special Actions | 11 | 11 | 100% |
-| City Production | 8 | 8 | 100% |
-| Research & Decisions | 5 | 5 | 100% |
-| Diplomacy | 9 | 9 | 100% |
-| Character Management | 7 | 7 | 100% |
-| Turn Control | 1 | 1 | 100% |
-| **Total** | **51** | **51** | **100%** |
+| Category | Original | Extended | Total |
+|----------|----------|----------|-------|
+| Unit Movement & Combat | 10 | 0 | 10 |
+| Unit Special Actions | 11 | 20 | 31 |
+| City Production | 8 | 0 | 8 |
+| Research & Decisions | 5 | 0 | 5 |
+| Diplomacy | 9 | 3 | 12 |
+| Character Management | 7 | 13 | 20 |
+| Turn Control | 1 | 0 | 1 |
+| Laws & Economy | 0 | 7 | 7 |
+| Luxury Trading | 0 | 5 | 5 |
+| Agent & Caravan | 0 | 4 | 4 |
+| Religious Units | 0 | 3 | 3 |
+| City Management | 0 | 8 | 8 |
+| Goals & Communication | 0 | 9 | 9 |
+| Game State & Turn | 0 | 7 | 7 |
+| Editor/Debug | 0 | 36 | 36 |
+| **Total** | **51** | **115** | **166** |
 
 ---
 
@@ -40,7 +48,7 @@ The command API is **fully implemented**. All **51 commands** specified in the d
 | HTTP POST /command | Complete | Single command execution |
 | HTTP POST /commands | Complete | Bulk command execution with StopOnError |
 | Request/response types | Complete | GameCommand, CommandResult, BulkCommand, etc. |
-| Type resolution helpers | Complete | 10 type resolvers (see below) |
+| Type resolution helpers | Complete | 31 type resolvers (see below) |
 | Parameter parsing | Complete | TryGetIntParam, TryGetStringParam with detailed error messages |
 | Multiplayer check | Complete | Commands refused in MP games |
 | canDoActions check | Complete | Validates player can act before executing |
@@ -146,56 +154,73 @@ The command API is **fully implemented**. All **51 commands** specified in the d
 
 ## Type Resolver Coverage
 
-All required type resolvers are implemented in `CommandExecutor.cs`:
+All **31 type resolvers** are implemented in `CommandExecutor.cs`:
 
-| Type | Resolver | Status |
-|------|----------|--------|
-| UnitType | ResolveUnitType | Implemented |
-| TechType | ResolveTechType | Implemented |
-| ProjectType | ResolveProjectType | Implemented |
-| PromotionType | ResolvePromotionType | Implemented |
-| YieldType | ResolveYieldType | Implemented |
-| ImprovementType | ResolveImprovementType | Implemented |
-| FamilyType | ResolveFamilyType | Implemented |
-| NationType | ResolveNationType | Implemented |
-| TribeType | ResolveTribeType | Implemented |
-| MissionType | ResolveMissionType | Implemented |
+| Type | Resolver | Batch |
+|------|----------|-------|
+| UnitType | ResolveUnitType | Original |
+| TechType | ResolveTechType | Original |
+| ProjectType | ResolveProjectType | Original |
+| PromotionType | ResolvePromotionType | Original |
+| YieldType | ResolveYieldType | Original |
+| ImprovementType | ResolveImprovementType | Original |
+| FamilyType | ResolveFamilyType | Original |
+| NationType | ResolveNationType | Original |
+| TribeType | ResolveTribeType | Original |
+| MissionType | ResolveMissionType | Original |
+| LawType | ResolveLawType | Batch A |
+| ResourceType | ResolveResourceType | Batch B |
+| EffectUnitType | ResolveEffectUnitType | Batch C |
+| ReligionType | ResolveReligionType | Batch E |
+| TheologyType | ResolveTheologyType | Batch E |
+| TraitType | ResolveTraitType | Batch F |
+| RatingType | ResolveRatingType | Batch F |
+| CognomenType | ResolveCognomenType | Batch F |
+| CouncilType | ResolveCouncilType | Batch F |
+| CourtierType | ResolveCourtierType | Batch F |
+| SpecialistType | ResolveSpecialistType | Batch G |
+| GoalType | ResolveGoalType | Batch H |
+| EventStoryType | ResolveEventStoryType | Batch H |
+| PingType | ResolvePingType | Batch H |
+| VictoryType | ResolveVictoryType | Batch J |
+| TerrainType | ResolveTerrainType | Batch K |
+| HeightType | ResolveHeightType | Batch K |
+| VegetationType | ResolveVegetationType | Batch K |
+| HotkeyType | ResolveHotkeyType | Batch K |
+| CharacterType | ResolveCharacterType | Batch K |
+| CitySiteType | ResolveCitySiteType | Batch K |
 
 ---
 
-## Additional Commands in Game API
+## Data Endpoint Enhancements
 
-The game's `ClientManager.cs` has **212+ send* methods**. Beyond the 51 implemented commands, these could potentially be exposed in future versions:
+The following player data endpoints now return real game data instead of placeholder structures:
 
-### Laws & Government
-- `sendChooseLaw(LawType)`
-- `sendCancelLaw(LawType)`
+| Endpoint | Data Returned |
+|----------|---------------|
+| `/player/{index}/goals` | Active goals with id, type, turn, maxTurns, finished flags, target entities |
+| `/player/{index}/decisions` | Pending decisions with id, type, sortOrder, modal flags |
+| `/player/{index}/laws` | Active laws per law class, active law count |
+| `/player/{index}/missions` | Active missions with type, turn, characterId, target; mission cooldowns |
+| `/player/{index}/resources` | Luxury counts, revealed resource counts |
+| `/player/{index}/families` | Player's families with opinionRate, seatCityId, headId, opinion level |
 
-### Yield Trading
-- `sendBuyYield(YieldType, int size)`
-- `sendSellYield(YieldType, int size)`
-- `sendConvertOrders()`
-- `sendConvertLegitimacy()`
-- `sendConvertOrdersToScience()`
+---
 
-### Trade & Luxury
-- `sendTradeCityLuxury(City, ResourceType, bool)`
-- `sendTradeFamilyLuxury(FamilyType, ResourceType, bool)`
-- `sendTradeTribeLuxury(TribeType, ResourceType, bool)`
+## Implementation Notes
 
-### Unit Special
-- `sendFormation(Unit, EffectUnitType)` - Formation changes
-- `sendUnlimber(Unit)` - Artillery unlimber
-- `sendAnchor(Unit)` - Ship anchor
-- `sendRepair(Unit)` - Unit repair
-- `sendUnitAutomate(Unit)` - Auto-worker
-- `sendRecruitMercenary(Unit)`
-- `sendHireMercenary(Unit)`
-- `sendGiftUnit(Unit, PlayerType)`
+The game's `ClientManager.cs` has **212+ send* methods**. With 166 commands now implemented, most practical gameplay commands are exposed via the API.
 
-### City Special
-- `sendCityAutomate(City, bool)` - Auto-build queue
-- `sendRenameCity(City, string)`
+### Not Implemented
+
+The following remain unimplemented as they are less commonly needed:
+
+**Validation:**
+- `GET /validate` - Pre-validation without execution (useful for UI action building)
+
+**Advanced Trading:**
+- Some specialized luxury trading variants
+- Complex multi-party negotiations
 
 ---
 

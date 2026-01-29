@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "command.schema.json",
+  "title": "Command",
+  "description": "Game command schemas for executing actions via the API",
+  "definitions": {
+    "gameCommand": {
+      "type": "object",
+      "description": "A game command to execute",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "The action to perform",
+          "enum": [
+            "moveUnit",
+            "attack",
+            "fortify",
+            "pass",
+            "skip",
+            "sleep",
+            "sentry",
+            "wake",
+            "disband",
+            "promote",
+            "build",
+            "buildUnit",
+            "buildProject",
+            "hurry",
+            "research",
+            "endTurn"
+          ]
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Optional client-provided ID for response correlation"
+        },
+        "params": {
+          "type": "object",
+          "description": "Action-specific parameters",
+          "additionalProperties": true
+        }
+      },
+      "required": ["action"]
+    },
+    "commandResult": {
+      "type": "object",
+      "description": "Result of executing a single command",
+      "properties": {
+        "requestId": {
+          "type": ["string", "null"],
+          "description": "The requestId from the original command"
+        },
+        "success": {
+          "type": "boolean",
+          "description": "Whether the command executed successfully"
+        },
+        "error": {
+          "type": ["string", "null"],
+          "description": "Error message if the command failed"
+        },
+        "data": {
+          "type": ["object", "null"],
+          "description": "Optional data returned by the command"
+        }
+      },
+      "required": ["success"]
+    },
+    "bulkCommand": {
+      "type": "object",
+      "description": "A batch of commands to execute in sequence",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "description": "Optional ID for the entire batch"
+        },
+        "commands": {
+          "type": "array",
+          "description": "List of commands to execute in order",
+          "items": {
+            "$ref": "#/definitions/gameCommand"
+          }
+        },
+        "stopOnError": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, stop execution when any command fails"
+        }
+      },
+      "required": ["commands"]
+    },
+    "bulkCommandResult": {
+      "type": "object",
+      "description": "Result of executing a bulk command batch",
+      "properties": {
+        "requestId": {
+          "type": ["string", "null"],
+          "description": "The requestId from the original bulk command"
+        },
+        "allSucceeded": {
+          "type": "boolean",
+          "description": "Whether all commands in the batch succeeded"
+        },
+        "results": {
+          "type": "array",
+          "description": "Individual results for each command",
+          "items": {
+            "$ref": "#/definitions/bulkCommandItemResult"
+          }
+        },
+        "stoppedAtIndex": {
+          "type": ["integer", "null"],
+          "description": "Index where execution stopped if stopOnError was true"
+        }
+      },
+      "required": ["allSucceeded", "results"]
+    },
+    "bulkCommandItemResult": {
+      "type": "object",
+      "description": "Result of a single command within a bulk execution",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "description": "Index of this command in the batch"
+        },
+        "action": {
+          "type": "string",
+          "description": "The action that was attempted"
+        },
+        "success": {
+          "type": "boolean",
+          "description": "Whether this command succeeded"
+        },
+        "error": {
+          "type": ["string", "null"],
+          "description": "Error message if this command failed"
+        }
+      },
+      "required": ["index", "action", "success"]
+    },
+    "actionParams": {
+      "description": "Parameter schemas for each action type",
+      "moveUnit": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to move" },
+          "targetTileId": { "type": "integer", "description": "Destination tile ID" },
+          "queue": { "type": "boolean", "default": false, "description": "Queue the move" },
+          "force": { "type": "boolean", "default": false, "description": "Force the move" }
+        },
+        "required": ["unitId", "targetTileId"]
+      },
+      "attack": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Attacking unit ID" },
+          "targetTileId": { "type": "integer", "description": "Target tile ID" }
+        },
+        "required": ["unitId", "targetTileId"]
+      },
+      "fortify": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to fortify" }
+        },
+        "required": ["unitId"]
+      },
+      "pass": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to pass" }
+        },
+        "required": ["unitId"]
+      },
+      "sleep": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to sleep" }
+        },
+        "required": ["unitId"]
+      },
+      "sentry": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to set as sentry" }
+        },
+        "required": ["unitId"]
+      },
+      "wake": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to wake" }
+        },
+        "required": ["unitId"]
+      },
+      "disband": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to disband" },
+          "force": { "type": "boolean", "default": false, "description": "Force disbanding" }
+        },
+        "required": ["unitId"]
+      },
+      "promote": {
+        "type": "object",
+        "properties": {
+          "unitId": { "type": "integer", "description": "Unit ID to promote" },
+          "promotion": { "type": "string", "description": "Promotion type (e.g., PROMOTION_FIERCE)" }
+        },
+        "required": ["unitId", "promotion"]
+      },
+      "build": {
+        "type": "object",
+        "properties": {
+          "cityId": { "type": "integer", "description": "City ID to build in" },
+          "unitType": { "type": "string", "description": "Unit type to build (e.g., UNIT_WARRIOR)" },
+          "rush": { "type": "boolean", "default": false, "description": "Rush production" }
+        },
+        "required": ["cityId", "unitType"]
+      },
+      "hurry": {
+        "type": "object",
+        "properties": {
+          "cityId": { "type": "integer", "description": "City ID to hurry" },
+          "yield": { "type": "string", "default": "YIELD_CIVICS", "description": "Yield to spend" }
+        },
+        "required": ["cityId"]
+      },
+      "research": {
+        "type": "object",
+        "properties": {
+          "tech": { "type": "string", "description": "Tech type to research (e.g., TECH_FORESTRY)" }
+        },
+        "required": ["tech"]
+      },
+      "endTurn": {
+        "type": "object",
+        "properties": {
+          "force": { "type": "boolean", "default": true, "description": "Force end turn" }
+        }
+      }
+    }
+  }
+}

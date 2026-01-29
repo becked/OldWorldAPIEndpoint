@@ -1,6 +1,6 @@
 # API Reference
 
-Complete reference for the REST API on port 9877. Includes 32 GET endpoints for querying game state and 2 POST endpoints for executing commands.
+Complete reference for the REST API on port 9877. Includes GET endpoints for querying game state and POST endpoints for executing commands.
 
 ## Base URL
 
@@ -13,8 +13,8 @@ http://localhost:9877
 ### Commands
 | Endpoint | Description |
 |----------|-------------|
-| [`POST /command`](#post-command) | Execute game command |
-| [`GET /validate`](#get-validate) | Validate command before execution |
+| [`POST /command`](#post-command) | Execute single game command |
+| [`POST /commands`](#post-commands) | Execute multiple commands in sequence |
 
 ### Core Data
 | Endpoint | Description |
@@ -493,7 +493,9 @@ All errors return JSON with `error` and `code` fields.
 
 ## Commands
 
-The API supports bidirectional communication. In addition to reading game state via GET endpoints, you can execute game commands via POST.
+The API supports bidirectional communication. In addition to reading game state via GET endpoints, you can execute game commands via POST. **Commands only work in single-player games.**
+
+For detailed command documentation, see [Commands](schemas/command.md).
 
 ### POST /command
 
@@ -506,7 +508,7 @@ Execute a single game command.
   "requestId": "optional-correlation-id",
   "params": {
     "unitId": 42,
-    "targetTileId": 156
+    "targetTileId": 661
   }
 }
 ```
@@ -523,120 +525,84 @@ Execute a single game command.
 ```bash
 curl -X POST http://localhost:9877/command \
   -H "Content-Type: application/json" \
-  -d '{"action": "endTurn", "params": {}}'
+  -d '{"action": "endTurn"}'
 ```
 
-### Command Categories
+### POST /commands
 
-#### Unit Movement & Combat
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `moveUnit` | `unitId`, `targetTileId` | `march`, `queue` |
-| `attack` | `unitId`, `targetTileId` | - |
-| `fortify` | `unitId` | - |
-| `heal` | `unitId` | `auto` |
-| `march` | `unitId` | - |
-| `pass` | `unitId` | - |
-| `sleep` | `unitId` | - |
-| `sentry` | `unitId` | - |
-| `wake` | `unitId` | - |
-
-#### Unit Special Actions
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `foundCity` | `unitId`, `familyType` | `nationType` |
-| `buildImprovement` | `unitId`, `improvementType`, `tileId` | `buyGoods`, `queue` |
-| `addRoad` | `unitId`, `tileId` | `buyGoods`, `queue` |
-| `pillage` | `unitId` | - |
-| `promote` | `unitId`, `promotionType` | - |
-| `upgrade` | `unitId`, `unitType` | `buyGoods` |
-| `disband` | `unitId` | `force` |
-
-#### City Production
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `buildUnit` | `cityId`, `unitType` | `buyGoods`, `first` |
-| `buildProject` | `cityId`, `projectType` | `buyGoods`, `first`, `repeat` |
-| `hurryCivics` | `cityId` | - |
-| `hurryMoney` | `cityId` | - |
-| `hurryPopulation` | `cityId` | - |
-| `hurryOrders` | `cityId` | - |
-
-#### Research & Decisions
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `research` | `techType` | - |
-| `redrawTech` | - | - |
-| `targetTech` | `techType` | - |
-| `makeDecision` | `decisionId`, `choiceIndex` | `data` |
-
-#### Diplomacy
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `declareWar` | `targetPlayer` | - |
-| `makePeace` | `targetPlayer` | - |
-| `declareTruce` | `targetPlayer` | - |
-| `giftCity` | `cityId`, `targetPlayer` | - |
-| `giftYield` | `yieldType`, `targetPlayer` | `reverse` |
-
-#### Character Management
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `assignGovernor` | `cityId`, `characterId` | - |
-| `releaseGovernor` | `cityId` | - |
-| `assignGeneral` | `unitId`, `characterId` | - |
-| `releaseGeneral` | `unitId` | - |
-| `startMission` | `missionType`, `characterId`, `target` | `cancel` |
-
-#### Turn Control
-
-| Action | Required Params | Optional Params |
-|--------|-----------------|-----------------|
-| `endTurn` | - | - |
-
-### GET /validate
-
-Check if a command is valid before executing.
+Execute multiple commands in sequence.
 
 **Request:**
-```
-GET /validate?action=moveUnit&unitId=42&targetTileId=156
+```json
+{
+  "requestId": "batch-123",
+  "stopOnError": true,
+  "commands": [
+    {"action": "moveUnit", "params": {"unitId": 42, "targetTileId": 661}},
+    {"action": "attack", "params": {"unitId": 42, "targetTileId": 662}}
+  ]
+}
 ```
 
 **Response:**
 ```json
 {
-  "valid": true,
-  "reason": null
+  "requestId": "batch-123",
+  "allSucceeded": true,
+  "results": [
+    {"index": 0, "action": "moveUnit", "success": true},
+    {"index": 1, "action": "attack", "success": true}
+  ]
 }
 ```
 
-Or if invalid:
-```json
-{
-  "valid": false,
-  "reason": "Unit has no movement points remaining"
-}
-```
+### Available Actions
+
+#### Unit Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `moveUnit` | `unitId`, `targetTileId` | `queue`, `force` |
+| `attack` | `unitId`, `targetTileId` | - |
+| `fortify` | `unitId` | - |
+| `pass` / `skip` | `unitId` | - |
+| `sleep` | `unitId` | - |
+| `sentry` | `unitId` | - |
+| `wake` | `unitId` | - |
+| `disband` | `unitId` | `force` |
+| `promote` | `unitId`, `promotion` | - |
+
+#### City Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `build` / `buildUnit` / `buildProject` | `cityId`, `unitType` | `rush` |
+| `hurry` | `cityId` | `yield` |
+
+#### Research Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `research` | `tech` | - |
+
+#### Turn Commands
+
+| Action | Required Params | Optional Params |
+|--------|-----------------|-----------------|
+| `endTurn` | - | `force` |
 
 ### Type String Format
 
 Use game type strings exactly as they appear in GET responses:
-- Units: `UNIT_WARRIOR`, `UNIT_SETTLER`, etc.
-- Projects: `PROJECT_GRANARY`, `PROJECT_BARRACKS`, etc.
-- Techs: `TECH_TRAPPING`, `TECH_STONECUTTING`, etc.
-- Improvements: `IMPROVEMENT_FARM`, `IMPROVEMENT_MINE`, etc.
+- Units: `UNIT_WARRIOR`, `UNIT_SETTLER`, `UNIT_WORKER`, etc.
+- Techs: `TECH_FORESTRY`, `TECH_STONECUTTING`, etc.
+- Promotions: `PROMOTION_FIERCE`, `PROMOTION_SHIELDBEARER`, etc.
+- Yields: `YIELD_CIVICS`, `YIELD_TRAINING`, etc.
 
 ### Security Notes
 
 - Commands only work in single-player mode
-- Both servers bind to localhost only
+- Server binds to localhost only
 - All commands go through game validation
 
 ---
@@ -646,7 +612,7 @@ Use game type strings exactly as they appear in GET responses:
 All responses include:
 ```
 Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST
+Access-Control-Allow-Methods: GET, POST, OPTIONS
 ```
 
 ---

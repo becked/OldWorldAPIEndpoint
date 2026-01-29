@@ -4,6 +4,7 @@
 
 - **API Reference**
   - [Endpoints](api-reference.md)
+  - [Commands](schemas/command.md)
   - [Interactive API](swagger.html)
 
 - **Data Models**

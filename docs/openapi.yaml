@@ -2,12 +2,17 @@ openapi: 3.0.3
 info:
   title: Old World API
   description: |
-    REST API for the Old World game mod that exposes game state for companion apps, overlays, and external tools.
+    REST API for the Old World game mod that exposes game state and accepts commands for companion apps, overlays, and external tools.
 
     ## Overview
 
-    This API provides read-only access to game state including players, cities, characters, tribes, diplomacy, and events.
-    All data uses game type strings (e.g., `NATION_ROME`, `YIELD_FOOD`) for unambiguous identification.
+    This API provides:
+    - **Read access** to game state including players, cities, characters, units, tribes, diplomacy, and events
+    - **Command execution** for unit actions, city production, research, and turn management
+
+    All data uses game type strings (e.g., `NATION_ROME`, `YIELD_FOOD`, `UNIT_WARRIOR`) for unambiguous identification.
+
+    **Note:** Commands are disabled in multiplayer games.
 
     ## Connection
 
@@ -17,7 +22,7 @@ info:
 
     All endpoints include CORS headers for browser access:
     - `Access-Control-Allow-Origin: *`
-    - `Access-Control-Allow-Methods: GET`
+    - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
   version: 1.0.0
   license:
     name: MIT
@@ -48,6 +53,8 @@ tags:
     description: Diplomatic relationships
   - name: Religion
     description: Global religion state
+  - name: Commands
+    description: Game command execution (single-player only)
   - name: Config
     description: Game configuration
 
@@ -790,6 +797,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GameConfig'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  # Command Endpoints
+  /command:
+    post:
+      tags: [Commands]
+      summary: Execute a single game command
+      description: |
+        Execute a game command such as moving units, attacking, building, or ending the turn.
+        Commands are only available in single-player games.
+
+        ## Available Actions
+
+        ### Unit Commands
+        - `moveUnit` - Move a unit to a target tile
+        - `attack` - Attack a target tile
+        - `fortify` - Fortify a unit
+        - `pass` / `skip` - Skip a unit's turn
+        - `sleep` - Put a unit to sleep
+        - `sentry` - Set a unit to sentry mode
+        - `wake` - Wake a sleeping/sentry unit
+        - `disband` - Disband a unit
+        - `promote` - Apply a promotion to a unit
+
+        ### City Commands
+        - `build` / `buildUnit` / `buildProject` - Start building in a city
+        - `hurry` - Rush production with a yield
+
+        ### Research Commands
+        - `research` - Set the current research target
+
+        ### Turn Commands
+        - `endTurn` - End the current turn
+      operationId: executeCommand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameCommand'
+            examples:
+              moveUnit:
+                summary: Move a unit
+                value:
+                  action: moveUnit
+                  requestId: "req-123"
+                  params:
+                    unitId: 42
+                    targetTileId: 661
+              attack:
+                summary: Attack a tile
+                value:
+                  action: attack
+                  params:
+                    unitId: 42
+                    targetTileId: 662
+              fortify:
+                summary: Fortify a unit
+                value:
+                  action: fortify
+                  params:
+                    unitId: 42
+              build:
+                summary: Build a unit in a city
+                value:
+                  action: build
+                  params:
+                    cityId: 5
+                    unitType: "UNIT_WARRIOR"
+              research:
+                summary: Research a technology
+                value:
+                  action: research
+                  params:
+                    tech: "TECH_FORESTRY"
+              endTurn:
+                summary: End the turn
+                value:
+                  action: endTurn
+      responses:
+        '200':
+          description: Command executed (check success field for result)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+              examples:
+                success:
+                  value:
+                    requestId: "req-123"
+                    success: true
+                failure:
+                  value:
+                    requestId: "req-123"
+                    success: false
+                    error: "Unit not found: 999"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /commands:
+    post:
+      tags: [Commands]
+      summary: Execute multiple commands in sequence
+      description: |
+        Execute a batch of commands in order. Useful for complex operations
+        that require multiple steps (e.g., move then attack).
+
+        By default, execution stops on the first error (`stopOnError: true`).
+        Set `stopOnError: false` to continue executing remaining commands after failures.
+      operationId: executeBulkCommands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCommand'
+            examples:
+              moveAndAttack:
+                summary: Move unit then attack
+                value:
+                  requestId: "batch-456"
+                  stopOnError: true
+                  commands:
+                    - action: moveUnit
+                      params:
+                        unitId: 42
+                        targetTileId: 661
+                    - action: attack
+                      params:
+                        unitId: 42
+                        targetTileId: 662
+      responses:
+        '200':
+          description: Batch executed (check allSucceeded and individual results)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkCommandResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
 
@@ -1967,6 +2117,132 @@ components:
           type: integer
         year:
           type: integer
+
+    # Command Schemas
+    GameCommand:
+      type: object
+      description: A game command to execute
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          description: |
+            The action to perform. Available actions:
+            - Unit: moveUnit, attack, fortify, pass, skip, sleep, sentry, wake, disband, promote
+            - City: build, buildUnit, buildProject, hurry
+            - Research: research
+            - Turn: endTurn
+          enum:
+            - moveUnit
+            - attack
+            - fortify
+            - pass
+            - skip
+            - sleep
+            - sentry
+            - wake
+            - disband
+            - promote
+            - build
+            - buildUnit
+            - buildProject
+            - hurry
+            - research
+            - endTurn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          type: object
+          description: |
+            Action-specific parameters. Required params by action:
+            - moveUnit: unitId (int), targetTileId (int), queue? (bool), force? (bool)
+            - attack: unitId (int), targetTileId (int)
+            - fortify: unitId (int)
+            - pass/skip: unitId (int)
+            - sleep: unitId (int)
+            - sentry: unitId (int)
+            - wake: unitId (int)
+            - disband: unitId (int), force? (bool)
+            - promote: unitId (int), promotion (string, e.g., "PROMOTION_FIERCE")
+            - build/buildUnit/buildProject: cityId (int), unitType (string, e.g., "UNIT_WARRIOR"), rush? (bool)
+            - hurry: cityId (int), yield? (string, default "YIELD_CIVICS")
+            - research: tech (string, e.g., "TECH_FORESTRY")
+            - endTurn: force? (bool, default true)
+          additionalProperties: true
+
+    CommandResult:
+      type: object
+      description: Result of executing a single command
+      properties:
+        requestId:
+          type: string
+          description: The requestId from the original command (for correlation)
+        success:
+          type: boolean
+          description: Whether the command executed successfully
+        error:
+          type: string
+          description: Error message if the command failed
+        data:
+          type: object
+          description: Optional data returned by the command
+
+    BulkCommand:
+      type: object
+      description: A batch of commands to execute in sequence
+      required:
+        - commands
+      properties:
+        requestId:
+          type: string
+          description: Optional ID for the entire batch
+        commands:
+          type: array
+          description: List of commands to execute in order
+          items:
+            $ref: '#/components/schemas/GameCommand'
+        stopOnError:
+          type: boolean
+          default: true
+          description: If true, stop execution when any command fails
+
+    BulkCommandResult:
+      type: object
+      description: Result of executing a bulk command batch
+      properties:
+        requestId:
+          type: string
+          description: The requestId from the original bulk command
+        allSucceeded:
+          type: boolean
+          description: Whether all commands in the batch succeeded
+        results:
+          type: array
+          description: Individual results for each command
+          items:
+            $ref: '#/components/schemas/BulkCommandItemResult'
+        stoppedAtIndex:
+          type: integer
+          description: If stopOnError was true and an error occurred, the index where execution stopped
+
+    BulkCommandItemResult:
+      type: object
+      description: Result of a single command within a bulk execution
+      properties:
+        index:
+          type: integer
+          description: Index of this command in the batch
+        action:
+          type: string
+          description: The action that was attempted
+        success:
+          type: boolean
+          description: Whether this command succeeded
+        error:
+          type: string
+          description: Error message if this command failed
 
     Error:
       type: object

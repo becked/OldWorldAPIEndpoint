@@ -1493,26 +1493,41 @@ components:
 
     CharacterEvent:
       type: object
+      description: Character lifecycle event (birth, death, leadership, marriage)
       properties:
         eventType:
           type: string
           enum: [characterBorn, characterDied, leaderChanged, heirChanged, characterMarried]
+          description: Type of character event
         characterId:
           type: integer
+          description: Character ID involved in the event
         parentIds:
           type: array
           items:
             type: integer
+          description: Parent character IDs (for birth events)
         deathReason:
           type: string
           nullable: true
+          description: Cause of death (for death events)
         playerId:
           type: integer
+          description: Player index affected by the event
         newLeaderId:
           type: integer
+          description: New leader character ID (for leaderChanged events)
         oldLeaderId:
           type: integer
           nullable: true
+          description: Previous leader character ID (for leaderChanged events)
+        newHeirId:
+          type: integer
+          description: New heir character ID (for heirChanged events)
+        oldHeirId:
+          type: integer
+          nullable: true
+          description: Previous heir character ID (for heirChanged events)
 
     UnitEvent:
       type: object

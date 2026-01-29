@@ -6,23 +6,45 @@
 	"previewfile"		"./logo.png"
 	"visibility"		"0"
 	"title"		"Old World API Endpoint"
-	"description"		"Exposes game state data via TCP and HTTP APIs, enabling companion apps, overlays, and external tools to read live game information.
+	"description"		"Exposes game state via TCP and HTTP APIs and enables command execution, allowing companion apps, overlays, and external tools to read and control the game.
 
 [h1]Connection Options[/h1]
 [list]
-[*] [b]TCP (port 9876)[/b]: Persistent connection that receives push notifications on game events
-[*] [b]HTTP (port 9877)[/b]: REST API for on-demand queries (GET /state, /players, /cities, /characters, /character-events, /tribes)
+[*] [b]TCP (port 9876)[/b]: Push notifications - receives game state automatically at turn end
+[*] [b]HTTP (port 9877)[/b]: REST API with 30+ endpoints for reading state and executing commands
 [/list]
 
-[h1]Data Exposed[/h1]
+[h1]Read Game State[/h1]
 [list]
-[*] [b]Players[/b]: Nation, stockpiles, yield rates, legitimacy, city/unit counts
-[*] [b]Cities[/b]: Yields, improvements, build queues, religion, culture, happiness, governor, family
-[*] [b]Characters[/b]: 75+ fields including traits, ratings, jobs, spouses, children, opinions, relationships
-[*] [b]Character Events[/b]: Births, deaths, marriages, leader changes, heir changes
+[*] [b]Players[/b]: Nation, stockpiles, yield rates, legitimacy, techs, families, religion, laws
+[*] [b]Cities[/b]: 80+ fields - yields, improvements, build queues, religion, culture, happiness
+[*] [b]Characters[/b]: 85+ fields - traits, ratings, jobs, spouses, children, opinions, relationships
+[*] [b]Units[/b]: Type, HP, promotions, cooldown, tile position, commander
+[*] [b]Map/Tiles[/b]: Terrain, height, vegetation, resources, improvements, ownership
 [*] [b]Diplomacy[/b]: Team relationships, war states, war scores, alliances
 [*] [b]Tribes[/b]: Strength, cities, settlements, diplomacy with players
 [/list]
+
+[h1]Execute Commands[/h1]
+166 commands for controlling the game:
+[list]
+[*] [b]Units[/b]: Move, attack, fortify, promote, disband, special actions
+[*] [b]Cities[/b]: Build units/projects, hurry production, manage specialists
+[*] [b]Research[/b]: Choose technologies
+[*] [b]Economy[/b]: Buy/sell yields, trade luxuries, tribute
+[*] [b]Diplomacy[/b]: Alliances, invasions
+[*] [b]Turn[/b]: End turn, undo/redo, pause
+[/list]
+
+[h1]Events[/h1]
+[list]
+[*] [b]Characters[/b]: Births, deaths, marriages, leader changes, heir changes
+[*] [b]Units[/b]: Created, killed
+[*] [b]Cities[/b]: Founded, captured
+[/list]
+
+[h1]Companion Tools[/h1]
+[url=https://github.com/becked/owcli]owcli[/url] - Command-line interface for querying game state and executing commands
 
 [h1]Documentation[/h1]
 [url=https://becked.github.io/OldWorldAPIEndpoint]API Documentation[/url]

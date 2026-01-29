@@ -68,6 +68,10 @@ GET /character/{id}     Character by ID
 GET /tribe/{type}       Tribe by type (e.g., TRIBE_GAULS)
 ```
 
+## Companion Tools
+
+- **[owcli](https://github.com/becked/owcli)** - Command-line interface for querying game state and executing commands
+
 ## Example Commands
 
 ### Basic Queries

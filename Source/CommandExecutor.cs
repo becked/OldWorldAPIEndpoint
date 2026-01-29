@@ -35,6 +35,51 @@ namespace OldWorldAPIEndpoint
         private static MethodInfo _sendResearchMethod;
         private static MethodInfo _sendEndTurnMethod;
         private static PropertyInfo _gameClientProperty;
+
+        // Phase 1: Unit commands
+        private static MethodInfo _sendHealMethod;
+        private static MethodInfo _sendMarchMethod;
+        private static MethodInfo _sendLockMethod;
+        private static MethodInfo _sendPillageMethod;
+        private static MethodInfo _sendBurnMethod;
+        private static MethodInfo _sendUpgradeMethod;
+        private static MethodInfo _sendSpreadReligionMethod;
+
+        // Phase 2: Worker commands
+        private static MethodInfo _sendBuildImprovementMethod;
+        private static MethodInfo _sendUpgradeImprovementMethod;
+        private static MethodInfo _sendAddRoadMethod;
+
+        // Phase 3: City foundation commands
+        private static MethodInfo _sendFoundCityMethod;
+        private static MethodInfo _sendJoinCityMethod;
+
+        // Phase 4: City production commands
+        private static MethodInfo _sendBuildQueueMethod;
+
+        // Phase 5: Research & decisions commands
+        private static MethodInfo _sendRedrawTechMethod;
+        private static MethodInfo _sendTargetTechMethod;
+        private static MethodInfo _sendMakeDecisionMethod;
+        private static MethodInfo _sendRemoveDecisionMethod;
+
+        // Phase 6: Diplomacy commands
+        private static MethodInfo _sendDiplomacyPlayerMethod;
+        private static MethodInfo _sendDiplomacyTribeMethod;
+        private static MethodInfo _sendGiftCityMethod;
+        private static MethodInfo _sendGiftYieldMethod;
+        private static MethodInfo _sendAllyTribeMethod;
+        private static MethodInfo _getActivePlayerMethod;
+
+        // Phase 7: Character management commands
+        private static MethodInfo _sendMakeGovernorMethod;
+        private static MethodInfo _sendReleaseGovernorMethod;
+        private static MethodInfo _sendMakeUnitCharacterMethod;
+        private static MethodInfo _sendReleaseUnitCharacterMethod;
+        private static MethodInfo _sendMakeAgentMethod;
+        private static MethodInfo _sendReleaseAgentMethod;
+        private static MethodInfo _sendStartMissionMethod;
+
         private static bool _reflectionInitialized;
 
         /// <summary>
@@ -111,6 +156,110 @@ namespace OldWorldAPIEndpoint
                 // Turn
                 _sendEndTurnMethod = FindMethod(_clientManagerType, "sendEndTurn",
                     Type.EmptyTypes);
+
+                // Phase 1: Unit commands
+                // sendHeal(Unit, Boolean)
+                _sendHealMethod = _clientManagerType.GetMethod("sendHeal",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendMarch(Unit)
+                _sendMarchMethod = _clientManagerType.GetMethod("sendMarch",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendLock(Unit)
+                _sendLockMethod = _clientManagerType.GetMethod("sendLock",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendPillage(Unit)
+                _sendPillageMethod = _clientManagerType.GetMethod("sendPillage",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendBurn(Unit)
+                _sendBurnMethod = _clientManagerType.GetMethod("sendBurn",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendUpgrade(Unit, UnitType, Boolean)
+                _sendUpgradeMethod = _clientManagerType.GetMethod("sendUpgrade",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendSpreadReligion(Unit, Int32)
+                _sendSpreadReligionMethod = _clientManagerType.GetMethod("sendSpreadReligion",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 2: Worker commands
+                // sendBuildImprovement(Unit, ImprovementType, Boolean, Boolean, Tile)
+                _sendBuildImprovementMethod = _clientManagerType.GetMethod("sendBuildImprovement",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendUpgradeImprovement(Unit, Boolean)
+                _sendUpgradeImprovementMethod = _clientManagerType.GetMethod("sendUpgradeImprovement",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendAddRoad(Unit, Boolean, Boolean, Tile)
+                _sendAddRoadMethod = _clientManagerType.GetMethod("sendAddRoad",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 3: City foundation commands
+                // sendFoundCity(Unit, FamilyType, NationType)
+                _sendFoundCityMethod = _clientManagerType.GetMethod("sendFoundCity",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendJoinCity(Unit)
+                _sendJoinCityMethod = _clientManagerType.GetMethod("sendJoinCity",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 4: City production commands
+                // sendBuildQueue(City, Int32, Int32)
+                _sendBuildQueueMethod = _clientManagerType.GetMethod("sendBuildQueue",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 5: Research & decisions commands
+                // sendRedrawTech()
+                _sendRedrawTechMethod = _clientManagerType.GetMethod("sendRedrawTech",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendTargetTech(TechType)
+                _sendTargetTechMethod = _clientManagerType.GetMethod("sendTargetTech",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendMakeDecision(Int32, Int32, Int32)
+                _sendMakeDecisionMethod = _clientManagerType.GetMethod("sendMakeDecision",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendRemoveDecision(Int32)
+                _sendRemoveDecisionMethod = _clientManagerType.GetMethod("sendRemoveDecision",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 6: Diplomacy commands
+                // sendDiplomacyPlayer(PlayerType, PlayerType, ActionType)
+                _sendDiplomacyPlayerMethod = _clientManagerType.GetMethod("sendDiplomacyPlayer",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendDiplomacyTribe(TribeType, PlayerType, ActionType)
+                _sendDiplomacyTribeMethod = _clientManagerType.GetMethod("sendDiplomacyTribe",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendGiftCity(City, PlayerType)
+                _sendGiftCityMethod = _clientManagerType.GetMethod("sendGiftCity",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendGiftYield(YieldType, PlayerType, Boolean)
+                _sendGiftYieldMethod = _clientManagerType.GetMethod("sendGiftYield",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendAllyTribe(TribeType, PlayerType)
+                _sendAllyTribeMethod = _clientManagerType.GetMethod("sendAllyTribe",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // getActivePlayer()
+                _getActivePlayerMethod = _clientManagerType.GetMethod("getActivePlayer",
+                    BindingFlags.Public | BindingFlags.Instance);
+
+                // Phase 7: Character management commands
+                // sendMakeGovernor(City, Character)
+                _sendMakeGovernorMethod = _clientManagerType.GetMethod("sendMakeGovernor",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendReleaseGovernor(City)
+                _sendReleaseGovernorMethod = _clientManagerType.GetMethod("sendReleaseGovernor",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendMakeUnitCharacter(Unit, Character, Boolean)
+                _sendMakeUnitCharacterMethod = _clientManagerType.GetMethod("sendMakeUnitCharacter",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendReleaseUnitCharacter(Unit)
+                _sendReleaseUnitCharacterMethod = _clientManagerType.GetMethod("sendReleaseUnitCharacter",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendMakeAgent(City, Character)
+                _sendMakeAgentMethod = _clientManagerType.GetMethod("sendMakeAgent",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendReleaseAgent(City)
+                _sendReleaseAgentMethod = _clientManagerType.GetMethod("sendReleaseAgent",
+                    BindingFlags.Public | BindingFlags.Instance);
+                // sendStartMission(MissionType, Int32, String, Boolean)
+                _sendStartMissionMethod = _clientManagerType.GetMethod("sendStartMission",
+                    BindingFlags.Public | BindingFlags.Instance);
 
                 // Log what we found
                 Debug.Log($"[APIEndpoint] CommandExecutor reflection on {_clientManagerType.Name}:");
@@ -225,6 +374,36 @@ namespace OldWorldAPIEndpoint
                 case "promote":
                     return ExecutePromote(clientManager, game, cmd, result);
 
+                // Unit Commands - Phase 1
+                case "heal":
+                    return ExecuteHeal(clientManager, game, cmd, result);
+                case "march":
+                    return ExecuteMarch(clientManager, game, cmd, result);
+                case "lock":
+                    return ExecuteLock(clientManager, game, cmd, result);
+                case "pillage":
+                    return ExecutePillage(clientManager, game, cmd, result);
+                case "burn":
+                    return ExecuteBurn(clientManager, game, cmd, result);
+                case "upgrade":
+                    return ExecuteUpgrade(clientManager, game, cmd, result);
+                case "spreadreligion":
+                    return ExecuteSpreadReligion(clientManager, game, cmd, result);
+
+                // Worker Commands - Phase 2
+                case "buildimprovement":
+                    return ExecuteBuildImprovement(clientManager, game, cmd, result);
+                case "upgradeimprovement":
+                    return ExecuteUpgradeImprovement(clientManager, game, cmd, result);
+                case "addroad":
+                    return ExecuteAddRoad(clientManager, game, cmd, result);
+
+                // City Foundation - Phase 3
+                case "foundcity":
+                    return ExecuteFoundCity(clientManager, game, cmd, result);
+                case "joincity":
+                    return ExecuteJoinCity(clientManager, game, cmd, result);
+
                 // City Production
                 case "build":
                 case "buildunit":
@@ -252,9 +431,69 @@ namespace OldWorldAPIEndpoint
                 case "research":
                     return ExecuteResearch(clientManager, game, cmd, result);
 
+                // Phase 4: City Production
+                case "buildqueue":
+                    return ExecuteBuildQueue(clientManager, game, cmd, result);
+
+                // Phase 5: Research & Decisions
+                case "redrawtech":
+                    return ExecuteRedrawTech(clientManager, game, cmd, result);
+                case "targettech":
+                    return ExecuteTargetTech(clientManager, game, cmd, result);
+                case "makedecision":
+                    return ExecuteMakeDecision(clientManager, game, cmd, result);
+                case "removedecision":
+                    return ExecuteRemoveDecision(clientManager, game, cmd, result);
+
                 // Turn Management
                 case "endturn":
                     return ExecuteEndTurn(clientManager, game, cmd, result);
+
+                // Phase 6: Diplomacy - Player
+                case "declarewar":
+                    return ExecuteDeclareWar(clientManager, game, cmd, result);
+                case "makepeace":
+                    return ExecuteMakePeace(clientManager, game, cmd, result);
+                case "declaretruce":
+                    return ExecuteDeclareTruce(clientManager, game, cmd, result);
+
+                // Phase 6: Diplomacy - Tribe
+                case "declarewartribe":
+                    return ExecuteDeclareWarTribe(clientManager, game, cmd, result);
+                case "makepeacetribe":
+                    return ExecuteMakePeaceTribe(clientManager, game, cmd, result);
+                case "declaretrucetribe":
+                    return ExecuteDeclareTruceTribe(clientManager, game, cmd, result);
+
+                // Phase 6: Diplomacy - Gifts & Alliance
+                case "giftcity":
+                    return ExecuteGiftCity(clientManager, game, cmd, result);
+                case "giftyield":
+                    return ExecuteGiftYield(clientManager, game, cmd, result);
+                case "allytribe":
+                    return ExecuteAllyTribe(clientManager, game, cmd, result);
+
+                // Phase 7: Character Management - Governor
+                case "assigngovernor":
+                    return ExecuteAssignGovernor(clientManager, game, cmd, result);
+                case "releasegovernor":
+                    return ExecuteReleaseGovernor(clientManager, game, cmd, result);
+
+                // Phase 7: Character Management - General
+                case "assigngeneral":
+                    return ExecuteAssignGeneral(clientManager, game, cmd, result);
+                case "releasegeneral":
+                    return ExecuteReleaseGeneral(clientManager, game, cmd, result);
+
+                // Phase 7: Character Management - Agent
+                case "assignagent":
+                    return ExecuteAssignAgent(clientManager, game, cmd, result);
+                case "releaseagent":
+                    return ExecuteReleaseAgent(clientManager, game, cmd, result);
+
+                // Phase 7: Character Management - Mission
+                case "startmission":
+                    return ExecuteStartMission(clientManager, game, cmd, result);
 
                 default:
                     result.Error = $"Unknown action: {cmd.Action}";
@@ -477,6 +716,106 @@ namespace OldWorldAPIEndpoint
             }
 
             return YieldType.NONE;
+        }
+
+        /// <summary>
+        /// Resolve an improvement type string (e.g., "IMPROVEMENT_FARM") to ImprovementType enum.
+        /// </summary>
+        private static ImprovementType ResolveImprovementType(Game game, string typeStr)
+        {
+            if (string.IsNullOrEmpty(typeStr) || game == null) return ImprovementType.NONE;
+
+            Infos infos = game.infos();
+            int count = (int)infos.improvementsNum();
+
+            for (int i = 0; i < count; i++)
+            {
+                var impType = (ImprovementType)i;
+                if (infos.improvement(impType).mzType.Equals(typeStr, StringComparison.OrdinalIgnoreCase))
+                    return impType;
+            }
+
+            return ImprovementType.NONE;
+        }
+
+        /// <summary>
+        /// Resolve a family type string (e.g., "FAMILY_ARTISANS") to FamilyType enum.
+        /// </summary>
+        private static FamilyType ResolveFamilyType(Game game, string typeStr)
+        {
+            if (string.IsNullOrEmpty(typeStr) || game == null) return FamilyType.NONE;
+
+            Infos infos = game.infos();
+            int count = (int)infos.familiesNum();
+
+            for (int i = 0; i < count; i++)
+            {
+                var famType = (FamilyType)i;
+                if (infos.family(famType).mzType.Equals(typeStr, StringComparison.OrdinalIgnoreCase))
+                    return famType;
+            }
+
+            return FamilyType.NONE;
+        }
+
+        /// <summary>
+        /// Resolve a nation type string (e.g., "NATION_ROME") to NationType enum.
+        /// </summary>
+        private static NationType ResolveNationType(Game game, string typeStr)
+        {
+            if (string.IsNullOrEmpty(typeStr) || game == null) return NationType.NONE;
+
+            Infos infos = game.infos();
+            int count = (int)infos.nationsNum();
+
+            for (int i = 0; i < count; i++)
+            {
+                var natType = (NationType)i;
+                if (infos.nation(natType).mzType.Equals(typeStr, StringComparison.OrdinalIgnoreCase))
+                    return natType;
+            }
+
+            return NationType.NONE;
+        }
+
+        /// <summary>
+        /// Resolve a tribe type string (e.g., "TRIBE_GAULS") to TribeType enum.
+        /// </summary>
+        private static TribeType ResolveTribeType(Game game, string typeStr)
+        {
+            if (string.IsNullOrEmpty(typeStr) || game == null) return TribeType.NONE;
+
+            Infos infos = game.infos();
+            int count = (int)infos.tribesNum();
+
+            for (int i = 0; i < count; i++)
+            {
+                var tribeType = (TribeType)i;
+                if (infos.tribe(tribeType).mzType.Equals(typeStr, StringComparison.OrdinalIgnoreCase))
+                    return tribeType;
+            }
+
+            return TribeType.NONE;
+        }
+
+        /// <summary>
+        /// Resolve a mission type string (e.g., "MISSION_NETWORK") to MissionType enum.
+        /// </summary>
+        private static MissionType ResolveMissionType(Game game, string typeStr)
+        {
+            if (string.IsNullOrEmpty(typeStr) || game == null) return MissionType.NONE;
+
+            Infos infos = game.infos();
+            int count = (int)infos.missionsNum();
+
+            for (int i = 0; i < count; i++)
+            {
+                var misType = (MissionType)i;
+                if (infos.mission(misType).mzType.Equals(typeStr, StringComparison.OrdinalIgnoreCase))
+                    return misType;
+            }
+
+            return MissionType.NONE;
         }
 
         #endregion
@@ -864,6 +1203,1517 @@ namespace OldWorldAPIEndpoint
 
             return result;
         }
+
+        #region Phase 1: Unit Commands
+
+        private static CommandResult ExecuteHeal(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            bool auto = GetBoolParam(cmd, "auto", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendHealMethod == null)
+            {
+                result.Error = "Heal command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendHealMethod.Invoke(clientManager, new object[] { unit, auto });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"Heal failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteMarch(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendMarchMethod == null)
+            {
+                result.Error = "March command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendMarchMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"March failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteLock(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendLockMethod == null)
+            {
+                result.Error = "Lock command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendLockMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"Lock failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecutePillage(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendPillageMethod == null)
+            {
+                result.Error = "Pillage command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendPillageMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"Pillage failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteBurn(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendBurnMethod == null)
+            {
+                result.Error = "Burn command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendBurnMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"Burn failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteUpgrade(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetStringParam(cmd, "unitType", out var unitTypeResult))
+            {
+                result.Error = GetParamError("unitType", unitTypeResult, "string");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            string unitTypeStr = unitTypeResult.Value;
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            UnitType unitType = ResolveUnitType(game, unitTypeStr);
+            if (unitType == UnitType.NONE)
+            {
+                result.Error = $"Unknown unit type: {unitTypeStr}";
+                return result;
+            }
+
+            if (_sendUpgradeMethod == null)
+            {
+                result.Error = "Upgrade command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendUpgradeMethod.Invoke(clientManager, new object[] { unit, unitType, buyGoods });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"Upgrade failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteSpreadReligion(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendSpreadReligionMethod == null)
+            {
+                result.Error = "SpreadReligion command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendSpreadReligionMethod.Invoke(clientManager, new object[] { unit, cityId });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"SpreadReligion failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 2: Worker Commands
+
+        private static CommandResult ExecuteBuildImprovement(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetStringParam(cmd, "improvementType", out var improvementTypeResult))
+            {
+                result.Error = GetParamError("improvementType", improvementTypeResult, "string");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "tileId", out var tileIdResult))
+            {
+                result.Error = GetParamError("tileId", tileIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            string improvementTypeStr = improvementTypeResult.Value;
+            int tileId = tileIdResult.Value;
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+            bool queue = GetBoolParam(cmd, "queue", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            ImprovementType improvementType = ResolveImprovementType(game, improvementTypeStr);
+            if (improvementType == ImprovementType.NONE)
+            {
+                result.Error = $"Unknown improvement type: {improvementTypeStr}";
+                return result;
+            }
+
+            if (_sendBuildImprovementMethod == null)
+            {
+                result.Error = "BuildImprovement command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+
+                Tile tile = game.tile(tileId);
+                if (tile == null)
+                {
+                    result.Error = $"Tile not found: {tileId}";
+                    return result;
+                }
+
+                _sendBuildImprovementMethod.Invoke(clientManager, new object[] { unit, improvementType, buyGoods, queue, tile });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"BuildImprovement failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteUpgradeImprovement(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendUpgradeImprovementMethod == null)
+            {
+                result.Error = "UpgradeImprovement command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendUpgradeImprovementMethod.Invoke(clientManager, new object[] { unit, buyGoods });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"UpgradeImprovement failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteAddRoad(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "tileId", out var tileIdResult))
+            {
+                result.Error = GetParamError("tileId", tileIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            int tileId = tileIdResult.Value;
+            bool buyGoods = GetBoolParam(cmd, "buyGoods", false);
+            bool queue = GetBoolParam(cmd, "queue", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendAddRoadMethod == null)
+            {
+                result.Error = "AddRoad command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+
+                Tile tile = game.tile(tileId);
+                if (tile == null)
+                {
+                    result.Error = $"Tile not found: {tileId}";
+                    return result;
+                }
+
+                _sendAddRoadMethod.Invoke(clientManager, new object[] { unit, buyGoods, queue, tile });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"AddRoad failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 3: City Foundation Commands
+
+        private static CommandResult ExecuteFoundCity(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetStringParam(cmd, "familyType", out var familyTypeResult))
+            {
+                result.Error = GetParamError("familyType", familyTypeResult, "string");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            string familyTypeStr = familyTypeResult.Value;
+            string nationTypeStr = GetStringParam(cmd, "nationType", null);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            FamilyType familyType = ResolveFamilyType(game, familyTypeStr);
+            if (familyType == FamilyType.NONE)
+            {
+                result.Error = $"Unknown family type: {familyTypeStr}";
+                return result;
+            }
+
+            NationType nationType = NationType.NONE;
+            if (!string.IsNullOrEmpty(nationTypeStr))
+            {
+                nationType = ResolveNationType(game, nationTypeStr);
+                if (nationType == NationType.NONE)
+                {
+                    result.Error = $"Unknown nation type: {nationTypeStr}";
+                    return result;
+                }
+            }
+
+            if (_sendFoundCityMethod == null)
+            {
+                result.Error = "FoundCity command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendFoundCityMethod.Invoke(clientManager, new object[] { unit, familyType, nationType });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"FoundCity failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteJoinCity(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            if (_sendJoinCityMethod == null)
+            {
+                result.Error = "JoinCity command not available";
+                return result;
+            }
+
+            try
+            {
+                Unit unit = game.unit(unitId);
+                if (unit == null)
+                {
+                    result.Error = $"Unit not found: {unitId}";
+                    return result;
+                }
+                _sendJoinCityMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"JoinCity failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 4: City Production Commands
+
+        private static CommandResult ExecuteBuildQueue(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "oldSlot", out var oldSlotResult))
+            {
+                result.Error = GetParamError("oldSlot", oldSlotResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "newSlot", out var newSlotResult))
+            {
+                result.Error = GetParamError("newSlot", newSlotResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            int oldSlot = oldSlotResult.Value;
+            int newSlot = newSlotResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendBuildQueueMethod == null)
+            {
+                result.Error = "BuildQueue command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendBuildQueueMethod.Invoke(clientManager, new object[] { city, oldSlot, newSlot });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"BuildQueue failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 5: Research & Decisions Commands
+
+        private static CommandResult ExecuteRedrawTech(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (_sendRedrawTechMethod == null)
+            {
+                result.Error = "RedrawTech command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendRedrawTechMethod.Invoke(clientManager, null);
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"RedrawTech failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteTargetTech(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "techType", out var techTypeResult))
+            {
+                result.Error = GetParamError("techType", techTypeResult, "string");
+                return result;
+            }
+
+            string techTypeStr = techTypeResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            TechType techType = ResolveTechType(game, techTypeStr);
+            if (techType == TechType.NONE)
+            {
+                result.Error = $"Unknown tech type: {techTypeStr}";
+                return result;
+            }
+
+            if (_sendTargetTechMethod == null)
+            {
+                result.Error = "TargetTech command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendTargetTechMethod.Invoke(clientManager, new object[] { techType });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"TargetTech failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteMakeDecision(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "decisionId", out var decisionIdResult))
+            {
+                result.Error = GetParamError("decisionId", decisionIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "choiceIndex", out var choiceIndexResult))
+            {
+                result.Error = GetParamError("choiceIndex", choiceIndexResult, "integer");
+                return result;
+            }
+
+            int decisionId = decisionIdResult.Value;
+            int choiceIndex = choiceIndexResult.Value;
+            int data = GetIntParam(cmd, "data", 0);
+
+            if (_sendMakeDecisionMethod == null)
+            {
+                result.Error = "MakeDecision command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendMakeDecisionMethod.Invoke(clientManager, new object[] { decisionId, choiceIndex, data });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"MakeDecision failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteRemoveDecision(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "decisionId", out var decisionIdResult))
+            {
+                result.Error = GetParamError("decisionId", decisionIdResult, "integer");
+                return result;
+            }
+
+            int decisionId = decisionIdResult.Value;
+
+            if (_sendRemoveDecisionMethod == null)
+            {
+                result.Error = "RemoveDecision command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendRemoveDecisionMethod.Invoke(clientManager, new object[] { decisionId });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"RemoveDecision failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 6: Diplomacy Commands
+
+        private static CommandResult ExecuteDeclareWar(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "targetPlayer", out var targetPlayerResult))
+            {
+                result.Error = GetParamError("targetPlayer", targetPlayerResult, "integer");
+                return result;
+            }
+
+            int targetPlayer = targetPlayerResult.Value;
+
+            if (_sendDiplomacyPlayerMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "DeclareWar command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                // ActionType.DIPLOMACY_HOSTILE = 0 based on game patterns
+                _sendDiplomacyPlayerMethod.Invoke(clientManager, new object[] { activePlayer, (PlayerType)targetPlayer, ActionType.DIPLOMACY_HOSTILE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"DeclareWar failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteMakePeace(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "targetPlayer", out var targetPlayerResult))
+            {
+                result.Error = GetParamError("targetPlayer", targetPlayerResult, "integer");
+                return result;
+            }
+
+            int targetPlayer = targetPlayerResult.Value;
+
+            if (_sendDiplomacyPlayerMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "MakePeace command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendDiplomacyPlayerMethod.Invoke(clientManager, new object[] { activePlayer, (PlayerType)targetPlayer, ActionType.DIPLOMACY_PEACE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"MakePeace failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteDeclareTruce(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "targetPlayer", out var targetPlayerResult))
+            {
+                result.Error = GetParamError("targetPlayer", targetPlayerResult, "integer");
+                return result;
+            }
+
+            int targetPlayer = targetPlayerResult.Value;
+
+            if (_sendDiplomacyPlayerMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "DeclareTruce command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendDiplomacyPlayerMethod.Invoke(clientManager, new object[] { activePlayer, (PlayerType)targetPlayer, ActionType.DIPLOMACY_TRUCE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"DeclareTruce failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteDeclareWarTribe(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "tribeType", out var tribeTypeResult))
+            {
+                result.Error = GetParamError("tribeType", tribeTypeResult, "string");
+                return result;
+            }
+
+            string tribeTypeStr = tribeTypeResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            TribeType tribeType = ResolveTribeType(game, tribeTypeStr);
+            if (tribeType == TribeType.NONE)
+            {
+                result.Error = $"Unknown tribe type: {tribeTypeStr}";
+                return result;
+            }
+
+            if (_sendDiplomacyTribeMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "DeclareWarTribe command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendDiplomacyTribeMethod.Invoke(clientManager, new object[] { tribeType, activePlayer, ActionType.DIPLOMACY_HOSTILE_TRIBE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"DeclareWarTribe failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteMakePeaceTribe(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "tribeType", out var tribeTypeResult))
+            {
+                result.Error = GetParamError("tribeType", tribeTypeResult, "string");
+                return result;
+            }
+
+            string tribeTypeStr = tribeTypeResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            TribeType tribeType = ResolveTribeType(game, tribeTypeStr);
+            if (tribeType == TribeType.NONE)
+            {
+                result.Error = $"Unknown tribe type: {tribeTypeStr}";
+                return result;
+            }
+
+            if (_sendDiplomacyTribeMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "MakePeaceTribe command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendDiplomacyTribeMethod.Invoke(clientManager, new object[] { tribeType, activePlayer, ActionType.DIPLOMACY_PEACE_TRIBE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"MakePeaceTribe failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteDeclareTruceTribe(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "tribeType", out var tribeTypeResult))
+            {
+                result.Error = GetParamError("tribeType", tribeTypeResult, "string");
+                return result;
+            }
+
+            string tribeTypeStr = tribeTypeResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            TribeType tribeType = ResolveTribeType(game, tribeTypeStr);
+            if (tribeType == TribeType.NONE)
+            {
+                result.Error = $"Unknown tribe type: {tribeTypeStr}";
+                return result;
+            }
+
+            if (_sendDiplomacyTribeMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "DeclareTruceTribe command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendDiplomacyTribeMethod.Invoke(clientManager, new object[] { tribeType, activePlayer, ActionType.DIPLOMACY_TRUCE_TRIBE });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"DeclareTruceTribe failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteGiftCity(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "targetPlayer", out var targetPlayerResult))
+            {
+                result.Error = GetParamError("targetPlayer", targetPlayerResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            int targetPlayer = targetPlayerResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendGiftCityMethod == null)
+            {
+                result.Error = "GiftCity command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendGiftCityMethod.Invoke(clientManager, new object[] { city, (PlayerType)targetPlayer });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"GiftCity failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteGiftYield(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "yieldType", out var yieldTypeResult))
+            {
+                result.Error = GetParamError("yieldType", yieldTypeResult, "string");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "targetPlayer", out var targetPlayerResult))
+            {
+                result.Error = GetParamError("targetPlayer", targetPlayerResult, "integer");
+                return result;
+            }
+
+            string yieldTypeStr = yieldTypeResult.Value;
+            int targetPlayer = targetPlayerResult.Value;
+            bool reverse = GetBoolParam(cmd, "reverse", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            YieldType yieldType = ResolveYieldType(game, yieldTypeStr);
+            if (yieldType == YieldType.NONE)
+            {
+                result.Error = $"Unknown yield type: {yieldTypeStr}";
+                return result;
+            }
+
+            if (_sendGiftYieldMethod == null)
+            {
+                result.Error = "GiftYield command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendGiftYieldMethod.Invoke(clientManager, new object[] { yieldType, (PlayerType)targetPlayer, reverse });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"GiftYield failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteAllyTribe(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "tribeType", out var tribeTypeResult))
+            {
+                result.Error = GetParamError("tribeType", tribeTypeResult, "string");
+                return result;
+            }
+
+            string tribeTypeStr = tribeTypeResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            TribeType tribeType = ResolveTribeType(game, tribeTypeStr);
+            if (tribeType == TribeType.NONE)
+            {
+                result.Error = $"Unknown tribe type: {tribeTypeStr}";
+                return result;
+            }
+
+            if (_sendAllyTribeMethod == null || _getActivePlayerMethod == null)
+            {
+                result.Error = "AllyTribe command not available";
+                return result;
+            }
+
+            try
+            {
+                var activePlayer = _getActivePlayerMethod.Invoke(clientManager, null);
+                _sendAllyTribeMethod.Invoke(clientManager, new object[] { tribeType, activePlayer });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"AllyTribe failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Phase 7: Character Management Commands
+
+        private static CommandResult ExecuteAssignGovernor(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "characterId", out var characterIdResult))
+            {
+                result.Error = GetParamError("characterId", characterIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            int characterId = characterIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            Character character = game.character(characterId);
+            if (character == null)
+            {
+                result.Error = $"Character not found: {characterId}";
+                return result;
+            }
+
+            if (_sendMakeGovernorMethod == null)
+            {
+                result.Error = "AssignGovernor command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendMakeGovernorMethod.Invoke(clientManager, new object[] { city, character });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"AssignGovernor failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteReleaseGovernor(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendReleaseGovernorMethod == null)
+            {
+                result.Error = "ReleaseGovernor command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendReleaseGovernorMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"ReleaseGovernor failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteAssignGeneral(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "characterId", out var characterIdResult))
+            {
+                result.Error = GetParamError("characterId", characterIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+            int characterId = characterIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            Unit unit = game.unit(unitId);
+            if (unit == null)
+            {
+                result.Error = $"Unit not found: {unitId}";
+                return result;
+            }
+
+            Character character = game.character(characterId);
+            if (character == null)
+            {
+                result.Error = $"Character not found: {characterId}";
+                return result;
+            }
+
+            if (_sendMakeUnitCharacterMethod == null)
+            {
+                result.Error = "AssignGeneral command not available";
+                return result;
+            }
+
+            try
+            {
+                // sendMakeUnitCharacter(Unit, Character, bool bGeneral) - true for general
+                _sendMakeUnitCharacterMethod.Invoke(clientManager, new object[] { unit, character, true });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"AssignGeneral failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteReleaseGeneral(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "unitId", out var unitIdResult))
+            {
+                result.Error = GetParamError("unitId", unitIdResult, "integer");
+                return result;
+            }
+
+            int unitId = unitIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            Unit unit = game.unit(unitId);
+            if (unit == null)
+            {
+                result.Error = $"Unit not found: {unitId}";
+                return result;
+            }
+
+            if (_sendReleaseUnitCharacterMethod == null)
+            {
+                result.Error = "ReleaseGeneral command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendReleaseUnitCharacterMethod.Invoke(clientManager, new object[] { unit });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"ReleaseGeneral failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteAssignAgent(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "characterId", out var characterIdResult))
+            {
+                result.Error = GetParamError("characterId", characterIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+            int characterId = characterIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            Character character = game.character(characterId);
+            if (character == null)
+            {
+                result.Error = $"Character not found: {characterId}";
+                return result;
+            }
+
+            if (_sendMakeAgentMethod == null)
+            {
+                result.Error = "AssignAgent command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendMakeAgentMethod.Invoke(clientManager, new object[] { city, character });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"AssignAgent failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteReleaseAgent(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetIntParam(cmd, "cityId", out var cityIdResult))
+            {
+                result.Error = GetParamError("cityId", cityIdResult, "integer");
+                return result;
+            }
+
+            int cityId = cityIdResult.Value;
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            City city = game.city(cityId);
+            if (city == null)
+            {
+                result.Error = $"City not found: {cityId}";
+                return result;
+            }
+
+            if (_sendReleaseAgentMethod == null)
+            {
+                result.Error = "ReleaseAgent command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendReleaseAgentMethod.Invoke(clientManager, new object[] { city });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"ReleaseAgent failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        private static CommandResult ExecuteStartMission(object clientManager, Game game, GameCommand cmd, CommandResult result)
+        {
+            if (!TryGetStringParam(cmd, "missionType", out var missionTypeResult))
+            {
+                result.Error = GetParamError("missionType", missionTypeResult, "string");
+                return result;
+            }
+
+            if (!TryGetIntParam(cmd, "characterId", out var characterIdResult))
+            {
+                result.Error = GetParamError("characterId", characterIdResult, "integer");
+                return result;
+            }
+
+            string missionTypeStr = missionTypeResult.Value;
+            int characterId = characterIdResult.Value;
+            string target = GetStringParam(cmd, "target", "");
+            bool cancel = GetBoolParam(cmd, "cancel", false);
+
+            if (game == null)
+            {
+                result.Error = "Game not available";
+                return result;
+            }
+
+            MissionType missionType = ResolveMissionType(game, missionTypeStr);
+            if (missionType == MissionType.NONE)
+            {
+                result.Error = $"Unknown mission type: {missionTypeStr}";
+                return result;
+            }
+
+            if (_sendStartMissionMethod == null)
+            {
+                result.Error = "StartMission command not available";
+                return result;
+            }
+
+            try
+            {
+                _sendStartMissionMethod.Invoke(clientManager, new object[] { missionType, characterId, target, cancel });
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.Error = $"StartMission failed: {ex.InnerException?.Message ?? ex.Message}";
+            }
+
+            return result;
+        }
+
+        #endregion
 
         private static CommandResult ExecuteBuildUnit(object clientManager, Game game, GameCommand cmd, CommandResult result)
         {

@@ -423,7 +423,7 @@ namespace OldWorldAPIEndpoint
                 id = character.getID(),
                 name = character.getFirstName(),
                 suffix = character.getSuffix(),
-                gender = character.getGender().ToString(),
+                gender = (int)character.getGender() == 0 ? "Male" : "Female",
                 age = character.getAge(),
                 characterType = character.hasCharacter() ? infos.character(character.getCharacter())?.mzType : null,
 

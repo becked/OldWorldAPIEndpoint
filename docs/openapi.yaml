@@ -880,131 +880,576 @@ components:
 
     City:
       type: object
-      description: A city with ~80 fields
+      description: A city with ~50 fields across 20 categories
       properties:
+        # 1. Identity & Location
         id:
           type: integer
+          description: Unique city identifier
         name:
           type: string
+          description: City name
         ownerId:
           type: integer
+          description: Player index of the owner
         tileId:
           type: integer
+          description: Tile ID where the city center is located
         x:
           type: integer
+          description: X coordinate on the map
         y:
           type: integer
+          description: Y coordinate on the map
         nation:
           type: string
           nullable: true
+          description: Nation type (e.g., NATION_ROME)
         team:
           type: integer
+          description: Team number
+        # 2. Status Flags
         isCapital:
           type: boolean
+          description: Whether this is the nation's capital
         isTribe:
           type: boolean
+          description: Whether this is a tribal city
         isConnected:
           type: boolean
+          description: Whether connected to the trade network
+        # 3. Founding & History
         foundedTurn:
           type: integer
+          description: Turn when the city was founded
+        # 4. Population & Growth
         citizens:
           type: integer
+          description: Number of citizen population
+        # 5. Military & Defense
         hp:
           type: integer
+          description: Current hit points
         hpMax:
           type: integer
+          description: Maximum hit points
+        damage:
+          type: integer
+          description: Current damage taken
+        strength:
+          type: integer
+          description: Defensive strength
+        # 6. Capture & Assimilation
+        captureTurns:
+          type: integer
+          description: Turns until capture completes (0 if not being captured)
+        hasCapturePlayer:
+          type: boolean
+          description: Whether a player is capturing this city
+        hasCaptureTribe:
+          type: boolean
+          description: Whether a tribe is capturing this city
+        assimilateTurns:
+          type: integer
+          description: Turns until assimilation completes
+        # 7. Governor
+        governorId:
+          type: integer
+          nullable: true
+          description: Character ID of the governor
+        hasGovernor:
+          type: boolean
+          description: Whether the city has a governor assigned
+        # 8. Family & Faction
+        family:
+          type: string
+          nullable: true
+          description: Family type (e.g., FAMILY_CLAUDIUS)
+        hasFamily:
+          type: boolean
+          description: Whether a family controls this city
+        isFamilySeat:
+          type: boolean
+          description: Whether this is a family seat
+        # 9. Culture
+        culture:
+          type: string
+          nullable: true
+          description: Culture level (e.g., CULTURE_DEVELOPING)
+        cultureStep:
+          type: integer
+          description: Progress within current culture level
+        # 10. Religion
+        religions:
+          type: array
+          items:
+            type: string
+          description: List of religions present
+        religionCount:
+          type: integer
+          description: Number of religions in the city
+        hasStateReligion:
+          type: boolean
+          description: Whether the state religion is present
+        holyCity:
+          type: array
+          items:
+            type: string
+          description: Religions for which this is a holy city
+        isReligionHolyCityAny:
+          type: boolean
+          description: Whether this is a holy city for any religion
+        # 11. Production & Build Queue
         hasBuild:
           type: boolean
+          description: Whether something is being built
+        buildCount:
+          type: integer
+          description: Number of items in build queue
         currentBuild:
           $ref: '#/components/schemas/BuildQueueItem'
+        buildQueue:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuildQueueItem'
+          description: Full build queue
+        # 12. Yields
         yields:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/YieldDetails'
+          description: Per-yield production details
+        # 13. Specialists
+        specialistCount:
+          type: integer
+          description: Number of specialists in the city
+        # 14. Improvements
         improvements:
           type: object
           additionalProperties:
             type: integer
+          description: Count of each improvement type
+        improvementClasses:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of improvements by class
+        # 15. Projects
+        projects:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of each project type
+        # 16. Trade & Connectivity
+        tradeNetwork:
+          type: integer
+          description: Trade network identifier
+        luxuryCount:
+          type: integer
+          description: Number of luxury resources
+        # 17. Happiness
+        happinessLevel:
+          type: integer
+          description: Current happiness level
+        # 18. Cost Modifiers
+        improvementCostModifier:
+          type: integer
+          description: Modifier to improvement costs (percentage)
+        specialistCostModifier:
+          type: integer
+          description: Modifier to specialist costs (percentage)
+        projectCostModifier:
+          type: integer
+          description: Modifier to project costs (percentage)
+        # 19. Territory
+        urbanTiles:
+          type: integer
+          description: Number of urban tiles
+        territoryTileCount:
+          type: integer
+          description: Total tiles in territory
+        # 20. Misc
+        raidedTurn:
+          type: integer
+          description: Turn when last raided (-1 if never)
+        buyTileCount:
+          type: integer
+          description: Number of tiles that can be purchased
 
     Character:
       type: object
-      description: A character with ~85 fields
+      description: A character with ~85 fields across 24 categories
       properties:
+        # 1. Identity
         id:
           type: integer
+          description: Unique character identifier
         name:
           type: string
+          description: First name
         suffix:
-          type: string
+          type: integer
+          description: Dynasty number suffix (e.g., 1, 2, 3)
         gender:
           type: string
           enum: [Male, Female]
+          description: Character gender
         age:
           type: integer
+          description: Current age in years
+        characterType:
+          type: string
+          nullable: true
+          description: Predefined character type (e.g., CHARACTER_CLEOPATRA)
+        # 2. Player & Nation
         playerId:
           type: integer
           nullable: true
+          description: Player index this character belongs to
         nation:
           type: string
           nullable: true
+          description: Nation type (e.g., NATION_ROME)
+        tribe:
+          type: string
+          nullable: true
+          description: Tribe type if tribal character
+        # 3. Status
         isAlive:
           type: boolean
+          description: Whether the character is alive
         isDead:
           type: boolean
+          description: Whether the character is dead
+        isRoyal:
+          type: boolean
+          description: Whether part of the royal family
+        isAdult:
+          type: boolean
+          description: Whether the character is an adult
+        isTemporary:
+          type: boolean
+          description: Whether this is a temporary character
+        # 4. Leadership & Succession
         isLeader:
           type: boolean
+          description: Whether currently the nation's leader
         isHeir:
           type: boolean
+          description: Whether designated as heir
+        isSuccessor:
+          type: boolean
+          description: Whether a potential successor
+        isLeaderSpouse:
+          type: boolean
+          description: Whether spouse of the leader
+        isHeirSpouse:
+          type: boolean
+          description: Whether spouse of the heir
+        isRegent:
+          type: boolean
+          description: Whether serving as regent
+        # 5. Jobs & Positions
+        job:
+          type: string
+          nullable: true
+          description: Current job type (e.g., JOB_AMBASSADOR)
+        council:
+          type: string
+          nullable: true
+          description: Council position (e.g., COUNCIL_CHANCELLOR)
+        courtier:
+          type: string
+          nullable: true
+          description: Courtier role (e.g., COURTIER_DIPLOMAT)
+        # 6. Governor/Agent
+        isCityGovernor:
+          type: boolean
+          description: Whether governing a city
+        cityGovernorId:
+          type: integer
+          nullable: true
+          description: ID of city being governed
+        isCityAgent:
+          type: boolean
+          description: Whether an agent in a city
+        cityAgentId:
+          type: integer
+          nullable: true
+          description: ID of city where agent
+        # 7. Military
+        hasUnit:
+          type: boolean
+          description: Whether commanding a unit
+        unitId:
+          type: integer
+          nullable: true
+          description: ID of commanded unit
+        isGeneral:
+          type: boolean
+          description: Whether a general
+        # 8. Family
+        family:
+          type: string
+          nullable: true
+          description: Family type (e.g., FAMILY_CLAUDIUS)
+        familyClass:
+          type: string
+          nullable: true
+          description: Family class (e.g., FAMILYCLASS_LANDOWNERS)
+        isFamilyHead:
+          type: boolean
+          description: Whether head of family
+        # 9. Religion
+        religion:
+          type: string
+          nullable: true
+          description: Personal religion
+        isReligionHead:
+          type: boolean
+          description: Whether head of a religion
+        # 10. Parents (adoptive)
+        fatherId:
+          type: integer
+          nullable: true
+          description: Character ID of adoptive father
+        motherId:
+          type: integer
+          nullable: true
+          description: Character ID of adoptive mother
+        # 11. Traits
+        archetype:
+          type: string
+          nullable: true
+          description: Primary trait/archetype
         traits:
           type: array
           items:
             type: string
+          description: List of trait types (e.g., TRAIT_WARRIOR)
+        # 12. Ratings
         ratings:
           type: object
           additionalProperties:
             type: integer
+          description: Character ratings (RATING_COURAGE, etc.)
+        # 13. XP & Level
+        xp:
+          type: integer
+          description: Experience points
+        level:
+          type: integer
+          description: Character level
+        # 14. Lifecycle Timeline
+        birthTurn:
+          type: integer
+          description: Turn when born
+        deathTurn:
+          type: integer
+          description: Turn when died (-2147483648 if alive)
+        leaderTurn:
+          type: integer
+          description: Turn when became leader (-2147483648 if never)
+        abdicateTurn:
+          type: integer
+          description: Turn when abdicated (-2147483648 if never)
+        regentTurn:
+          type: integer
+          description: Turn when became regent (-2147483648 if never)
+        safeTurn:
+          type: integer
+          description: Turn when became safe from harm
+        nationTurn:
+          type: integer
+          description: Turn when joined nation
+        # 15. Extended Status Flags
+        isInfertile:
+          type: boolean
+          description: Whether infertile
+        isRetired:
+          type: boolean
+          description: Whether retired
+        isAbdicated:
+          type: boolean
+          description: Whether abdicated
+        isOrWasLeader:
+          type: boolean
+          description: Whether is or was a leader
+        isOrWasRegent:
+          type: boolean
+          description: Whether is or was a regent
+        isOrWasLeaderSpouse:
+          type: boolean
+          description: Whether is or was a leader's spouse
+        isSafe:
+          type: boolean
+          description: Whether currently safe
+        # 16. Biological Parents
+        birthFatherId:
+          type: integer
+          nullable: true
+          description: Biological father ID
+        birthMotherId:
+          type: integer
+          nullable: true
+          description: Biological mother ID
+        # 17. Birth Location
+        birthCityId:
+          type: integer
+          nullable: true
+          description: City where born
+        # 18. Spouse & Marriage Data
         spouseIds:
           type: array
           items:
             type: integer
+          description: IDs of spouses
+        numSpouses:
+          type: integer
+          description: Number of spouses (total)
+        spousesAlive:
+          type: integer
+          description: Number of living spouses
+        hasSpouseAlive:
+          type: boolean
+          description: Whether has living spouse
+        hasSpouseForeign:
+          type: boolean
+          description: Whether has foreign spouse
+        hasSpouseTribe:
+          type: boolean
+          description: Whether has tribal spouse
+        # 19. Children Data
         childrenIds:
           type: array
           items:
             type: integer
+          description: IDs of children
+        numChildren:
+          type: integer
+          description: Number of children
+        # 20. Former Positions
+        wasReligionHead:
+          type: string
+          nullable: true
+          description: Former religion head position
+        wasFamilyHead:
+          type: string
+          nullable: true
+          description: Former family head position
+        # 21. Death Info
+        deadCouncil:
+          type: string
+          nullable: true
+          description: Council position at death
+        deathReason:
+          type: string
+          nullable: true
+          description: Cause of death
+        # 22. Title & Cognomen
+        title:
+          type: string
+          nullable: true
+          description: Title (e.g., TITLE_AUGUSTUS)
+        cognomen:
+          type: string
+          nullable: true
+          description: Cognomen (e.g., COGNOMEN_GREAT)
+        nickname:
+          type: string
+          nullable: true
+          description: Nickname text
+        # 23. Relationships
+        relationships:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: Relationship type (e.g., RELATIONSHIP_FRIEND)
+              characterId:
+                type: integer
+                description: Related character ID
+          description: Character relationships
+        # 24. Opinions
+        opinions:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              opinion:
+                type: string
+                nullable: true
+                description: Opinion type
+              rate:
+                type: integer
+                description: Opinion change rate
+          description: Opinions towards players (keyed by player index)
 
     Tribe:
       type: object
-      description: A tribe (barbarian faction)
+      description: A tribe (barbarian or minor civilization) in the game
       properties:
         tribeType:
           type: string
-          description: Tribe type (e.g., TRIBE_GAULS)
+          description: Tribe type identifier (e.g., TRIBE_GAULS, TRIBE_BERBERS)
         isAlive:
           type: boolean
+          description: Whether the tribe is still active
         isDead:
           type: boolean
+          description: Whether the tribe has been eliminated
         hasDiplomacy:
           type: boolean
+          description: Whether this tribe type supports diplomacy
         leaderId:
           type: integer
           nullable: true
+          description: Character ID of the tribe leader
         hasLeader:
           type: boolean
+          description: Whether the tribe has a named leader
+        religion:
+          type: string
+          nullable: true
+          description: Tribe's religion type
+        hasReligion:
+          type: boolean
+          description: Whether the tribe follows a religion
+        allyPlayerId:
+          type: integer
+          nullable: true
+          description: Player index of ally
+        allyTeam:
+          type: integer
+          nullable: true
+          description: Team number of ally
+        hasPlayerAlly:
+          type: boolean
+          description: Whether allied with a player
         numUnits:
           type: integer
+          description: Number of units the tribe controls
         numCities:
           type: integer
+          description: Number of cities the tribe controls
         strength:
           type: integer
+          description: Calculated military strength
         cityIds:
           type: array
           items:
             type: integer
-        hasPlayerAlly:
-          type: boolean
-        allyPlayerId:
+          description: IDs of cities controlled by this tribe
+        settlementTileIds:
+          type: array
+          items:
+            type: integer
+          description: Tile IDs of tribal settlements
+        numTribeImprovements:
           type: integer
-          nullable: true
+          description: Number of tribe-specific improvements
 
     BuildQueueItem:
       type: object
@@ -1111,33 +1556,52 @@ components:
 
     TeamDiplomacy:
       type: object
+      description: Directed diplomatic relationship from one team to another
       properties:
         fromTeam:
           type: integer
+          description: Source team number
         toTeam:
           type: integer
+          description: Target team number
         diplomacy:
           type: string
           nullable: true
+          description: Diplomacy state (e.g., DIPLOMACY_PEACE, DIPLOMACY_WAR, DIPLOMACY_TRUCE)
         isHostile:
           type: boolean
+          description: Whether in a hostile state
         isPeace:
           type: boolean
+          description: Whether at peace
         hasContact:
           type: boolean
+          description: Whether teams have made contact
         warScore:
           type: integer
+          description: Current war score
         warState:
           type: string
           nullable: true
+          description: War state type
         conflictTurn:
           type: integer
+          description: Turn when conflict began
         conflictNumTurns:
           type: integer
+          description: Number of turns in conflict
         diplomacyTurn:
           type: integer
+          description: Turn when current diplomacy state began
         diplomacyNumTurns:
           type: integer
+          description: Turns in current diplomacy state
+        diplomacyBlockTurn:
+          type: integer
+          description: Turn when diplomacy was blocked
+        diplomacyBlockTurns:
+          type: integer
+          description: Turns remaining on diplomacy block
 
     TeamAlliance:
       type: object
@@ -1149,25 +1613,52 @@ components:
 
     TribeDiplomacy:
       type: object
+      description: Directed diplomatic relationship from a tribe to a team
       properties:
         tribe:
           type: string
+          description: Tribe type (e.g., TRIBE_GAULS)
         toTeam:
           type: integer
+          description: Target team number
         diplomacy:
           type: string
           nullable: true
+          description: Diplomacy state
         isHostile:
           type: boolean
+          description: Whether in a hostile state
         isPeace:
           type: boolean
+          description: Whether at peace
         hasContact:
           type: boolean
+          description: Whether tribe and team have contact
         warScore:
           type: integer
+          description: Current war score
         warState:
           type: string
           nullable: true
+          description: War state type
+        conflictTurn:
+          type: integer
+          description: Turn when conflict began
+        conflictNumTurns:
+          type: integer
+          description: Turns in conflict
+        diplomacyTurn:
+          type: integer
+          description: Turn when current diplomacy began
+        diplomacyNumTurns:
+          type: integer
+          description: Turns in current diplomacy state
+        diplomacyBlockTurn:
+          type: integer
+          description: Turn when diplomacy was blocked
+        diplomacyBlockTurns:
+          type: integer
+          description: Turns remaining on block
 
     TribeAlliance:
       type: object
@@ -1288,10 +1779,12 @@ components:
         stateReligion:
           type: string
           nullable: true
-        religionCount:
+          description: State religion type
+        religionCounts:
           type: object
           additionalProperties:
             type: integer
+          description: Count of cities with each religion
 
     PlayerGoals:
       type: object
@@ -1321,10 +1814,11 @@ components:
       type: object
       description: Player active laws
       properties:
-        laws:
+        activeLaws:
           type: object
           additionalProperties:
             type: string
+          description: Active laws by category
         note:
           type: string
           description: API limitation note
@@ -1345,10 +1839,16 @@ components:
       type: object
       description: Player resource counts
       properties:
+        luxuries:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Luxury resource counts by type
         resources:
           type: object
           additionalProperties:
             type: integer
+          description: Strategic resource counts by type
         note:
           type: string
           description: API limitation note

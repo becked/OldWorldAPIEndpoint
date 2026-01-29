@@ -222,6 +222,24 @@ if [ $HTTP_READY -eq 1 ]; then
     else
         echo -e "${RED}FAIL${NC} (got $HTTP_STATUS, expected 404)"
     fi
+
+    # Schema validation
+    echo ""
+    echo "  Running schema validation:"
+    VALIDATE_SCRIPT="$SCRIPT_DIR/scripts/validate-api.py"
+    if [ -f "$VALIDATE_SCRIPT" ] && command -v python3 &> /dev/null; then
+        VALIDATION_OUTPUT=$(python3 "$VALIDATE_SCRIPT" "http://localhost:$HTTP_PORT" 2>&1)
+        VALIDATION_EXIT=$?
+
+        if [ $VALIDATION_EXIT -eq 0 ]; then
+            echo -e "    ${GREEN}Schema validation passed${NC}"
+        else
+            echo -e "    ${YELLOW}Schema validation warnings:${NC}"
+            echo "$VALIDATION_OUTPUT" | sed 's/^/    /' | head -20
+        fi
+    else
+        echo -e "    ${YELLOW}SKIP${NC} (validation script or python3 not available)"
+    fi
 else
     echo -e " ${RED}timeout${NC}"
     echo -e "  ${RED}HTTP server not available - skipping HTTP tests${NC}"

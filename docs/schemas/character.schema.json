@@ -14,8 +14,8 @@
       "description": "First name"
     },
     "suffix": {
-      "type": "string",
-      "description": "Name suffix (e.g., dynasty name)"
+      "type": "integer",
+      "description": "Dynasty number suffix (e.g., 1, 2, 3)"
     },
     "gender": {
       "type": "string",

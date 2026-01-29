@@ -1528,6 +1528,12 @@ components:
           type: integer
           nullable: true
           description: Previous heir character ID (for heirChanged events)
+        character1Id:
+          type: integer
+          description: First spouse ID (for characterMarried events)
+        character2Id:
+          type: integer
+          description: Second spouse ID (for characterMarried events)
 
     UnitEvent:
       type: object

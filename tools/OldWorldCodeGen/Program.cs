@@ -106,13 +106,19 @@ class Program
             File.WriteAllText(cmdExecPath, commandExecutorCode);
             Console.WriteLine($"  Written to: {cmdExecPath}");
 
+            // Load schema annotations
+            var annotationsPath = Path.GetFullPath("schema-annotations.yaml");
+            Console.WriteLine($"Loading schema annotations from: {annotationsPath}");
+            var annotations = SchemaAnnotations.Load(annotationsPath);
+            Console.WriteLine($"  Loaded {annotations.Endpoints.Count} endpoints, {annotations.NestedSchemas.Count} nested schemas");
+
             // Generate OpenAPI
             Console.WriteLine("Generating openapi.yaml...");
             var modInfoPath = Path.GetFullPath("../../ModInfo.xml");
             var version = ReadVersionFromModInfo(modInfoPath);
             Console.WriteLine($"  Using version from ModInfo.xml: {version}");
             var openApiGen = new OpenApiGenerator(typeAnalyzer);
-            var openApiYaml = openApiGen.Generate(sendMethods, version);
+            var openApiYaml = openApiGen.Generate(sendMethods, entityGetters, annotations, version);
 
             Directory.CreateDirectory(Path.GetDirectoryName(openApiPath)!);
             File.WriteAllText(openApiPath, openApiYaml);

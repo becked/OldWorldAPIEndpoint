@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-30T19:12:13.6086070Z
+# Generated at: 2026-01-30T19:35:37.6779750Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -7,24 +7,869 @@ openapi: "3.0.3"
 info:
   title: Old World API
   description: |
-    REST API for controlling Old World game. This API is auto-generated
-    from the game's source code and exposes all available game commands.
+    REST API for the Old World game mod that exposes game state and accepts commands
+    for companion apps, overlays, and external tools.
+
+    ## Overview
+
+    This API provides:
+    - **Read access** to game state including players, cities, characters, units, tribes, diplomacy, and events
+    - **Command execution** for unit actions, city production, research, and turn management
+
+    All data uses game type strings (e.g., `NATION_ROME`, `YIELD_FOOD`, `UNIT_WARRIOR`) for unambiguous identification.
+
+    **Note:** Commands are disabled in multiplayer games.
+
+    ## Connection
+
+    The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
   version: "2.4.0"
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
   contact:
     name: Old World API Endpoint
     url: https://github.com/becked/OldWorldAPIEndpoint
 
 servers:
-  - url: http://localhost:9876
-    description: Local game instance
+  - url: http://localhost:9877
+    description: Local HTTP REST server
+
+tags:
+  - name: State
+    description: Full game state
+  - name: Players
+    description: Player (nation) data
+  - name: Cities
+    description: City data
+  - name: Characters
+    description: Character data
+  - name: Units
+    description: Unit data
+  - name: Tiles
+    description: Map tile data
+  - name: Events
+    description: Turn-based event detection
+  - name: Tribes
+    description: Tribe (barbarian) data
+  - name: Diplomacy
+    description: Diplomatic relationships
+  - name: Religion
+    description: Global religion state
+  - name: Commands
+    description: Game command execution (single-player only)
+  - name: Config
+    description: Game configuration
 
 paths:
+  /state:
+    get:
+      tags:
+        - State
+      summary: Get full game state
+      description: |
+        Returns comprehensive game state including all players, cities, characters, tribes, and diplomacy.
+      responses:
+        '200':
+          description: Full game state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /players:
+    get:
+      tags:
+        - Players
+      summary: Get all players
+      description: |
+        Returns array of all players with stockpiles and rates.
+      responses:
+        '200':
+          description: Array of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}:
+    get:
+      tags:
+        - Players
+      summary: Get player by index
+      description: |
+        Returns a single player by their 0-based index.
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Player index (0-based)
+      responses:
+        '200':
+          description: Player data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/units:
+    get:
+      tags:
+        - Players
+      summary: Get player units
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/techs:
+    get:
+      tags:
+        - Players
+      summary: Get player technologies
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerTechs data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerTechs'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/families:
+    get:
+      tags:
+        - Players
+      summary: Get player families
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerFamilies data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerFamilies'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/religion:
+    get:
+      tags:
+        - Players
+      summary: Get player religion state
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerReligion data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerReligion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/goals:
+    get:
+      tags:
+        - Players
+      summary: Get player goals
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerGoals data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerGoals'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/decisions:
+    get:
+      tags:
+        - Players
+      summary: Get player decisions
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerDecisions data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDecisions'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/laws:
+    get:
+      tags:
+        - Players
+      summary: Get player laws
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerLaws data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerLaws'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/missions:
+    get:
+      tags:
+        - Players
+      summary: Get player missions
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerMissions data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerMissions'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /player/{index}/resources:
+    get:
+      tags:
+        - Players
+      summary: Get player resources
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PlayerResources data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerResources'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /cities:
+    get:
+      tags:
+        - Cities
+      summary: Get all cities
+      description: |
+        Returns array of all cities with full details.
+      responses:
+        '200':
+          description: Array of cities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /city/{id}:
+    get:
+      tags:
+        - Cities
+      summary: Get city by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: City ID
+      responses:
+        '200':
+          description: City data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /characters:
+    get:
+      tags:
+        - Characters
+      summary: Get all characters
+      description: |
+        Returns array of all characters with full details.
+      responses:
+        '200':
+          description: Array of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /character/{id}:
+    get:
+      tags:
+        - Characters
+      summary: Get character by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      responses:
+        '200':
+          description: Character data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /units:
+    get:
+      tags:
+        - Units
+      summary: Get all units
+      description: |
+        Returns array of all living units.
+      responses:
+        '200':
+          description: Array of units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /unit/{id}:
+    get:
+      tags:
+        - Units
+      summary: Get unit by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unit ID
+      responses:
+        '200':
+          description: Unit data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tiles:
+    get:
+      tags:
+        - Tiles
+      summary: Get tiles (paginated)
+      description: |
+        Returns paginated array of map tiles.
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Number of tiles to skip
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+          description: Maximum number of tiles to return
+      responses:
+        '200':
+          description: PaginatedTiles data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTiles'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tile/{id}:
+    get:
+      tags:
+        - Tiles
+      summary: Get tile by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Tile ID
+      responses:
+        '200':
+          description: Tile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tile/{x}/{y}:
+    get:
+      tags:
+        - Tiles
+      summary: Get tile by coordinates
+      parameters:
+        - name: x
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: X coordinate
+        - name: y
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Y coordinate
+      responses:
+        '200':
+          description: Tile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /events/characters:
+    get:
+      tags:
+        - Events
+      summary: Get character events
+      description: |
+        Returns events for characters this turn.
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CharacterEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /events/units:
+    get:
+      tags:
+        - Events
+      summary: Get unit events
+      description: |
+        Returns events for units this turn.
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /events/cities:
+    get:
+      tags:
+        - Events
+      summary: Get city events
+      description: |
+        Returns events for cities this turn.
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribes:
+    get:
+      tags:
+        - Tribes
+      summary: Get all tribes
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tribe'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /tribe/{tribeType}:
+    get:
+      tags:
+        - Tribes
+      summary: Get tribe by type
+      parameters:
+        - name: tribeType
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Tribe type string (e.g., TRIBE_GAULS)
+      responses:
+        '200':
+          description: Tribe data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tribe'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /diplomacy/teams:
+    get:
+      tags:
+        - Diplomacy
+      summary: Get team diplomacy
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamDiplomacy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /alliances/teams:
+    get:
+      tags:
+        - Diplomacy
+      summary: Get team alliances
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamAlliance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /diplomacy/tribes:
+    get:
+      tags:
+        - Diplomacy
+      summary: Get tribe diplomacy
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TribeDiplomacy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /alliances/tribes:
+    get:
+      tags:
+        - Diplomacy
+      summary: Get tribe alliances
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TribeAlliance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /religions:
+    get:
+      tags:
+        - Religion
+      summary: Get global religion state
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Religion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /config:
+    get:
+      tags:
+        - Config
+      summary: Get game configuration
+      responses:
+        '200':
+          description: GameConfig data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /map:
+    get:
+      tags:
+        - Config
+      summary: Get map metadata
+      responses:
+        '200':
+          description: MapMetadata data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
   /command:
     post:
+      tags:
+        - Commands
       summary: Execute a game command
       description: |
         Execute a game command. The action parameter determines which command
         to run, and params contains the command-specific parameters.
+        Commands are disabled in multiplayer games.
       operationId: executeCommand
       requestBody:
         required: true
@@ -39,12 +884,2278 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CommandResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
 
 components:
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GameNotAvailable:
+      description: Game not available - no game loaded or in menu
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
   schemas:
+
+    Character:
+      type: object
+      description: Character entity data
+      properties:
+        abdicateTurn:
+          type: integer
+          format: int32
+        age:
+          type: integer
+          format: int32
+        ageGroup:
+          type: string
+        ageRemainder:
+          type: integer
+          format: int32
+        archetype:
+          type: string
+        birthCityID:
+          type: integer
+          format: int32
+        birthFatherID:
+          type: integer
+          format: int32
+        birthMotherID:
+          type: integer
+          format: int32
+        birthTurn:
+          type: integer
+          format: int32
+        character:
+          type: string
+        characterPortrait:
+          type: string
+        cityAgentID:
+          type: integer
+          format: int32
+        cityGovernorID:
+          type: integer
+          format: int32
+        clergyType:
+          type: string
+        cognomen:
+          type: string
+        council:
+          type: string
+        courtier:
+          type: string
+        customName:
+          type: string
+        deadCouncil:
+          type: string
+        deathReason:
+          type: string
+        deathTurn:
+          type: integer
+          format: int32
+        explorerEffectUnits:
+          type: string
+        family:
+          type: string
+        familyClass:
+          type: string
+        fatherID:
+          type: integer
+          format: int32
+        firstName:
+          type: string
+        gender:
+          type: string
+        genderInt:
+          type: integer
+          format: int32
+        genderOpposite:
+          type: string
+        generalEffectUnits:
+          type: string
+        hasArchetype:
+          type: boolean
+        hasBirthCity:
+          type: boolean
+        hasBirthFather:
+          type: boolean
+        hasBirthMother:
+          type: boolean
+        hasCharacter:
+          type: boolean
+        hasCognomen:
+          type: boolean
+        hasCustomName:
+          type: boolean
+        hasDeadCouncil:
+          type: boolean
+        hasExplorerAll:
+          type: boolean
+        hasExplorerPrereq:
+          type: boolean
+        hasFamily:
+          type: boolean
+        hasFather:
+          type: boolean
+        hasGeneralAll:
+          type: boolean
+        hasGeneralPrereq:
+          type: boolean
+        hasGovernorAll:
+          type: boolean
+        hasGovernorPrereq:
+          type: boolean
+        hasItems:
+          type: boolean
+        hasMother:
+          type: boolean
+        hasName:
+          type: boolean
+        hasNation:
+          type: boolean
+        hasNickname:
+          type: boolean
+        hasPlayer:
+          type: boolean
+        hasReligion:
+          type: boolean
+        hasSpouseAlive:
+          type: boolean
+        hasSpouseForeign:
+          type: boolean
+        hasSpouseTribe:
+          type: boolean
+        hasTitle:
+          type: boolean
+        hasTraitDieProb:
+          type: boolean
+        hasTraitDoomed:
+          type: boolean
+        hasTraitFormerRegent:
+          type: boolean
+        hasTraitNoBirth:
+          type: boolean
+        hasTraitNoCouncil:
+          type: boolean
+        hasTraitNoCourtier:
+          type: boolean
+        hasTraitNoEvents:
+          type: boolean
+        hasTraitNoExplorer:
+          type: boolean
+        hasTraitNoFamilyHead:
+          type: boolean
+        hasTraitNoGeneral:
+          type: boolean
+        hasTraitNoGovernor:
+          type: boolean
+        hasTraitNoJob:
+          type: boolean
+        hasTraitNoMarry:
+          type: boolean
+        hasTraitNoReligion:
+          type: boolean
+        hasTraitNoReligionHeadNew:
+          type: boolean
+        hasTraitNoSuccession:
+          type: boolean
+        hasTraitRegent:
+          type: boolean
+        hasTraitSuccessionBypass:
+          type: boolean
+        hasTraitSuccessionReturn:
+          type: boolean
+        hasUnit:
+          type: boolean
+        headReligion:
+          type: string
+        iD:
+          type: integer
+          format: int32
+        isAbdicated:
+          type: boolean
+        isActivePlayer:
+          type: boolean
+        isAdult:
+          type: boolean
+        isAgeless:
+          type: boolean
+        isAlive:
+          type: boolean
+        isAnyDirty:
+          type: boolean
+        isAttractedToAny:
+          type: boolean
+        isBisexual:
+          type: boolean
+        isCityAgent:
+          type: boolean
+        isCityGovernor:
+          type: boolean
+        isClergy:
+          type: boolean
+        isCouncil:
+          type: boolean
+        isCourtier:
+          type: boolean
+        isDead:
+          type: boolean
+        isFamilyHead:
+          type: boolean
+        isFamilyHeadSpouse:
+          type: boolean
+        isFemale:
+          type: boolean
+        isFertileAge:
+          type: boolean
+        isForceInheritanceTreeInclude:
+          type: boolean
+        isGay:
+          type: boolean
+        isHeir:
+          type: boolean
+        isHeirSpouse:
+          type: boolean
+        isHuman:
+          type: boolean
+        isInfertile:
+          type: boolean
+        isJob:
+          type: boolean
+        isLeader:
+          type: boolean
+        isLeaderAncestor:
+          type: boolean
+        isLeaderAnySibling:
+          type: boolean
+        isLeaderChild:
+          type: boolean
+        isLeaderDescendant:
+          type: boolean
+        isLeaderOrChildOfLeader:
+          type: boolean
+        isLeaderOrDescendant:
+          type: boolean
+        isLeaderOrHeir:
+          type: boolean
+        isLeaderOrSpouse:
+          type: boolean
+        isLeaderOrSpouseOrHeir:
+          type: boolean
+        isLeaderOrSpouseOrSuccessor:
+          type: boolean
+        isLeaderOrSuccessor:
+          type: boolean
+        isLeaderSpouse:
+          type: boolean
+        isMale:
+          type: boolean
+        isOrWasLeader:
+          type: boolean
+        isOrWasLeaderSpouse:
+          type: boolean
+        isOrWasRegent:
+          type: boolean
+        isRegent:
+          type: boolean
+        isReligionHead:
+          type: boolean
+        isRetired:
+          type: boolean
+        isRoyal:
+          type: boolean
+        isRoyalSpouse:
+          type: boolean
+        isSafe:
+          type: boolean
+        isSpouseLeaderDescendant:
+          type: boolean
+        isSuccessionSkipRegent:
+          type: boolean
+        isSuccessor:
+          type: boolean
+        isSuccessorParent:
+          type: boolean
+        isSuccessorSpouse:
+          type: boolean
+        isTemporary:
+          type: boolean
+        isTribe:
+          type: boolean
+        isTribeLeader:
+          type: boolean
+        isUnitExplorer:
+          type: boolean
+        isUnitGeneral:
+          type: boolean
+        isValidChooseName:
+          type: boolean
+        job:
+          type: string
+        leaderIndex:
+          type: integer
+          format: int32
+        leaderTurn:
+          type: integer
+          format: int32
+        legitimacy:
+          type: integer
+          format: int32
+        level:
+          type: integer
+          format: int32
+        makeAgentExtraOpinion:
+          type: integer
+          format: int32
+        makeExplorerExtraOpinion:
+          type: integer
+          format: int32
+        makeGeneralExtraOpinion:
+          type: integer
+          format: int32
+        makeGovernorExtraOpinion:
+          type: integer
+          format: int32
+        maxStrengths:
+          type: integer
+          format: int32
+        maxWeaknesses:
+          type: integer
+          format: int32
+        motherID:
+          type: integer
+          format: int32
+        nameType:
+          type: string
+        nation:
+          type: string
+        nationTurn:
+          type: integer
+          format: int32
+        nickname:
+          type: string
+        nicknameText:
+          type: string
+        numChildren:
+          type: integer
+          format: int32
+        numEventStoryTexts:
+          type: integer
+          format: int32
+        numEventStoryTurns:
+          type: integer
+          format: int32
+        numSpouses:
+          type: integer
+          format: int32
+        player:
+          type: string
+        playerInt:
+          type: integer
+          format: int32
+        playerOpinionOfCharacterReligion:
+          type: string
+        randomTraitDelay:
+          type: string
+        ratingAttackModifierTotal:
+          type: integer
+          format: int32
+        ratingCriticalChanceTotal:
+          type: integer
+          format: int32
+        ratingHarvestModifierTotal:
+          type: integer
+          format: int32
+        ratingUnitXPTotal:
+          type: integer
+          format: int32
+        regentTurn:
+          type: integer
+          format: int32
+        religion:
+          type: string
+        safeTurn:
+          type: integer
+          format: int32
+        suffix:
+          type: integer
+          format: int32
+        team:
+          type: string
+        title:
+          type: string
+        traitBirthModifier:
+          type: integer
+          format: int32
+        traitNickname:
+          type: string
+        traitProbDelay:
+          type: string
+        traitTitle:
+          type: string
+        tribe:
+          type: string
+        unitBuildModifier:
+          type: integer
+          format: int32
+        unitID:
+          type: integer
+          format: int32
+        upgradeXPThreshold:
+          type: integer
+          format: int32
+        wasFamilyHead:
+          type: string
+        wasReligionHead:
+          type: string
+        xP:
+          type: integer
+          format: int32
+        childrenIds:
+          type: array
+          description: IDs of character's children (computed from getChildren())
+          items:
+            type: integer
+        opinions:
+          type: object
+          description: Character opinions towards players keyed by player index
+        ratings:
+          type: object
+          description: Character ratings keyed by rating type (e.g., RATING_COURAGE)
+        relationships:
+          type: array
+          description: Character relationships (computed from getRelationshipList())
+          items:
+            $ref: '#/components/schemas/CharacterRelationship'
+        spouseIds:
+          type: array
+          description: IDs of character's spouses (computed from getSpouseAtIndex())
+          items:
+            type: integer
+        traits:
+          type: array
+          description: List of character traits (computed from getTraits())
+          items:
+            type: string
+
+    City:
+      type: object
+      description: City entity data
+      properties:
+        activeEffectCity:
+          type: string
+        activeImprovementClassCountAll:
+          type: integer
+          format: int32
+        activeImprovementCountAll:
+          type: integer
+          format: int32
+        adjacentClassCostModifier:
+          type: integer
+          format: int32
+        assimilateTurns:
+          type: integer
+          format: int32
+        buildCount:
+          type: integer
+          format: int32
+        buildTurnChange:
+          type: integer
+          format: int32
+        buildUnitFamily:
+          type: string
+        buyTileCount:
+          type: integer
+          format: int32
+        capturePlayer:
+          type: string
+        captureTeam:
+          type: string
+        captureThreshold:
+          type: integer
+          format: int32
+        captureTribe:
+          type: string
+        captureTurns:
+          type: integer
+          format: int32
+        citizens:
+          type: integer
+          format: int32
+        citizensPlusQueuedWithNoProgress:
+          type: integer
+          format: int32
+        citizensQueue:
+          type: integer
+          format: int32
+        citizensTotal:
+          type: integer
+          format: int32
+        citySite:
+          type: string
+        completedBuild:
+          type: string
+        culture:
+          type: string
+        cultureStep:
+          type: integer
+          format: int32
+        currentBuildType:
+          type: string
+        damage:
+          type: integer
+          format: int32
+        defaultGovernorID:
+          type: integer
+          format: int32
+        family:
+          type: string
+        familyClass:
+          type: string
+        familyOpinion:
+          type: string
+        firstPlayer:
+          type: string
+        firstTeam:
+          type: string
+        foundedTurn:
+          type: integer
+          format: int32
+        giftedTurn:
+          type: integer
+          format: int32
+        governorID:
+          type: integer
+          format: int32
+        grammaticalGender:
+          type: string
+        growthCount:
+          type: integer
+          format: int32
+        happinessLevel:
+          type: integer
+          format: int32
+        hasAnyAgentCharacter:
+          type: boolean
+        hasAutobuildQueued:
+          type: boolean
+        hasBuild:
+          type: boolean
+        hasBuildAnyReligionUnitUnlock:
+          type: boolean
+        hasBuildPlanned:
+          type: boolean
+        hasCapturePlayer:
+          type: boolean
+        hasCaptureTribe:
+          type: boolean
+        hasCompletedBuild:
+          type: boolean
+        hasDefaultGovernor:
+          type: boolean
+        hasFamily:
+          type: boolean
+        hasFamilyOpinion:
+          type: boolean
+        hasGovernor:
+          type: boolean
+        hasLastPlayer:
+          type: boolean
+        hasLastTribe:
+          type: boolean
+        hasNation:
+          type: boolean
+        hasPlayer:
+          type: boolean
+        hasRebelEffects:
+          type: boolean
+        hasStateReligion:
+          type: boolean
+        healExtra:
+          type: integer
+          format: int32
+        hP:
+          type: integer
+          format: int32
+        hPMax:
+          type: integer
+          format: int32
+        hPMaxExtra:
+          type: integer
+          format: int32
+        hurryCivicsCost:
+          type: integer
+          format: int32
+        hurryCivicsCount:
+          type: integer
+          format: int32
+        hurryDiscontent:
+          type: integer
+          format: int32
+        hurryDiscontentModifier:
+          type: integer
+          format: int32
+        hurryMoneyCost:
+          type: integer
+          format: int32
+        hurryMoneyCount:
+          type: integer
+          format: int32
+        hurryOrdersCost:
+          type: integer
+          format: int32
+        hurryOrdersCount:
+          type: integer
+          format: int32
+        hurryPopulationCost:
+          type: integer
+          format: int32
+        hurryPopulationCount:
+          type: integer
+          format: int32
+        hurryTrainingCost:
+          type: integer
+          format: int32
+        hurryTrainingCount:
+          type: integer
+          format: int32
+        iD:
+          type: integer
+          format: int32
+        improvementCostModifier:
+          type: integer
+          format: int32
+        isActivePlayer:
+          type: boolean
+        isAnyDirty:
+          type: boolean
+        isAutomated:
+          type: boolean
+        isBuildNoHurry:
+          type: boolean
+        isCapital:
+          type: boolean
+        isCapturedCapital:
+          type: boolean
+        isConnected:
+          type: boolean
+        isDamaged:
+          type: boolean
+        isDefaultGovernorRuling:
+          type: boolean
+        isFamilySeat:
+          type: boolean
+        isGoverned:
+          type: boolean
+        isGovernorLeader:
+          type: boolean
+        isHuman:
+          type: boolean
+        isIdle:
+          type: boolean
+        isReligionHolyCityAny:
+          type: boolean
+        isTribe:
+          type: boolean
+        isUnitCapturingCity:
+          type: boolean
+        isVulnerable:
+          type: boolean
+        isYieldRateDefendingAny:
+          type: boolean
+        lastPlayer:
+          type: string
+        lastTeam:
+          type: string
+        lastTribe:
+          type: string
+        luxuryCount:
+          type: integer
+          format: int32
+        militaryUnitCount:
+          type: integer
+          format: int32
+        name:
+          type: string
+        nameType:
+          type: string
+        nation:
+          type: string
+        numRandomPromotions:
+          type: integer
+          format: int32
+        paganReligionCount:
+          type: integer
+          format: int32
+        passiveHealDamage:
+          type: integer
+          format: int32
+        player:
+          type: string
+        playerInt:
+          type: integer
+          format: int32
+        population:
+          type: integer
+          format: int32
+        projectCostModifier:
+          type: integer
+          format: int32
+        raidedTurn:
+          type: integer
+          format: int32
+        rangeChange:
+          type: integer
+          format: int32
+        regrowthModifier:
+          type: integer
+          format: int32
+        religionCount:
+          type: integer
+          format: int32
+        religionNonStateCount:
+          type: integer
+          format: int32
+        saltWaterTiles:
+          type: integer
+          format: int32
+        specialistCostModifier:
+          type: integer
+          format: int32
+        specialistCount:
+          type: integer
+          format: int32
+        specialistProducedCount:
+          type: integer
+          format: int32
+        specialistRuralTrainTimeModifier:
+          type: integer
+          format: int32
+        specialistUrbanCostModifier:
+          type: integer
+          format: int32
+        specialistUrbanTrainTimeModifier:
+          type: integer
+          format: int32
+        strengthModifier:
+          type: integer
+          format: int32
+        team:
+          type: string
+        territoryTiles:
+          type: string
+        tileID:
+          type: integer
+          format: int32
+        tradeNetwork:
+          type: integer
+          format: int32
+        tribe:
+          type: string
+        urbanBuildTurnChange:
+          type: integer
+          format: int32
+        urbanSpecialistCount:
+          type: integer
+          format: int32
+        urbanTiles:
+          type: integer
+          format: int32
+        buildQueue:
+          type: array
+          description: Build queue items
+          items:
+            $ref: '#/components/schemas/BuildQueueItem'
+        currentBuild:
+          $ref: '#/components/schemas/BuildQueueItem'
+          nullable: true
+        holyCity:
+          type: array
+          description: Religions for which this city is a holy city
+          items:
+            type: string
+        improvementClasses:
+          type: object
+          description: Improvement class counts keyed by class type
+        improvements:
+          type: object
+          description: Improvement counts keyed by improvement type
+        projects:
+          type: object
+          description: Project counts keyed by project type
+        religions:
+          type: array
+          description: List of religions present in the city
+          items:
+            type: string
+        territoryTileCount:
+          type: integer
+          description: Number of tiles in city territory
+        x:
+          type: integer
+          description: X coordinate of city tile
+        y:
+          type: integer
+          description: Y coordinate of city tile
+        yields:
+          type: object
+          description: Yield details keyed by yield type
+
+    Player:
+      type: object
+      description: Player entity data
+      properties:
+        aIAutoPlayToTurn:
+          type: integer
+          format: int32
+        borderVisibility:
+          type: integer
+          format: int32
+        buyTileCount:
+          type: integer
+          format: int32
+        capitalCityID:
+          type: integer
+          format: int32
+        chosenHeirID:
+          type: integer
+          format: int32
+        cities:
+          type: string
+        consumptionModifier:
+          type: integer
+          format: int32
+        convertOrdersCost:
+          type: integer
+          format: int32
+        convertOrdersYield:
+          type: string
+        crest:
+          type: string
+        customName:
+          type: string
+        customReminder:
+          type: string
+        development:
+          type: string
+        difficulty:
+          type: string
+        difficultyMode:
+          type: string
+        dynasty:
+          type: string
+        families:
+          type: string
+        familySupremacy:
+          type: string
+        firstPopup:
+          type: string
+          nullable: true
+        fixedNumCities:
+          type: integer
+          format: int32
+        founderID:
+          type: integer
+          format: int32
+        harvestModifier:
+          type: integer
+          format: int32
+        hasAchievementLocked:
+          type: boolean
+        hasAchievementUnlocked:
+          type: boolean
+        hasAutomatedUnits:
+          type: boolean
+        hasCapitalCity:
+          type: boolean
+        hasChosenHeir:
+          type: boolean
+        hasCustomName:
+          type: boolean
+        hasDecisions:
+          type: boolean
+        hasDynasty:
+          type: boolean
+        hasFounder:
+          type: boolean
+        hasHeir:
+          type: boolean
+        hasLeader:
+          type: boolean
+        hasLeaderFamily:
+          type: boolean
+        hasLeaderSpouseAlive:
+          type: boolean
+        hasNation:
+          type: boolean
+        hasScenarioCompleted:
+          type: boolean
+        hasStateReligion:
+          type: boolean
+        hasTurnSummary:
+          type: boolean
+        ignoreReminders:
+          type: string
+        isActive:
+          type: boolean
+        isAIAutoPlay:
+          type: boolean
+        isAlive:
+          type: boolean
+        isAnyDirty:
+          type: boolean
+        isAnyPickLater:
+          type: boolean
+        isAnyTechAvailable:
+          type: boolean
+        isCityMaxReached:
+          type: boolean
+        isCompletedGameSaved:
+          type: boolean
+        isConvertedLegitimacy:
+          type: boolean
+        isDead:
+          type: boolean
+        isFirstTurnProcessing:
+          type: boolean
+        isFounded:
+          type: boolean
+        isHuman:
+          type: boolean
+        isHumanOriginal:
+          type: boolean
+        isInitialized:
+          type: boolean
+        isLeaderAlive:
+          type: boolean
+        isPlaying:
+          type: boolean
+        isProcessingTurn:
+          type: boolean
+        isProcessingTurnStart:
+          type: boolean
+        isResearching:
+          type: boolean
+        isStartCityNumberFlexible:
+          type: boolean
+        isSurrendered:
+          type: boolean
+        isTeamHuman:
+          type: boolean
+        isTechRedraw:
+          type: boolean
+        isTurnEnded:
+          type: boolean
+        isTurnSummaryReady:
+          type: boolean
+        isTutorial:
+          type: boolean
+        isUsedOffensive:
+          type: boolean
+        isVersionMismatch:
+          type: boolean
+        language:
+          type: string
+        lastDoTurn:
+          type: integer
+          format: int32
+        leaderFamily:
+          type: string
+        legitimacy:
+          type: integer
+          format: int32
+        minStartingCities:
+          type: integer
+          format: int32
+        missionModifier:
+          type: integer
+          format: int32
+        money:
+          type: integer
+          format: int32
+        moneyWhole:
+          type: integer
+          format: int32
+        nation:
+          type: string
+        numCities:
+          type: integer
+          format: int32
+        numDecisions:
+          type: integer
+          format: int32
+        numEmptySites:
+          type: integer
+          format: int32
+        numFamilies:
+          type: integer
+          format: int32
+        numGameLoads:
+          type: integer
+          format: int32
+        numGoals:
+          type: integer
+          format: int32
+        numMemories:
+          type: integer
+          format: int32
+        numMissions:
+          type: integer
+          format: int32
+        numPopups:
+          type: integer
+          format: int32
+        numStartingTiles:
+          type: integer
+          format: int32
+        numTiles:
+          type: integer
+          format: int32
+        numTrades:
+          type: integer
+          format: int32
+        numTributes:
+          type: integer
+          format: int32
+        numUnits:
+          type: integer
+          format: int32
+        onlineID:
+          type: string
+        ordersLeft:
+          type: integer
+          format: int32
+        originalCapitalCityID:
+          type: integer
+          format: int32
+        pingTiles:
+          type: string
+        player:
+          type: string
+        playerEmail:
+          type: string
+        playerInt:
+          type: integer
+          format: int32
+        popupTechDiscovered:
+          type: string
+        recruitLegitimacy:
+          type: integer
+          format: int32
+        reloads:
+          type: integer
+          format: int32
+        saltWaterTileCount:
+          type: integer
+          format: int32
+        sellPenaltyModifier:
+          type: integer
+          format: int32
+        startingTileID:
+          type: integer
+          format: int32
+        startTurnCities:
+          type: integer
+          format: int32
+        stateReligion:
+          type: string
+        stateReligionChangeCount:
+          type: integer
+          format: int32
+        stateReligionSpreadChange:
+          type: integer
+          format: int32
+        succession:
+          type: string
+        successionCount:
+          type: integer
+          format: int32
+        successionGender:
+          type: string
+        successionOrder:
+          type: string
+        team:
+          type: string
+        techCostModifier:
+          type: integer
+          format: int32
+        techResearching:
+          type: string
+        techsAvailableChange:
+          type: integer
+          format: int32
+        timeStockpile:
+          type: integer
+          format: int32
+        trainingOrderModifier:
+          type: integer
+          format: int32
+        tribeFatigueLimitChange:
+          type: integer
+          format: int32
+        tribeMercenaryCount:
+          type: integer
+          format: int32
+        turnSummary:
+          type: string
+        turnTimeNeeded:
+          type: integer
+          format: int32
+        visionChange:
+          type: integer
+          format: int32
+        wonderModifier:
+          type: integer
+          format: int32
+        worldReligionCount:
+          type: integer
+          format: int32
+        worldReligionSpreadChange:
+          type: integer
+          format: int32
+        yieldUpkeepModifier:
+          type: integer
+          format: int32
+        index:
+          type: integer
+          description: Player index (0-based)
+        rates:
+          type: object
+          description: Yield rates per turn keyed by yield type
+        stockpiles:
+          type: object
+          description: Yield stockpiles keyed by yield type (e.g., YIELD_FOOD)
+
+    Tile:
+      type: object
+      description: Tile entity data
+      properties:
+        activeImprovementClass:
+          type: string
+        area:
+          type: integer
+          format: int32
+        areaTileCount:
+          type: integer
+          format: int32
+        cityID:
+          type: integer
+          format: int32
+        citySite:
+          type: string
+        cityTerritory:
+          type: integer
+          format: int32
+        constructionProgress:
+          type: number
+          format: float
+        currentSpecialist:
+          type: string
+        customMapElementName:
+          type: string
+        extraBlockingVisibilityHeight:
+          type: integer
+          format: int32
+        family:
+          type: string
+        harvestTurn:
+          type: integer
+          format: int32
+        hasCanDamageUnit:
+          type: boolean
+        hasCity:
+          type: boolean
+        hasCityTerritory:
+          type: boolean
+        hasFamily:
+          type: boolean
+        hasFreeSpecialist:
+          type: boolean
+        hasGovernor:
+          type: boolean
+        hasImprovement:
+          type: boolean
+        hasImprovementClass:
+          type: boolean
+        hasImprovementFreeSpecialist:
+          type: boolean
+        hasImprovementRural:
+          type: boolean
+        hasImprovementWithBorderSpread:
+          type: boolean
+        hasInactiveImprovement:
+          type: boolean
+        hasMapElementName:
+          type: boolean
+        hasMapGeneratorData:
+          type: boolean
+        hasOwner:
+          type: boolean
+        hasOwnerTribe:
+          type: boolean
+        hasReligion:
+          type: boolean
+        hasResource:
+          type: boolean
+        hasSpecialist:
+          type: boolean
+        hasUnit:
+          type: boolean
+        hasVegetation:
+          type: boolean
+        height:
+          type: string
+        heightHistory:
+          type: string
+        hiddenHeight:
+          type: string
+        hiddenTerrain:
+          type: string
+        iD:
+          type: integer
+          format: int32
+        improvement:
+          type: string
+        improvementBuildTurnsLeft:
+          type: integer
+          format: int32
+        improvementBuildTurnsOriginal:
+          type: integer
+          format: int32
+        improvementClass:
+          type: string
+        improvementDevelopTurns:
+          type: integer
+          format: int32
+        improvementDynamicText:
+          type: string
+        improvementFirstSpecialist:
+          type: string
+        improvementGrammaticalGender:
+          type: string
+        improvementPillageTurns:
+          type: integer
+          format: int32
+        improvementReligionPrereq:
+          type: string
+        improvementReligionSpread:
+          type: string
+        improvementUnitTurns:
+          type: integer
+          format: int32
+        isAnyCoastLand:
+          type: boolean
+        isAnyDirty:
+          type: boolean
+        isBorder:
+          type: boolean
+        isBoundary:
+          type: boolean
+        isCanal:
+          type: boolean
+        isCitySiteAny:
+          type: boolean
+        isClear:
+          type: boolean
+        isFlat:
+          type: boolean
+        isFreshWater:
+          type: boolean
+        isFreshWaterAccess:
+          type: boolean
+        isFreshWaterSource:
+          type: boolean
+        isHarvested:
+          type: boolean
+        isImprovementUnfinished:
+          type: boolean
+        isImprovementUnfinishedOrPillaged:
+          type: boolean
+        isLand:
+          type: boolean
+        isMinorCity:
+          type: boolean
+        isNationSite:
+          type: boolean
+        isPassableLand:
+          type: boolean
+        isPillaged:
+          type: boolean
+        isRegrowing:
+          type: boolean
+        isRiver:
+          type: boolean
+        isRiverE:
+          type: boolean
+        isRiverNE:
+          type: boolean
+        isRiverNW:
+          type: boolean
+        isRiverSE:
+          type: boolean
+        isRiverSW:
+          type: boolean
+        isRiverW:
+          type: boolean
+        isRoad:
+          type: boolean
+        isSaltCoastLand:
+          type: boolean
+        isSaltCoastWater:
+          type: boolean
+        isSaltWater:
+          type: boolean
+        isTribeSite:
+          type: boolean
+        isUrban:
+          type: boolean
+        isWater:
+          type: boolean
+        landSection:
+          type: integer
+          format: int32
+        lastTurnOwnerChange:
+          type: integer
+          format: int32
+        latitude:
+          type: integer
+          format: int32
+        mapElementName:
+          type: string
+        mapElementNameType:
+          type: string
+        mapGeneratorData:
+          type: string
+        metadata:
+          type: string
+        movementCostExtra:
+          type: integer
+          format: int32
+        nation:
+          type: string
+        nationSite:
+          type: string
+        numTags:
+          type: integer
+          format: int32
+        origUrbanOwner:
+          type: string
+        owner:
+          type: string
+        ownerTribe:
+          type: string
+        regrowthTurn:
+          type: integer
+          format: int32
+        resource:
+          type: string
+        resourceHeightOffset:
+          type: number
+          format: float
+        riverSE:
+          type: string
+        riverSW:
+          type: string
+        riverW:
+          type: string
+        specialist:
+          type: string
+        specialistClass:
+          type: string
+        team:
+          type: string
+        terrain:
+          type: string
+        terrainHistory:
+          type: string
+        terrainStamp:
+          type: string
+        terrainStampTileID:
+          type: integer
+          format: int32
+        terrainUnitDamage:
+          type: integer
+          format: int32
+        tradeOutpostIncome:
+          type: integer
+          format: int32
+        tribeSite:
+          type: string
+        vegetation:
+          type: string
+        vegetationHistory:
+          type: string
+        x:
+          type: integer
+          format: int32
+        y:
+          type: integer
+          format: int32
+
+    Unit:
+      type: object
+      description: Unit entity data
+      properties:
+        agentNetworkCost:
+          type: integer
+          format: int32
+        caravanMissionTarget:
+          type: string
+        civilianCycleSubgroup:
+          type: string
+        consumptionMercenaryModifier:
+          type: integer
+          format: int32
+        cooldown:
+          type: string
+        cooldownTurns:
+          type: integer
+          format: int32
+        createTurn:
+          type: integer
+          format: int32
+        currentFormation:
+          type: string
+        damage:
+          type: integer
+          format: int32
+        damagedExtraBuildTurns:
+          type: integer
+          format: int32
+        effectUnitCount:
+          type: integer
+          format: int32
+        effectUnits:
+          type: string
+        endRoutEffect:
+          type: string
+        explorerID:
+          type: integer
+          format: int32
+        facing:
+          type: string
+        family:
+          type: string
+        familyClass:
+          type: string
+        familyOpinion:
+          type: string
+        fatigueLimit:
+          type: integer
+          format: int32
+        formationBonus:
+          type: integer
+          format: int32
+        formationTurns:
+          type: integer
+          format: int32
+        fortifyBonus:
+          type: integer
+          format: int32
+        fortifyTurns:
+          type: integer
+          format: int32
+        freeActions:
+          type: integer
+          format: int32
+        freeActionsTaken:
+          type: integer
+          format: int32
+        freeImprovementBuild:
+          type: string
+        gender:
+          type: string
+        generalID:
+          type: integer
+          format: int32
+        grammaticalGender:
+          type: string
+        harvestDistanceModifier:
+          type: integer
+          format: int32
+        hasCaravanMissionTarget:
+          type: boolean
+        hasCooldown:
+          type: boolean
+        hasCriticalImmune:
+          type: boolean
+        hasEffectEstablishTheology:
+          type: boolean
+        hasEffectMercenary:
+          type: boolean
+        hasEffectSpreadReligion:
+          type: boolean
+        hasEffectUnitAny:
+          type: boolean
+        hasEndRoutEffect:
+          type: boolean
+        hasEnlistNext:
+          type: boolean
+        hasExplorer:
+          type: boolean
+        hasFamily:
+          type: boolean
+        hasFamilyOpinion:
+          type: boolean
+        hasFamilyTerritoryOnly:
+          type: boolean
+        hasFreeActions:
+          type: boolean
+        hasFreeImprovementBuild:
+          type: boolean
+        hasGeneral:
+          type: boolean
+        hasGeneralHopping:
+          type: boolean
+        hasGeneralModifier:
+          type: integer
+          format: int32
+        hasHarvest:
+          type: boolean
+        hasHealNeutral:
+          type: boolean
+        hasHealPillage:
+          type: boolean
+        hasIgnoreZOC:
+          type: boolean
+        hasLastStand:
+          type: boolean
+        hasLaunchOffensive:
+          type: boolean
+        hasMoved:
+          type: boolean
+        hasName:
+          type: boolean
+        hasNoRoadCooldown:
+          type: boolean
+        hasOffensiveRemoveCooldown:
+          type: boolean
+        hasOriginalPlayer:
+          type: boolean
+        hasOriginalTribe:
+          type: boolean
+        hasPillage:
+          type: boolean
+        hasPlayer:
+          type: boolean
+        hasQueueList:
+          type: boolean
+        hasRebelPlayer:
+          type: boolean
+        hasReligion:
+          type: boolean
+        hasRemoveVegetation:
+          type: boolean
+        hasVisibleAttackCooldown:
+          type: boolean
+        hasZOC:
+          type: boolean
+        hP:
+          type: integer
+          format: int32
+        hPMax:
+          type: integer
+          format: int32
+        iD:
+          type: integer
+          format: int32
+        initialGender:
+          type: string
+        isActiveOutOfTurn:
+          type: boolean
+        isActivePlayer:
+          type: boolean
+        isAlive:
+          type: boolean
+        isAnchored:
+          type: boolean
+        isAnyDirty:
+          type: boolean
+        isAutoHarvest:
+          type: boolean
+        isAutoHeal:
+          type: boolean
+        isAutomated:
+          type: boolean
+        isAutoMoveOnly:
+          type: boolean
+        isBusy:
+          type: boolean
+        isCapturingCity:
+          type: boolean
+        isCriticalHit:
+          type: boolean
+        isDamaged:
+          type: boolean
+        isDead:
+          type: boolean
+        isFatigued:
+          type: boolean
+        isFormation:
+          type: boolean
+        isFormationMax:
+          type: boolean
+        isFortify:
+          type: boolean
+        isFortifyMax:
+          type: boolean
+        isHiddenNotTemp:
+          type: boolean
+        isHuman:
+          type: boolean
+        isImmobile:
+          type: boolean
+        isImprovingTile:
+          type: boolean
+        isLeaderExplorer:
+          type: boolean
+        isLeaderGeneral:
+          type: boolean
+        isLevelMax:
+          type: boolean
+        isLevelPromotionMax:
+          type: boolean
+        isLocked:
+          type: boolean
+        isMarch:
+          type: boolean
+        isModVariables:
+          type: boolean
+        isOccurrenceImpassableImmune:
+          type: boolean
+        isPass:
+          type: boolean
+        isPromotable:
+          type: boolean
+        isRaiding:
+          type: boolean
+        isRemoveVegatation:
+          type: boolean
+        isScout:
+          type: boolean
+        isSentry:
+          type: boolean
+        isShowCriticalHit:
+          type: boolean
+        isSkip:
+          type: boolean
+        isSleep:
+          type: boolean
+        isTempHidden:
+          type: boolean
+        isTribe:
+          type: boolean
+        isUnlimbered:
+          type: boolean
+        isWorker:
+          type: boolean
+        level:
+          type: integer
+          format: int32
+        levelPromotion:
+          type: integer
+          format: int32
+        levelPromotionString:
+          type: string
+        levelString:
+          type: string
+        marchCost:
+          type: integer
+          format: int32
+        meleeCounterPercent:
+          type: integer
+          format: int32
+        modVariables:
+          type: string
+        name:
+          type: string
+        nameType:
+          type: string
+        nation:
+          type: string
+        nextCriticalModifier:
+          type: integer
+          format: int32
+        offensiveUnits:
+          type: string
+        originalPlayer:
+          type: string
+        originalTribe:
+          type: string
+        player:
+          type: string
+        pushEffect:
+          type: string
+        queuedTile:
+          type: string
+        queueList:
+          type: string
+        rebelPlayer:
+          type: string
+        rebelTeam:
+          type: string
+        religion:
+          type: string
+        roadMovementModifier:
+          type: integer
+          format: int32
+        routChain:
+          type: integer
+          format: int32
+        spreadReligion:
+          type: string
+        spreadReligionTribeCost:
+          type: integer
+          format: int32
+        stepsToFatigue:
+          type: integer
+          format: int32
+        strengthRating:
+          type: integer
+          format: int32
+        team:
+          type: string
+        tempHiddenTurns:
+          type: integer
+          format: int32
+        tileID:
+          type: integer
+          format: int32
+        trainCostWhole:
+          type: integer
+          format: int32
+        trainXP:
+          type: integer
+          format: int32
+        tribe:
+          type: string
+        turnsSinceLastMove:
+          type: integer
+          format: int32
+        turnSteps:
+          type: integer
+          format: int32
+        type:
+          type: string
+        unitCycleGroup:
+          type: string
+        workerAnimationType:
+          type: string
+        xP:
+          type: integer
+          format: int32
+        xPThreshold:
+          type: integer
+          format: int32
+        promotions:
+          type: array
+          description: List of unit promotions
+          items:
+            type: string
+        x:
+          type: integer
+          description: X coordinate of unit tile
+        y:
+          type: integer
+          description: Y coordinate of unit tile
+
+    BuildQueueItem:
+      type: object
+      nullable: true
+      description: An item in a city's build queue
+      properties:
+        buildType:
+          type: string
+          description: Type of build (UNIT, PROJECT, SPECIALIST)
+          enum:
+            - UNIT
+            - PROJECT
+            - SPECIALIST
+        itemType:
+          type: string
+          description: Game type string (e.g., UNIT_WARRIOR, PROJECT_SHRINE)
+        progress:
+          type: integer
+          description: Current production progress
+        threshold:
+          type: integer
+          description: Production threshold to complete
+        turnsLeft:
+          type: integer
+          description: Estimated turns to complete
+        hurried:
+          type: boolean
+          description: Whether production has been hurried
+
+    CharacterOpinion:
+      type: object
+      description: A character's opinion towards a player
+      properties:
+        opinion:
+          type: string
+          nullable: true
+          description: Opinion level type
+        rate:
+          type: integer
+          description: Opinion rate value
+
+    CharacterRelationship:
+      type: object
+      description: A relationship between characters
+      properties:
+        type:
+          type: string
+          description: Relationship type (e.g., RELATIONSHIP_FRIEND)
+        characterId:
+          type: integer
+          description: ID of the related character
+
+    Error:
+      type: object
+      description: Error response
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+
+    Location:
+      type: object
+      description: A map location
+      properties:
+        tileId:
+          type: integer
+          description: Tile ID
+        x:
+          type: integer
+          description: X coordinate
+        y:
+          type: integer
+          description: Y coordinate
+
+    YieldDetails:
+      type: object
+      description: Detailed yield information for a city
+      properties:
+        perTurn:
+          type: integer
+          description: Yield produced per turn
+        progress:
+          type: integer
+          description: Current progress towards threshold
+        threshold:
+          type: integer
+          description: Threshold for yield effect
+        overflow:
+          type: integer
+          description: Overflow from previous turn
+
+    GameConfig:
+      type: object
+      description: Game configuration
+      properties:
+        numTiles:
+          type: integer
+        numPlayers:
+          type: integer
+        numTeams:
+          type: integer
+        turn:
+          type: integer
+        year:
+          type: integer
+
+    GameState:
+      type: object
+      description: Complete game state snapshot
+      properties:
+        turn:
+          type: integer
+          description: Current game turn
+        year:
+          type: integer
+          description: Current game year
+        currentPlayer:
+          type: integer
+          description: Index of the current player
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Character'
+        cities:
+          type: array
+          items:
+            $ref: '#/components/schemas/City'
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+        tribes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tribe'
+        teamDiplomacy:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamDiplomacy'
+        teamAlliances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamAlliance'
+        tribeDiplomacy:
+          type: array
+          items:
+            $ref: '#/components/schemas/TribeDiplomacy'
+        tribeAlliances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TribeAlliance'
+
+    MapMetadata:
+      type: object
+      description: Map metadata
+      properties:
+        numTiles:
+          type: integer
+
+    PaginatedTiles:
+      type: object
+      description: Paginated tile response
+      properties:
+        tiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tile'
+        pagination:
+          type: object
+
+    CharacterEvent:
+      type: object
+      description: Character-related event
+      properties:
+        eventType:
+          type: string
+          description: Type of event
+          enum:
+            - characterBorn
+            - characterDied
+            - leaderChanged
+            - heirChanged
+            - characterMarried
+        characterId:
+          type: integer
+          description: ID of the character involved
+        parentIds:
+          type: array
+          description: Parent character IDs (for birth events)
+          items:
+            type: integer
+        deathReason:
+          type: string
+          nullable: true
+          description: Reason for death (for death events)
+        playerId:
+          type: integer
+          nullable: true
+          description: Player affected
+        newLeaderId:
+          type: integer
+          nullable: true
+          description: New leader ID (for leader change events)
+        newHeirId:
+          type: integer
+          nullable: true
+          description: New heir ID (for heir change events)
+
+    CityEvent:
+      type: object
+      description: City-related event
+      properties:
+        eventType:
+          type: string
+          description: Type of event
+          enum:
+            - cityFounded
+            - cityCapture
+        cityId:
+          type: integer
+          description: ID of the city involved
+        cityName:
+          type: string
+          description: Name of the city
+        playerId:
+          type: integer
+          nullable: true
+          description: Player involved
+        oldOwnerId:
+          type: integer
+          nullable: true
+          description: Previous owner (for capture events)
+        newOwnerId:
+          type: integer
+          nullable: true
+          description: New owner (for capture events)
+        wasTribe:
+          type: boolean
+          description: Whether city was tribal
+        location:
+          $ref: '#/components/schemas/Location'
+
+    UnitEvent:
+      type: object
+      description: Unit-related event
+      properties:
+        eventType:
+          type: string
+          description: Type of event
+          enum:
+            - unitCreated
+            - unitKilled
+        unitId:
+          type: integer
+          description: ID of the unit involved
+        unitType:
+          type: string
+          description: Unit type string
+        playerId:
+          type: integer
+          nullable: true
+          description: Owner player ID
+        lastOwnerId:
+          type: integer
+          nullable: true
+          description: Last owner before death
+        location:
+          $ref: '#/components/schemas/Location'
+        lastLocation:
+          $ref: '#/components/schemas/Location'
+
+    Religion:
+      type: object
+      description: Global religion state
+      properties:
+        religionType:
+          type: string
+        isFounded:
+          type: boolean
+        headCharacterId:
+          type: integer
+          nullable: true
+        holyCityId:
+          type: integer
+          nullable: true
+
+    TeamAlliance:
+      type: object
+      description: Alliance between teams
+      properties:
+        team1:
+          type: integer
+        team2:
+          type: integer
+        allianceType:
+          type: string
+          nullable: true
+
+    TeamDiplomacy:
+      type: object
+      description: Diplomatic state between teams
+      properties:
+        fromTeam:
+          type: integer
+        toTeam:
+          type: integer
+        diplomacy:
+          type: string
+          nullable: true
+          description: Diplomatic state (e.g., DIPLOMACY_PEACE, DIPLOMACY_WAR)
+        isHostile:
+          type: boolean
+        isPeace:
+          type: boolean
+        hasContact:
+          type: boolean
+        warScore:
+          type: integer
+        warState:
+          type: string
+          nullable: true
+        conflictTurn:
+          type: integer
+
+    Tribe:
+      type: object
+      description: Tribe (barbarian faction) information
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type string
+        isAlive:
+          type: boolean
+        isDead:
+          type: boolean
+        hasDiplomacy:
+          type: boolean
+        hasLeader:
+          type: boolean
+        hasReligion:
+          type: boolean
+        leaderId:
+          type: integer
+          nullable: true
+        religion:
+          type: string
+          nullable: true
+        allyPlayerId:
+          type: integer
+          nullable: true
+
+    TribeAlliance:
+      type: object
+      description: Alliance with tribe
+      properties:
+        playerId:
+          type: integer
+        tribeType:
+          type: string
+        allyPlayerId:
+          type: integer
+          nullable: true
+
+    TribeDiplomacy:
+      type: object
+      description: Diplomatic state with tribes
+      properties:
+        playerId:
+          type: integer
+        tribeType:
+          type: string
+        diplomacy:
+          type: string
+          nullable: true
+        isHostile:
+          type: boolean
+        isPeace:
+          type: boolean
+        hasContact:
+          type: boolean
+
+    PlayerDecisions:
+      type: object
+      description: Player pending decisions
+      properties:
+        decisions:
+          type: array
+          items:
+            type: object
+        hasDecisions:
+          type: boolean
+
+    PlayerFamilies:
+      type: object
+      description: Player family relationships
+      properties:
+        families:
+          type: array
+          items:
+            type: object
+
+    PlayerGoals:
+      type: object
+      description: Player goals and ambitions
+      properties:
+        goals:
+          type: array
+          items:
+            type: object
+
+    PlayerLaws:
+      type: object
+      description: Player laws state
+      properties:
+        activeLaws:
+          type: object
+          description: Active laws keyed by law class
+        activeLawCount:
+          type: integer
+
+    PlayerMissions:
+      type: object
+      description: Player missions state
+      properties:
+        missions:
+          type: array
+          items:
+            type: object
+        cooldowns:
+          type: object
+
+    PlayerReligion:
+      type: object
+      description: Player religion state
+      properties:
+        stateReligion:
+          type: string
+          nullable: true
+        religionCounts:
+          type: object
+
+    PlayerResources:
+      type: object
+      description: Player resources and luxuries
+      properties:
+        luxuries:
+          type: object
+        revealed:
+          type: object
+
+    PlayerTechs:
+      type: object
+      description: Player technology state
+      properties:
+        researching:
+          type: string
+          nullable: true
+          description: Currently researched tech
+        progress:
+          type: object
+          description: Tech progress keyed by tech type
+        researched:
+          type: array
+          description: List of acquired techs
+          items:
+            type: string
+        available:
+          type: array
+          description: List of available techs
+          items:
+            type: string
 
     GameCommand:
       type: object
+      description: Command request
       required:
         - action
       properties:
@@ -271,6 +3382,7 @@ components:
 
     CommandResult:
       type: object
+      description: Command execution result
       properties:
         success:
           type: boolean

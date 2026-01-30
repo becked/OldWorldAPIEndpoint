@@ -265,6 +265,41 @@ public class OpenApiGenerator
         sb.AppendLine("        '503':");
         sb.AppendLine("          $ref: '#/components/responses/GameNotAvailable'");
         sb.AppendLine();
+
+        // Bulk commands endpoint
+        GenerateBulkCommandEndpoint(sb);
+    }
+
+    private void GenerateBulkCommandEndpoint(StringBuilder sb)
+    {
+        sb.AppendLine("  /commands:");
+        sb.AppendLine("    post:");
+        sb.AppendLine("      tags:");
+        sb.AppendLine("        - Commands");
+        sb.AppendLine("      summary: Execute multiple commands in sequence");
+        sb.AppendLine("      description: |");
+        sb.AppendLine("        Execute a batch of commands sequentially. Useful for operations like");
+        sb.AppendLine("        move + attack sequences. If stopOnError is true (default), execution");
+        sb.AppendLine("        stops at the first failure. Commands are disabled in multiplayer games.");
+        sb.AppendLine("      operationId: executeBulkCommands");
+        sb.AppendLine("      requestBody:");
+        sb.AppendLine("        required: true");
+        sb.AppendLine("        content:");
+        sb.AppendLine("          application/json:");
+        sb.AppendLine("            schema:");
+        sb.AppendLine("              $ref: '#/components/schemas/BulkCommand'");
+        sb.AppendLine("      responses:");
+        sb.AppendLine("        '200':");
+        sb.AppendLine("          description: Bulk command execution results");
+        sb.AppendLine("          content:");
+        sb.AppendLine("            application/json:");
+        sb.AppendLine("              schema:");
+        sb.AppendLine("                $ref: '#/components/schemas/BulkCommandResult'");
+        sb.AppendLine("        '400':");
+        sb.AppendLine("          $ref: '#/components/responses/BadRequest'");
+        sb.AppendLine("        '503':");
+        sb.AppendLine("          $ref: '#/components/responses/GameNotAvailable'");
+        sb.AppendLine();
     }
 
     #endregion

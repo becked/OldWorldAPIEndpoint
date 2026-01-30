@@ -2465,334 +2465,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/MoveUnitParams'
-    AttackParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        targetTileId:
-          type: integer
-      required:
-      - unitId
-      - targetTileId
-    AttackCommand:
-      type: object
-      description: Attack a target tile
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: attack
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/AttackParams'
-    FortifyParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    FortifyCommand:
-      type: object
-      description: Fortify a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: fortify
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/FortifyParams'
-    PassParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    PassCommand:
-      type: object
-      description: Skip a unit's turn
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: pass
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/PassParams'
-    SleepParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    SleepCommand:
-      type: object
-      description: Put a unit to sleep
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: sleep
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/SleepParams'
-    SentryParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    SentryCommand:
-      type: object
-      description: Set a unit to sentry mode
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: sentry
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/SentryParams'
-    WakeParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    WakeCommand:
-      type: object
-      description: Wake a sleeping or sentry unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: wake
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/WakeParams'
-    HealParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        auto:
-          type: boolean
-          description: Enable auto-heal mode
-      required:
-      - unitId
-    HealCommand:
-      type: object
-      description: Heal a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: heal
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/HealParams'
-    MarchParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    MarchCommand:
-      type: object
-      description: Set unit to march mode
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: march
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/MarchParams'
-    LockParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    LockCommand:
-      type: object
-      description: Lock a unit in place
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: lock
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/LockParams'
-    DisbandParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        force:
-          type: boolean
-          description: Force disband without confirmation
-      required:
-      - unitId
-    DisbandCommand:
-      type: object
-      description: Disband a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: disband
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/DisbandParams'
-    PromoteParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        promotion:
-          type: string
-          description: Promotion type (e.g., PROMOTION_FIERCE)
-      required:
-      - unitId
-      - promotion
-    PromoteCommand:
-      type: object
-      description: Apply a promotion to a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: promote
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/PromoteParams'
-    PillageParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    PillageCommand:
-      type: object
-      description: Pillage with a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: pillage
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/PillageParams'
-    BurnParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    BurnCommand:
-      type: object
-      description: Burn with a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: burn
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/BurnParams'
-    UpgradeParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        unitType:
-          type: string
-          description: Target unit type (e.g., UNIT_SWORDSMAN)
-        buyGoods:
-          type: boolean
-          description: Pay for goods if needed
-      required:
-      - unitId
-      - unitType
-    UpgradeCommand:
-      type: object
-      description: Upgrade a unit to a new type
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: upgrade
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/UpgradeParams'
     SpreadReligionParams:
       type: object
       properties:
@@ -2960,38 +2632,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/JoinCityParams'
-    BuildParams:
-      type: object
-      properties:
-        cityId:
-          type: integer
-        unitType:
-          type: string
-          description: Unit type (e.g., UNIT_WARRIOR)
-        buyGoods:
-          type: boolean
-          description: Pay for goods if needed
-        first:
-          type: boolean
-          description: Add to front of build queue
-      required:
-      - cityId
-      - unitType
-    BuildCommand:
-      type: object
-      description: Start building a unit in a city
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: build
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/BuildParams'
     BuildProjectParams:
       type: object
       properties:
@@ -3167,29 +2807,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/HurryOrdersParams'
-    ResearchParams:
-      type: object
-      properties:
-        tech:
-          type: string
-          description: Tech type (e.g., TECH_FORESTRY)
-      required:
-      - tech
-    ResearchCommand:
-      type: object
-      description: Set the current research target
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: research
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/ResearchParams'
     RedrawTechCommand:
       type: object
       description: Redraw available technologies
@@ -3914,9 +3531,9 @@ components:
     TradePlayerLuxuryParams:
       type: object
       properties:
-        playerType:
+        targetPlayer:
           type: integer
-          description: Player index
+          description: Target player index
         resourceType:
           type: string
           description: Resource type
@@ -3924,7 +3541,7 @@ components:
           type: boolean
           default: true
       required:
-      - playerType
+      - targetPlayer
       - resourceType
     TradePlayerLuxuryCommand:
       type: object
@@ -3941,69 +3558,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/TradePlayerLuxuryParams'
-    TributeParams:
-      type: object
-      properties:
-        yieldType:
-          type: string
-          description: Yield type
-        amount:
-          type: integer
-        toPlayer:
-          type: integer
-          description: Target player index (or use toTribe)
-        toTribe:
-          type: string
-          description: Target tribe type (or use toPlayer)
-        fromPlayer:
-          type: integer
-          description: Source player (defaults to current)
-      required:
-      - yieldType
-      - amount
-    TributeCommand:
-      type: object
-      description: Send tribute to a player or tribe
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: tribute
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/TributeParams'
-    SwapParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        targetTileId:
-          type: integer
-        forceMarch:
-          type: boolean
-          description: Force march to swap position
-      required:
-      - unitId
-      - targetTileId
-    SwapCommand:
-      type: object
-      description: Swap unit position with another unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: swap
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/SwapParams'
     DoUnitQueueParams:
       type: object
       properties:
@@ -4031,7 +3585,7 @@ components:
       properties:
         unitId:
           type: integer
-        all:
+        clearAll:
           type: boolean
           description: Cancel all queued actions
       required:
@@ -4051,107 +3605,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/CancelUnitQueueParams'
-    FormationParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        effectUnitType:
-          type: string
-          description: Formation type (e.g., EFFECTUNIT_TESTUDO)
-      required:
-      - unitId
-      - effectUnitType
-    FormationCommand:
-      type: object
-      description: Set unit formation
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: formation
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/FormationParams'
-    UnlimberParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    UnlimberCommand:
-      type: object
-      description: Unlimber artillery unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: unlimber
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/UnlimberParams'
-    AnchorParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-      required:
-      - unitId
-    AnchorCommand:
-      type: object
-      description: Anchor ship
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: anchor
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/AnchorParams'
-    RepairParams:
-      type: object
-      properties:
-        unitId:
-          type: integer
-        buyGoods:
-          type: boolean
-          description: Pay for goods if needed
-        queue:
-          type: boolean
-          description: Queue the action
-        tileId:
-          type: integer
-          description: Tile to repair at
-      required:
-      - unitId
-    RepairCommand:
-      type: object
-      description: Repair a unit
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: repair
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/RepairParams'
     CancelImprovementParams:
       type: object
       properties:
@@ -4201,9 +3654,9 @@ components:
       properties:
         unitId:
           type: integer
-        buyGoods:
+        autoHarvest:
           type: boolean
-          description: Pay for goods if needed
+          description: Enable auto-harvest mode
       required:
       - unitId
     HarvestResourceCommand:
@@ -4299,15 +3752,16 @@ components:
     BuyTileParams:
       type: object
       properties:
-        unitId:
+        cityId:
           type: integer
+          description: City to buy tile for
         tileId:
           type: integer
         yieldType:
           type: string
           description: Yield type to use for payment
       required:
-      - unitId
+      - cityId
       - tileId
     BuyTileCommand:
       type: object
@@ -4519,12 +3973,12 @@ components:
       properties:
         unitId:
           type: integer
-        missionType:
-          type: string
-          description: Mission type
+        targetPlayer:
+          type: integer
+          description: Target player index for the mission
       required:
       - unitId
-      - missionType
+      - targetPlayer
     CaravanMissionStartCommand:
       type: object
       description: Start caravan mission
@@ -4728,11 +4182,11 @@ components:
       properties:
         characterId:
           type: integer
-        experience:
+        xp:
           type: integer
       required:
       - characterId
-      - experience
+      - xp
     SetCharacterExperienceCommand:
       type: object
       description: Set character XP
@@ -4961,9 +4415,6 @@ components:
       properties:
         characterId:
           type: integer
-        pin:
-          type: boolean
-          default: true
       required:
       - characterId
     PinCharacterCommand:
@@ -5094,12 +4545,12 @@ components:
       properties:
         cityId:
           type: integer
-        amount:
+        delta:
           type: integer
           description: Amount to add (negative to remove)
       required:
       - cityId
-      - amount
+      - delta
     ChangeCitizensCommand:
       type: object
       description: Change city citizen count
@@ -5200,11 +4651,11 @@ components:
     AbandonAmbitionParams:
       type: object
       properties:
-        ambitionType:
-          type: string
-          description: Ambition type
+        goalId:
+          type: integer
+          description: Goal ID to abandon
       required:
-      - ambitionType
+      - goalId
     AbandonAmbitionCommand:
       type: object
       description: Abandon an ambition
@@ -5228,9 +4679,10 @@ components:
           description: Goal type
         playerType:
           type: integer
-          description: Player index (defaults to current)
+          description: Player index
       required:
       - goalType
+      - playerType
     AddPlayerGoalCommand:
       type: object
       description: Add a goal to player
@@ -5249,14 +4701,14 @@ components:
     RemovePlayerGoalParams:
       type: object
       properties:
-        goalType:
-          type: string
-          description: Goal type
+        goalId:
+          type: integer
+          description: Goal ID to remove
         playerType:
           type: integer
           description: Player index (defaults to current)
       required:
-      - goalType
+      - goalId
     RemovePlayerGoalCommand:
       type: object
       description: Remove player goal
@@ -5275,10 +4727,14 @@ components:
     EventStoryParams:
       type: object
       properties:
+        playerType:
+          type: integer
+          description: Player index
         eventType:
           type: string
           description: Event type
       required:
+      - playerType
       - eventType
     EventStoryCommand:
       type: object
@@ -5301,10 +4757,9 @@ components:
         goalType:
           type: string
           description: Goal type
-        success:
+        fail:
           type: boolean
-          description: Complete (true) or fail (false)
-          default: true
+          description: Fail the goal (omit or false to complete)
       required:
       - goalType
     FinishGoalCommand:
@@ -5322,67 +4777,13 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/FinishGoalParams'
-    ChatParams:
-      type: object
-      properties:
-        message:
-          type: string
-        toPlayer:
-          type: integer
-          description: Target player (omit for all)
-      required:
-      - message
-    ChatCommand:
-      type: object
-      description: Send chat message
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: chat
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/ChatParams'
-    PingParams:
-      type: object
-      properties:
-        tileId:
-          type: integer
-        message:
-          type: string
-          description: Optional ping message
-      required:
-      - tileId
-    PingCommand:
-      type: object
-      description: Ping a map location
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: ping
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/PingParams'
     CustomReminderParams:
       type: object
       properties:
         message:
           type: string
-        turn:
-          type: integer
-          description: Turn to trigger reminder
       required:
       - message
-      - turn
     CustomReminderCommand:
       type: object
       description: Create custom reminder
@@ -5422,7 +4823,6 @@ components:
       description: Extend game time
       required:
       - action
-      - params
       properties:
         action:
           type: string
@@ -5430,52 +4830,15 @@ components:
         requestId:
           type: string
           description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/ExtendTimeParams'
-    PauseCommand:
-      type: object
-      description: Pause the game
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          const: pause
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-    UndoCommand:
-      type: object
-      description: Undo last action
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          const: undo
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-    RedoCommand:
-      type: object
-      description: Redo undone action
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          const: redo
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
     ReplayTurnParams:
       type: object
       properties:
-        turn:
+        numTurns:
           type: integer
-          description: Turn number to replay from
-      required:
-      - turn
+          description: Number of turns to replay
+        step:
+          type: boolean
+          description: Step through replay
     ReplayTurnCommand:
       type: object
       description: Replay previous turns
@@ -5496,6 +4859,7 @@ components:
       description: Let AI finish turn
       required:
       - action
+      - params
       properties:
         action:
           type: string
@@ -5503,6 +4867,8 @@ components:
         requestId:
           type: string
           description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AiFinishTurnParams'
     ToggleNoReplayCommand:
       type: object
       description: Toggle turn replay setting
@@ -5518,14 +4884,15 @@ components:
     TeamAllianceParams:
       type: object
       properties:
-        targetPlayer:
+        player1:
           type: integer
-          description: Target player index
-        enable:
-          type: boolean
-          default: true
+          description: First player index
+        player2:
+          type: integer
+          description: Second player index
       required:
-      - targetPlayer
+      - player1
+      - player2
     TeamAllianceCommand:
       type: object
       description: Create team alliance
@@ -5571,11 +4938,19 @@ components:
     VictoryTeamParams:
       type: object
       properties:
-        team:
+        teamType:
           type: integer
           description: Team index
+        victoryType:
+          type: string
+          description: Victory type
+        actionType:
+          type: string
+          description: Action type
       required:
-      - team
+      - teamType
+      - victoryType
+      - actionType
     VictoryTeamCommand:
       type: object
       description: Set victory for team
@@ -5707,12 +5082,12 @@ components:
       properties:
         unitId:
           type: integer
-        amount:
+        delta:
           type: integer
           description: Amount to add (negative to reduce)
       required:
       - unitId
-      - amount
+      - delta
     ChangeCooldownCommand:
       type: object
       description: Modify unit cooldown
@@ -5733,12 +5108,12 @@ components:
       properties:
         unitId:
           type: integer
-        amount:
+        delta:
           type: integer
           description: Amount to add (negative to heal)
       required:
       - unitId
-      - amount
+      - delta
     ChangeDamageCommand:
       type: object
       description: Modify unit damage
@@ -5759,10 +5134,6 @@ components:
       properties:
         unitId:
           type: integer
-        amount:
-          type: integer
-          description: Levels to add
-          default: 1
       required:
       - unitId
     UnitIncrementLevelCommand:
@@ -5788,9 +5159,9 @@ components:
         promotionType:
           type: string
           description: Promotion type
-        remove:
-          type: boolean
-          description: Remove instead of add
+        delta:
+          type: integer
+          description: Change amount (negative to remove)
       required:
       - unitId
       - promotionType
@@ -5820,6 +5191,9 @@ components:
         familyType:
           type: string
           description: Family type
+        turn:
+          type: integer
+          description: Turn the city was founded
       required:
       - tileId
       - playerType
@@ -5917,12 +5291,11 @@ components:
       properties:
         cityId:
           type: integer
-        amount:
-          type: integer
-          description: Amount to add (negative to shrink)
+        grow:
+          type: boolean
+          description: Grow culture (true) or shrink (false)
       required:
       - cityId
-      - amount
     ChangeCultureCommand:
       type: object
       description: Grow or shrink city culture
@@ -5997,13 +5370,12 @@ components:
         projectType:
           type: string
           description: Project type
-        amount:
+        delta:
           type: integer
-          description: Progress to add
+          description: Progress to add (negative to remove)
       required:
       - cityId
       - projectType
-      - amount
     ChangeProjectCommand:
       type: object
       description: Modify project progress
@@ -6128,9 +5500,9 @@ components:
       properties:
         tileId:
           type: integer
-        enable:
+        hasRoad:
           type: boolean
-          default: true
+          description: Add road (true) or remove (false)
       required:
       - tileId
     SetRoadCommand:
@@ -6182,9 +5554,11 @@ components:
         playerType:
           type: integer
           description: Owner player index
+        tribeType:
+          type: string
+          description: Owner tribe type
       required:
       - tileId
-      - playerType
     SetTileOwnerCommand:
       type: object
       description: Set tile owner
@@ -6205,11 +5579,12 @@ components:
       properties:
         tileId:
           type: integer
-        enable:
-          type: boolean
-          default: true
+        citySiteType:
+          type: string
+          description: City site type
       required:
       - tileId
+      - citySiteType
     SetCitySiteCommand:
       type: object
       description: Set city site marker
@@ -6253,9 +5628,9 @@ components:
     MapRevealParams:
       type: object
       properties:
-        playerType:
+        teamType:
           type: integer
-          description: Player index (defaults to current)
+          description: Team index (defaults to current player's team)
     MapRevealCommand:
       type: object
       description: Reveal entire map
@@ -6274,9 +5649,9 @@ components:
     MapUnrevealParams:
       type: object
       properties:
-        playerType:
+        teamType:
           type: integer
-          description: Player index (defaults to current)
+          description: Team index (defaults to current player's team)
     MapUnrevealCommand:
       type: object
       description: Hide entire map
@@ -6375,29 +5750,6 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/AddMoneyParams'
-    CheatParams:
-      type: object
-      properties:
-        cheatType:
-          type: string
-          description: Cheat type
-      required:
-      - cheatType
-    CheatCommand:
-      type: object
-      description: Execute cheat hotkey
-      required:
-      - action
-      - params
-      properties:
-        action:
-          type: string
-          const: cheat
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          $ref: '#/components/schemas/CheatParams'
     MakeCharacterDeadParams:
       type: object
       properties:
@@ -6425,9 +5777,9 @@ components:
       properties:
         characterId:
           type: integer
-        safe:
-          type: boolean
-          default: true
+        numTurns:
+          type: integer
+          description: Number of turns to protect (default 10)
       required:
       - characterId
     MakeCharacterSafeCommand:
@@ -6454,6 +5806,12 @@ components:
         familyType:
           type: string
           description: Family type
+        age:
+          type: integer
+          description: Character age
+        fillValue:
+          type: boolean
+          description: Fill random attribute values
       required:
       - playerType
     NewCharacterCommand:
@@ -6477,11 +5835,15 @@ components:
         playerType:
           type: integer
           description: Owner player index
+        familyType:
+          type: string
+          description: Family type
         characterType:
           type: string
           description: Character type
       required:
       - playerType
+      - familyType
       - characterType
     AddCharacterCommand:
       type: object
@@ -6524,6 +5886,688 @@ components:
           description: Optional client-provided ID for response correlation
         params:
           $ref: '#/components/schemas/TribeLeaderParams'
+    AttackParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        targetTileId:
+          type: integer
+      required:
+      - unitId
+      - targetTileId
+    AttackCommand:
+      type: object
+      description: Attack a target tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: attack
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AttackParams'
+    FortifyParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    FortifyCommand:
+      type: object
+      description: Fortify a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: fortify
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FortifyParams'
+    PassParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    PassCommand:
+      type: object
+      description: Skip a unit's turn
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: pass
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PassParams'
+    SleepParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    SleepCommand:
+      type: object
+      description: Put a unit to sleep
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: sleep
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SleepParams'
+    SentryParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    SentryCommand:
+      type: object
+      description: Set a unit to sentry mode
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: sentry
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SentryParams'
+    WakeParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    WakeCommand:
+      type: object
+      description: Wake a sleeping or sentry unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: wake
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/WakeParams'
+    HealParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        auto:
+          type: boolean
+          description: Enable auto-heal mode
+      required:
+      - unitId
+    HealCommand:
+      type: object
+      description: Heal a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: heal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HealParams'
+    MarchParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    MarchCommand:
+      type: object
+      description: Set unit to march mode
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: march
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MarchParams'
+    LockParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    LockCommand:
+      type: object
+      description: Lock a unit in place
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: lock
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/LockParams'
+    DisbandParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        force:
+          type: boolean
+          description: Force disband without confirmation
+      required:
+      - unitId
+    DisbandCommand:
+      type: object
+      description: Disband a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: disband
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DisbandParams'
+    PromoteParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        promotion:
+          type: string
+          description: Promotion type (e.g., PROMOTION_FIERCE)
+      required:
+      - unitId
+      - promotion
+    PromoteCommand:
+      type: object
+      description: Apply a promotion to a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: promote
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PromoteParams'
+    PillageParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    PillageCommand:
+      type: object
+      description: Pillage with a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: pillage
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PillageParams'
+    BurnParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    BurnCommand:
+      type: object
+      description: Burn with a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: burn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BurnParams'
+    UpgradeParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        unitType:
+          type: string
+          description: Target unit type (e.g., UNIT_SWORDSMAN)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+      required:
+      - unitId
+      - unitType
+    UpgradeCommand:
+      type: object
+      description: Upgrade a unit to a new type
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: upgrade
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UpgradeParams'
+    BuildParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        unitType:
+          type: string
+          description: Unit type (e.g., UNIT_WARRIOR)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        first:
+          type: boolean
+          description: Add to front of build queue
+      required:
+      - cityId
+      - unitType
+    BuildCommand:
+      type: object
+      description: Start building a unit in a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: build
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildParams'
+    ResearchParams:
+      type: object
+      properties:
+        tech:
+          type: string
+          description: Tech type (e.g., TECH_FORESTRY)
+      required:
+      - tech
+    ResearchCommand:
+      type: object
+      description: Set the current research target
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: research
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ResearchParams'
+    TributeParams:
+      type: object
+      properties:
+        yieldType:
+          type: string
+          description: Yield type
+        amount:
+          type: integer
+        toPlayer:
+          type: integer
+          description: Target player index (or use toTribe)
+        toTribe:
+          type: string
+          description: Target tribe type (or use toPlayer)
+        fromPlayer:
+          type: integer
+          description: Source player (defaults to current)
+      required:
+      - yieldType
+      - amount
+    TributeCommand:
+      type: object
+      description: Send tribute to a player or tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tribute
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TributeParams'
+    SwapParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        targetTileId:
+          type: integer
+        forceMarch:
+          type: boolean
+          description: Force march to swap position
+      required:
+      - unitId
+      - targetTileId
+    SwapCommand:
+      type: object
+      description: Swap unit position with another unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: swap
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SwapParams'
+    FormationParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        effectUnitType:
+          type: string
+          description: Formation type (e.g., EFFECTUNIT_TESTUDO)
+      required:
+      - unitId
+      - effectUnitType
+    FormationCommand:
+      type: object
+      description: Set unit formation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: formation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FormationParams'
+    UnlimberParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    UnlimberCommand:
+      type: object
+      description: Unlimber artillery unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unlimber
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnlimberParams'
+    AnchorParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    AnchorCommand:
+      type: object
+      description: Anchor ship
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: anchor
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AnchorParams'
+    RepairParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        queue:
+          type: boolean
+          description: Queue the action
+        tileId:
+          type: integer
+          description: Tile to repair at
+      required:
+      - unitId
+    RepairCommand:
+      type: object
+      description: Repair a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: repair
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RepairParams'
+    ChatParams:
+      type: object
+      properties:
+        chatType:
+          type: string
+          description: Chat type
+        message:
+          type: string
+        toPlayer:
+          type: integer
+          description: Target player (omit for all)
+      required:
+      - chatType
+      - message
+    ChatCommand:
+      type: object
+      description: Send chat message
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: chat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChatParams'
+    PingParams:
+      type: object
+      properties:
+        pingType:
+          type: string
+          description: Ping type
+        tileId:
+          type: integer
+        message:
+          type: string
+          description: Optional ping message
+        reminderTurn:
+          type: integer
+          description: Turn to trigger reminder
+      required:
+      - pingType
+      - tileId
+    PingCommand:
+      type: object
+      description: Ping a map location
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: ping
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PingParams'
+    PauseCommand:
+      type: object
+      description: Pause the game
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: pause
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    UndoParams:
+      type: object
+      properties:
+        turnUndo:
+          type: boolean
+          description: Undo entire turn instead of last action
+    UndoCommand:
+      type: object
+      description: Undo last action
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: undo
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UndoParams'
+    RedoCommand:
+      type: object
+      description: Redo undone action
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: redo
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    AiFinishTurnParams:
+      type: object
+      properties:
+        numTurns:
+          type: integer
+          description: Number of turns for AI to play
+    CheatParams:
+      type: object
+      properties:
+        hotkeyType:
+          type: string
+          description: Hotkey type (e.g., HOTKEY_GAME_CHEAT_SHOW_ALL)
+      required:
+      - hotkeyType
+    CheatCommand:
+      type: object
+      description: Execute cheat hotkey
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cheat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CheatParams'
     GameCommand:
       oneOf:
       - $ref: '#/components/schemas/MoveUnitCommand'

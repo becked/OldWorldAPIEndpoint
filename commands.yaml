@@ -404,7 +404,7 @@ categories:
       tradePlayerLuxury:
         description: "Toggle luxury trading with another player"
         params:
-          playerType: { type: integer, required: true, description: "Player index" }
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
           resourceType: { type: string, required: true, description: "Resource type" }
           enable: { type: boolean, default: true }
 
@@ -436,7 +436,7 @@ categories:
         description: "Cancel unit's queued actions"
         params:
           unitId: { type: integer, required: true }
-          all: { type: boolean, description: "Cancel all queued actions" }
+          clearAll: { type: boolean, description: "Cancel all queued actions" }
 
       formation:
         description: "Set unit formation"
@@ -476,7 +476,7 @@ categories:
         description: "Harvest resource with worker"
         params:
           unitId: { type: integer, required: true }
-          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          autoHarvest: { type: boolean, description: "Enable auto-harvest mode" }
 
       unitAutomate:
         description: "Toggle unit automation"
@@ -499,7 +499,7 @@ categories:
       buyTile:
         description: "Buy a tile for a city"
         params:
-          unitId: { type: integer, required: true }
+          cityId: { type: integer, required: true, description: "City to buy tile for" }
           tileId: { type: integer, required: true }
           yieldType: { type: string, description: "Yield type to use for payment" }
 
@@ -554,7 +554,7 @@ categories:
         description: "Start caravan mission"
         params:
           unitId: { type: integer, required: true }
-          missionType: { type: string, required: true, description: "Mission type" }
+          targetPlayer: { type: integer, required: true, description: "Target player index for the mission" }
 
       caravanMissionCancel:
         description: "Cancel caravan mission"
@@ -609,7 +609,7 @@ categories:
         description: "Set character XP"
         params:
           characterId: { type: integer, required: true }
-          experience: { type: integer, required: true }
+          xp: { type: integer, required: true }
 
       setCharacterCognomen:
         description: "Set character cognomen/title"
@@ -663,7 +663,6 @@ categories:
         description: "Pin character in UI"
         params:
           characterId: { type: integer, required: true }
-          pin: { type: boolean, default: true }
 
   cityManagement:
     displayName: "City Management"
@@ -698,7 +697,7 @@ categories:
         description: "Change city citizen count"
         params:
           cityId: { type: integer, required: true }
-          amount: { type: integer, required: true, description: "Amount to add (negative to remove)" }
+          delta: { type: integer, required: true, description: "Amount to add (negative to remove)" }
 
       changeReligion:
         description: "Add or remove religion in city"
@@ -725,48 +724,51 @@ categories:
       abandonAmbition:
         description: "Abandon an ambition"
         params:
-          ambitionType: { type: string, required: true, description: "Ambition type" }
+          goalId: { type: integer, required: true, description: "Goal ID to abandon" }
 
       addPlayerGoal:
         description: "Add a goal to player"
         params:
           goalType: { type: string, required: true, description: "Goal type" }
-          playerType: { type: integer, description: "Player index (defaults to current)" }
+          playerType: { type: integer, required: true, description: "Player index" }
 
       removePlayerGoal:
         description: "Remove player goal"
         params:
-          goalType: { type: string, required: true, description: "Goal type" }
+          goalId: { type: integer, required: true, description: "Goal ID to remove" }
           playerType: { type: integer, description: "Player index (defaults to current)" }
 
       eventStory:
         description: "Trigger event story"
         params:
+          playerType: { type: integer, required: true, description: "Player index" }
           eventType: { type: string, required: true, description: "Event type" }
 
       finishGoal:
         description: "Complete or fail a goal"
         params:
           goalType: { type: string, required: true, description: "Goal type" }
-          success: { type: boolean, default: true, description: "Complete (true) or fail (false)" }
+          fail: { type: boolean, description: "Fail the goal (omit or false to complete)" }
 
       chat:
         description: "Send chat message"
         params:
+          chatType: { type: string, required: true, description: "Chat type" }
           message: { type: string, required: true }
           toPlayer: { type: integer, description: "Target player (omit for all)" }
 
       ping:
         description: "Ping a map location"
         params:
+          pingType: { type: string, required: true, description: "Ping type" }
           tileId: { type: integer, required: true }
           message: { type: string, description: "Optional ping message" }
+          reminderTurn: { type: integer, description: "Turn to trigger reminder" }
 
       customReminder:
         description: "Create custom reminder"
         params:
           message: { type: string, required: true }
-          turn: { type: integer, required: true, description: "Turn to trigger reminder" }
 
       clearChat:
         description: "Clear chat history"
@@ -777,8 +779,7 @@ categories:
     commands:
       extendTime:
         description: "Extend game time"
-        params:
-          seconds: { type: integer, required: true }
+        params: {}
 
       pause:
         description: "Pause the game"
@@ -786,7 +787,8 @@ categories:
 
       undo:
         description: "Undo last action"
-        params: {}
+        params:
+          turnUndo: { type: boolean, description: "Undo entire turn instead of last action" }
 
       redo:
         description: "Redo undone action"
@@ -795,11 +797,13 @@ categories:
       replayTurn:
         description: "Replay previous turns"
         params:
-          turn: { type: integer, required: true, description: "Turn number to replay from" }
+          numTurns: { type: integer, description: "Number of turns to replay" }
+          step: { type: boolean, description: "Step through replay" }
 
       aiFinishTurn:
         description: "Let AI finish turn"
-        params: {}
+        params:
+          numTurns: { type: integer, description: "Number of turns for AI to play" }
 
       toggleNoReplay:
         description: "Toggle turn replay setting"
@@ -811,8 +815,8 @@ categories:
       teamAlliance:
         description: "Create team alliance"
         params:
-          targetPlayer: { type: integer, required: true, description: "Target player index" }
-          enable: { type: boolean, default: true }
+          player1: { type: integer, required: true, description: "First player index" }
+          player2: { type: integer, required: true, description: "Second player index" }
 
       tribeInvasion:
         description: "Trigger tribe invasion"
@@ -823,7 +827,9 @@ categories:
       victoryTeam:
         description: "Set victory for team"
         params:
-          team: { type: integer, required: true, description: "Team index" }
+          teamType: { type: integer, required: true, description: "Team index" }
+          victoryType: { type: string, required: true, description: "Victory type" }
+          actionType: { type: string, required: true, description: "Action type" }
 
   editorUnits:
     displayName: "Editor/Debug - Units"
@@ -859,26 +865,25 @@ categories:
         description: "Modify unit cooldown"
         params:
           unitId: { type: integer, required: true }
-          amount: { type: integer, required: true, description: "Amount to add (negative to reduce)" }
+          delta: { type: integer, required: true, description: "Amount to add (negative to reduce)" }
 
       changeDamage:
         description: "Modify unit damage"
         params:
           unitId: { type: integer, required: true }
-          amount: { type: integer, required: true, description: "Amount to add (negative to heal)" }
+          delta: { type: integer, required: true, description: "Amount to add (negative to heal)" }
 
       unitIncrementLevel:
         description: "Increase unit level"
         params:
           unitId: { type: integer, required: true }
-          amount: { type: integer, default: 1, description: "Levels to add" }
 
       unitChangePromotion:
         description: "Add or remove promotion"
         params:
           unitId: { type: integer, required: true }
           promotionType: { type: string, required: true, description: "Promotion type" }
-          remove: { type: boolean, description: "Remove instead of add" }
+          delta: { type: integer, description: "Change amount (negative to remove)" }
 
   editorCities:
     displayName: "Editor/Debug - Cities"
@@ -889,6 +894,7 @@ categories:
           tileId: { type: integer, required: true }
           playerType: { type: integer, required: true, description: "Owner player index" }
           familyType: { type: string, required: true, description: "Family type" }
+          turn: { type: integer, description: "Turn the city was founded" }
 
       removeCity:
         description: "Remove a city"
@@ -911,7 +917,7 @@ categories:
         description: "Grow or shrink city culture"
         params:
           cityId: { type: integer, required: true }
-          amount: { type: integer, required: true, description: "Amount to add (negative to shrink)" }
+          grow: { type: boolean, description: "Grow culture (true) or shrink (false)" }
 
       changeCityBuildTurns:
         description: "Modify build progress"
@@ -930,7 +936,7 @@ categories:
         params:
           cityId: { type: integer, required: true }
           projectType: { type: string, required: true, description: "Project type" }
-          amount: { type: integer, required: true, description: "Progress to add" }
+          delta: { type: integer, description: "Progress to add (negative to remove)" }
 
   editorTiles:
     displayName: "Editor/Debug - Tiles"
@@ -963,7 +969,7 @@ categories:
         description: "Add or remove road"
         params:
           tileId: { type: integer, required: true }
-          enable: { type: boolean, default: true }
+          hasRoad: { type: boolean, description: "Add road (true) or remove (false)" }
 
       setImprovement:
         description: "Set tile improvement"
@@ -975,13 +981,14 @@ categories:
         description: "Set tile owner"
         params:
           tileId: { type: integer, required: true }
-          playerType: { type: integer, required: true, description: "Owner player index" }
+          playerType: { type: integer, description: "Owner player index" }
+          tribeType: { type: string, description: "Owner tribe type" }
 
       setCitySite:
         description: "Set city site marker"
         params:
           tileId: { type: integer, required: true }
-          enable: { type: boolean, default: true }
+          citySiteType: { type: string, required: true, description: "City site type" }
 
       improvementBuildTurns:
         description: "Set improvement build turns"
@@ -995,12 +1002,12 @@ categories:
       mapReveal:
         description: "Reveal entire map"
         params:
-          playerType: { type: integer, description: "Player index (defaults to current)" }
+          teamType: { type: integer, description: "Team index (defaults to current player's team)" }
 
       mapUnreveal:
         description: "Hide entire map"
         params:
-          playerType: { type: integer, description: "Player index (defaults to current)" }
+          teamType: { type: integer, description: "Team index (defaults to current player's team)" }
 
       addTech:
         description: "Grant technology to player"
@@ -1024,7 +1031,7 @@ categories:
       cheat:
         description: "Execute cheat hotkey"
         params:
-          cheatType: { type: string, required: true, description: "Cheat type" }
+          hotkeyType: { type: string, required: true, description: "Hotkey type (e.g., HOTKEY_GAME_CHEAT_SHOW_ALL)" }
 
   editorCharacters:
     displayName: "Editor/Debug - Characters"
@@ -1038,18 +1045,21 @@ categories:
         description: "Make character immune to death"
         params:
           characterId: { type: integer, required: true }
-          safe: { type: boolean, default: true }
+          numTurns: { type: integer, description: "Number of turns to protect (default 10)" }
 
       newCharacter:
         description: "Create random character"
         params:
           playerType: { type: integer, required: true, description: "Owner player index" }
           familyType: { type: string, description: "Family type" }
+          age: { type: integer, description: "Character age" }
+          fillValue: { type: boolean, description: "Fill random attribute values" }
 
       addCharacter:
         description: "Add specific character type"
         params:
           playerType: { type: integer, required: true, description: "Owner player index" }
+          familyType: { type: string, required: true, description: "Family type" }
           characterType: { type: string, required: true, description: "Character type" }
 
       tribeLeader:

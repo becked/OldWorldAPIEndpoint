@@ -15,7 +15,7 @@ public class OpenApiGenerator
         _typeAnalyzer = typeAnalyzer;
     }
 
-    public string Generate(List<MethodSignature> methods)
+    public string Generate(List<MethodSignature> methods, string version)
     {
         // Filter out methods with unsupported parameter types (same logic as CommandExecutorGenerator)
         var supportedMethods = methods.Where(m => !HasUnsupportedParameters(m)).ToList();
@@ -34,7 +34,7 @@ public class OpenApiGenerator
         sb.AppendLine("  description: |");
         sb.AppendLine("    REST API for controlling Old World game. This API is auto-generated");
         sb.AppendLine("    from the game's source code and exposes all available game commands.");
-        sb.AppendLine("  version: \"2.3.0\"");
+        sb.AppendLine($"  version: \"{version}\"");
         sb.AppendLine("  contact:");
         sb.AppendLine("    name: Old World API Endpoint");
         sb.AppendLine("    url: https://github.com/becked/OldWorldAPIEndpoint");

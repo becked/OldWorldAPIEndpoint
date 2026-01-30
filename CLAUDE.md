@@ -208,8 +208,40 @@ After making code changes, always complete these steps:
 4. **Update Documentation** (if API changed) - see below
 
 **IMPORTANT: When adding new commands to CommandExecutor.cs, you MUST also update:**
-- `docs/openapi.yaml` - Add command to the Available Actions list and examples
+- `commands.yaml` - Add command parameters to the appropriate category
+- Run `python3 scripts/generate-openapi.py` to regenerate typed schemas
 - `docs/api-reference.md` - Document the command with parameters and examples
+
+## Command Schema Generation
+
+Command parameters are defined in `commands.yaml` (single source of truth). The generator script produces typed OpenAPI schemas using oneOf + discriminator for progenitor (Rust) compatibility.
+
+**When adding/modifying commands in CommandExecutor.cs:**
+
+1. Update `commands.yaml` with the command parameters
+2. Run: `python3 scripts/generate-openapi.py`
+3. Verify: The script reports the command count
+
+**Parameter extraction from C# to YAML:**
+- `TryGetIntParam(cmd, "x", ...)` → `x: { type: integer, required: true }`
+- `TryGetStringParam(cmd, "x", ...)` → `x: { type: string, required: true }`
+- `GetBoolParam(cmd, "x", false)` → `x: { type: boolean }`
+- `GetIntParam(cmd, "x", -1)` → `x: { type: integer }`
+
+**YAML format:**
+```yaml
+categories:
+  categoryName:
+    displayName: "Human Readable Name"
+    commands:
+      commandName:
+        description: "What the command does"
+        params:
+          paramName:
+            type: integer|string|boolean
+            required: true  # omit for optional
+            default: value  # for optional with default
+```
 
 ## Documentation
 
@@ -229,6 +261,7 @@ Update documentation when:
 
 | Change Type | Files to Update |
 |-------------|-----------------|
+| New/changed command | `commands.yaml`, run `generate-openapi.py`, `docs/api-reference.md` |
 | New/changed fields | `docs/schemas/{entity}.schema.json`, `docs/schemas/{entity}.md` |
 | New endpoint | `docs/openapi.yaml`, `docs/api-reference.md` |
 | New event type | `docs/schemas/events.schema.json`, `docs/schemas/events.md` |
@@ -236,7 +269,8 @@ Update documentation when:
 
 ### Key Documentation Files
 
-- `docs/openapi.yaml` - OpenAPI 3.0 spec (16 endpoints)
+- `commands.yaml` - Command parameter definitions (source of truth)
+- `docs/openapi.yaml` - OpenAPI 3.0 spec (generated command schemas)
 - `docs/schemas/*.schema.json` - JSON Schema definitions
 - `docs/schemas/*.md` - Human-readable schema docs
 - `docs/api-reference.md` - Endpoint reference with examples

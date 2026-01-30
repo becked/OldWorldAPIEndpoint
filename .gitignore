@@ -24,3 +24,4 @@ test/data/
 # Steam Workshop upload artifacts
 workshop_content/
 workshop_upload.vdf
+.venv/

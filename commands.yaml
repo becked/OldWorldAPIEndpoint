@@ -1,0 +1,1059 @@
+# commands.yaml - Single source of truth for command parameters
+# When adding commands to CommandExecutor.cs, update this file and run:
+#   python3 scripts/generate-openapi.py
+#
+# Parameter types: integer, string, boolean
+# Required params have 'required: true'
+# Optional params may have 'default' values
+
+version: "1.0"
+
+categories:
+  unitMovement:
+    displayName: "Unit Movement & Combat"
+    commands:
+      moveUnit:
+        description: "Move a unit to a target tile"
+        params:
+          unitId: { type: integer, required: true, description: "Unit ID to move" }
+          targetTileId: { type: integer, required: true, description: "Destination tile ID" }
+          queue: { type: boolean, description: "Queue the move instead of executing immediately" }
+          march: { type: boolean, description: "Use march movement mode" }
+          waypointTileId: { type: integer, description: "Optional waypoint tile ID" }
+
+      attack:
+        description: "Attack a target tile"
+        params:
+          unitId: { type: integer, required: true }
+          targetTileId: { type: integer, required: true }
+
+      fortify:
+        description: "Fortify a unit"
+        params:
+          unitId: { type: integer, required: true }
+
+      pass:
+        description: "Skip a unit's turn"
+        aliases: [skip]
+        params:
+          unitId: { type: integer, required: true }
+
+      sleep:
+        description: "Put a unit to sleep"
+        params:
+          unitId: { type: integer, required: true }
+
+      sentry:
+        description: "Set a unit to sentry mode"
+        params:
+          unitId: { type: integer, required: true }
+
+      wake:
+        description: "Wake a sleeping or sentry unit"
+        params:
+          unitId: { type: integer, required: true }
+
+      heal:
+        description: "Heal a unit"
+        params:
+          unitId: { type: integer, required: true }
+          auto: { type: boolean, description: "Enable auto-heal mode" }
+
+      march:
+        description: "Set unit to march mode"
+        params:
+          unitId: { type: integer, required: true }
+
+      lock:
+        description: "Lock a unit in place"
+        params:
+          unitId: { type: integer, required: true }
+
+  unitActions:
+    displayName: "Unit Actions"
+    commands:
+      disband:
+        description: "Disband a unit"
+        params:
+          unitId: { type: integer, required: true }
+          force: { type: boolean, description: "Force disband without confirmation" }
+
+      promote:
+        description: "Apply a promotion to a unit"
+        params:
+          unitId: { type: integer, required: true }
+          promotion: { type: string, required: true, description: "Promotion type (e.g., PROMOTION_FIERCE)" }
+
+      pillage:
+        description: "Pillage with a unit"
+        params:
+          unitId: { type: integer, required: true }
+
+      burn:
+        description: "Burn with a unit"
+        params:
+          unitId: { type: integer, required: true }
+
+      upgrade:
+        description: "Upgrade a unit to a new type"
+        params:
+          unitId: { type: integer, required: true }
+          unitType: { type: string, required: true, description: "Target unit type (e.g., UNIT_SWORDSMAN)" }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+
+      spreadReligion:
+        description: "Spread religion to a city"
+        params:
+          unitId: { type: integer, required: true }
+          cityId: { type: integer, required: true }
+
+  workerCommands:
+    displayName: "Worker Commands"
+    commands:
+      buildImprovement:
+        description: "Build an improvement on a tile"
+        params:
+          unitId: { type: integer, required: true }
+          improvementType: { type: string, required: true, description: "Improvement type (e.g., IMPROVEMENT_FARM)" }
+          tileId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          queue: { type: boolean, description: "Queue the action" }
+
+      upgradeImprovement:
+        description: "Upgrade an existing improvement"
+        params:
+          unitId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+
+      addRoad:
+        description: "Add a road to a tile"
+        params:
+          unitId: { type: integer, required: true }
+          tileId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          queue: { type: boolean, description: "Queue the action" }
+
+  cityFoundation:
+    displayName: "City Foundation"
+    commands:
+      foundCity:
+        description: "Found a new city with a settler"
+        params:
+          unitId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type (e.g., FAMILY_CHAMPIONS)" }
+          nationType: { type: string, description: "Nation type for the city" }
+
+      joinCity:
+        description: "Join a unit to a city"
+        params:
+          unitId: { type: integer, required: true }
+
+  cityProduction:
+    displayName: "City Production"
+    commands:
+      build:
+        description: "Start building a unit in a city"
+        aliases: [buildUnit]
+        params:
+          cityId: { type: integer, required: true }
+          unitType: { type: string, required: true, description: "Unit type (e.g., UNIT_WARRIOR)" }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          first: { type: boolean, description: "Add to front of build queue" }
+
+      buildProject:
+        description: "Start building a project in a city"
+        params:
+          cityId: { type: integer, required: true }
+          projectType: { type: string, required: true, description: "Project type (e.g., PROJECT_GRANARY)" }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          first: { type: boolean, description: "Add to front of build queue" }
+          repeat: { type: boolean, description: "Repeat when complete" }
+
+      buildQueue:
+        description: "Reorder the build queue"
+        params:
+          cityId: { type: integer, required: true }
+          oldSlot: { type: integer, required: true, description: "Current position in queue" }
+          newSlot: { type: integer, required: true, description: "New position in queue" }
+
+      hurryCivics:
+        description: "Rush production with civics"
+        aliases: [hurry]
+        params:
+          cityId: { type: integer, required: true }
+
+      hurryTraining:
+        description: "Rush production with training"
+        params:
+          cityId: { type: integer, required: true }
+
+      hurryMoney:
+        description: "Rush production with money"
+        params:
+          cityId: { type: integer, required: true }
+
+      hurryPopulation:
+        description: "Rush production with population"
+        params:
+          cityId: { type: integer, required: true }
+
+      hurryOrders:
+        description: "Rush production with orders"
+        params:
+          cityId: { type: integer, required: true }
+
+  research:
+    displayName: "Research & Decisions"
+    commands:
+      research:
+        description: "Set the current research target"
+        params:
+          tech: { type: string, required: true, description: "Tech type (e.g., TECH_FORESTRY)" }
+
+      redrawTech:
+        description: "Redraw available technologies"
+        params: {}
+
+      targetTech:
+        description: "Set a long-term tech target"
+        params:
+          techType: { type: string, required: true, description: "Tech type (e.g., TECH_IRONWORKING)" }
+
+      makeDecision:
+        description: "Make a decision choice"
+        params:
+          decisionId: { type: integer, required: true }
+          choiceIndex: { type: integer, required: true, description: "Index of the choice to select" }
+          data: { type: integer, description: "Optional data for the choice" }
+
+      removeDecision:
+        description: "Remove or dismiss a decision"
+        params:
+          decisionId: { type: integer, required: true }
+
+  turnManagement:
+    displayName: "Turn Management"
+    commands:
+      endTurn:
+        description: "End the current turn"
+        params:
+          force: { type: boolean, default: true, description: "Force end turn even with pending actions" }
+
+  diplomacyPlayer:
+    displayName: "Diplomacy - Players"
+    commands:
+      declareWar:
+        description: "Declare war on another player"
+        params:
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+
+      makePeace:
+        description: "Make peace with another player"
+        params:
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+
+      declareTruce:
+        description: "Declare a truce with another player"
+        params:
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+
+  diplomacyTribe:
+    displayName: "Diplomacy - Tribes"
+    commands:
+      declareWarTribe:
+        description: "Declare war on a tribe"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type (e.g., TRIBE_GAULS)" }
+
+      makePeaceTribe:
+        description: "Make peace with a tribe"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+
+      declareTruceTribe:
+        description: "Declare a truce with a tribe"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+
+      allyTribe:
+        description: "Form an alliance with a tribe"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+
+  diplomacyGifts:
+    displayName: "Diplomacy - Gifts"
+    commands:
+      giftCity:
+        description: "Gift a city to another player"
+        params:
+          cityId: { type: integer, required: true }
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+
+      giftYield:
+        description: "Gift resources to another player"
+        params:
+          yieldType: { type: string, required: true, description: "Yield type (e.g., YIELD_FOOD)" }
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+          reverse: { type: boolean, description: "Request instead of gift" }
+
+  characterManagement:
+    displayName: "Character Management"
+    commands:
+      assignGovernor:
+        description: "Assign a character as city governor"
+        params:
+          cityId: { type: integer, required: true }
+          characterId: { type: integer, required: true }
+
+      releaseGovernor:
+        description: "Release a city's governor"
+        params:
+          cityId: { type: integer, required: true }
+
+      assignGeneral:
+        description: "Assign a character as unit general"
+        params:
+          unitId: { type: integer, required: true }
+          characterId: { type: integer, required: true }
+
+      releaseGeneral:
+        description: "Release a unit's general"
+        params:
+          unitId: { type: integer, required: true }
+
+      assignAgent:
+        description: "Assign a character as city agent"
+        params:
+          cityId: { type: integer, required: true }
+          characterId: { type: integer, required: true }
+
+      releaseAgent:
+        description: "Release a city's agent"
+        params:
+          cityId: { type: integer, required: true }
+
+      startMission:
+        description: "Start a character mission"
+        params:
+          missionType: { type: string, required: true, description: "Mission type (e.g., MISSION_INFLUENCE)" }
+          characterId: { type: integer, required: true }
+          target: { type: string, description: "Optional target for the mission" }
+          cancel: { type: boolean, description: "Cancel an existing mission" }
+
+  lawsEconomy:
+    displayName: "Laws & Economy"
+    commands:
+      chooseLaw:
+        description: "Enact a law"
+        params:
+          lawType: { type: string, required: true, description: "Law type (e.g., LAW_SLAVERY)" }
+
+      cancelLaw:
+        description: "Cancel an active law"
+        params:
+          lawType: { type: string, required: true, description: "Law type" }
+
+      buyYield:
+        description: "Buy resources with money"
+        params:
+          yieldType: { type: string, required: true, description: "Yield type (e.g., YIELD_TRAINING)" }
+          amount: { type: integer, required: true }
+
+      sellYield:
+        description: "Sell resources for money"
+        params:
+          yieldType: { type: string, required: true, description: "Yield type" }
+          amount: { type: integer, required: true }
+
+      convertOrders:
+        description: "Convert orders to money"
+        params: {}
+
+      convertLegitimacy:
+        description: "Convert legitimacy"
+        params: {}
+
+      convertOrdersToScience:
+        description: "Convert orders to science"
+        params: {}
+
+  luxuryTrading:
+    displayName: "Luxury Trading"
+    commands:
+      tradeCityLuxury:
+        description: "Toggle luxury trading for a city"
+        params:
+          cityId: { type: integer, required: true }
+          resourceType: { type: string, required: true, description: "Resource type (e.g., RESOURCE_WINE)" }
+          enable: { type: boolean, default: true }
+
+      tradeFamilyLuxury:
+        description: "Toggle luxury trading for a family"
+        params:
+          familyType: { type: string, required: true, description: "Family type" }
+          resourceType: { type: string, required: true, description: "Resource type" }
+          enable: { type: boolean, default: true }
+
+      tradeTribeLuxury:
+        description: "Toggle luxury trading with a tribe"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+          resourceType: { type: string, required: true, description: "Resource type" }
+          enable: { type: boolean, default: true }
+
+      tradePlayerLuxury:
+        description: "Toggle luxury trading with another player"
+        params:
+          playerType: { type: integer, required: true, description: "Player index" }
+          resourceType: { type: string, required: true, description: "Resource type" }
+          enable: { type: boolean, default: true }
+
+      tribute:
+        description: "Send tribute to a player or tribe"
+        params:
+          yieldType: { type: string, required: true, description: "Yield type" }
+          amount: { type: integer, required: true }
+          toPlayer: { type: integer, description: "Target player index (or use toTribe)" }
+          toTribe: { type: string, description: "Target tribe type (or use toPlayer)" }
+          fromPlayer: { type: integer, description: "Source player (defaults to current)" }
+
+  unitSpecialActions:
+    displayName: "Unit Special Actions"
+    commands:
+      swap:
+        description: "Swap unit position with another unit"
+        params:
+          unitId: { type: integer, required: true }
+          targetTileId: { type: integer, required: true }
+          forceMarch: { type: boolean, description: "Force march to swap position" }
+
+      doUnitQueue:
+        description: "Execute unit's queued actions"
+        params:
+          unitId: { type: integer, required: true }
+
+      cancelUnitQueue:
+        description: "Cancel unit's queued actions"
+        params:
+          unitId: { type: integer, required: true }
+          all: { type: boolean, description: "Cancel all queued actions" }
+
+      formation:
+        description: "Set unit formation"
+        params:
+          unitId: { type: integer, required: true }
+          effectUnitType: { type: string, required: true, description: "Formation type (e.g., EFFECTUNIT_TESTUDO)" }
+
+      unlimber:
+        description: "Unlimber artillery unit"
+        params:
+          unitId: { type: integer, required: true }
+
+      anchor:
+        description: "Anchor ship"
+        params:
+          unitId: { type: integer, required: true }
+
+      repair:
+        description: "Repair a unit"
+        params:
+          unitId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          queue: { type: boolean, description: "Queue the action" }
+          tileId: { type: integer, description: "Tile to repair at" }
+
+      cancelImprovement:
+        description: "Cancel improvement being built"
+        params:
+          unitId: { type: integer, required: true }
+
+      removeVegetation:
+        description: "Remove vegetation from tile"
+        params:
+          unitId: { type: integer, required: true }
+
+      harvestResource:
+        description: "Harvest resource with worker"
+        params:
+          unitId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+
+      unitAutomate:
+        description: "Toggle unit automation"
+        params:
+          unitId: { type: integer, required: true }
+
+      addUrban:
+        description: "Add urban tile"
+        params:
+          unitId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+
+      roadTo:
+        description: "Build road to tiles"
+        params:
+          unitId: { type: integer, required: true }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          tileIds: { type: string, description: "Comma-separated tile IDs for the path" }
+
+      buyTile:
+        description: "Buy a tile for a city"
+        params:
+          unitId: { type: integer, required: true }
+          tileId: { type: integer, required: true }
+          yieldType: { type: string, description: "Yield type to use for payment" }
+
+      recruitMercenary:
+        description: "Recruit mercenary"
+        params:
+          unitId: { type: integer, required: true }
+
+      hireMercenary:
+        description: "Hire mercenary"
+        params:
+          unitId: { type: integer, required: true }
+
+      giftUnit:
+        description: "Gift unit to another player"
+        params:
+          unitId: { type: integer, required: true }
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+
+      launchOffensive:
+        description: "Launch offensive with general"
+        params:
+          unitId: { type: integer, required: true }
+
+      applyEffectUnit:
+        description: "Apply effect to unit"
+        params:
+          unitId: { type: integer, required: true }
+          effectUnitType: { type: string, required: true, description: "Effect type" }
+
+      selectUnit:
+        description: "Select a unit"
+        params:
+          unitId: { type: integer, required: true }
+
+  agentCaravan:
+    displayName: "Agent & Caravan Units"
+    commands:
+      createAgentNetwork:
+        description: "Create agent network in city"
+        params:
+          unitId: { type: integer, required: true }
+          cityId: { type: integer, required: true }
+
+      createTradeOutpost:
+        description: "Create trade outpost on tile"
+        params:
+          unitId: { type: integer, required: true }
+          tileId: { type: integer, required: true }
+
+      caravanMissionStart:
+        description: "Start caravan mission"
+        params:
+          unitId: { type: integer, required: true }
+          missionType: { type: string, required: true, description: "Mission type" }
+
+      caravanMissionCancel:
+        description: "Cancel caravan mission"
+        params:
+          unitId: { type: integer, required: true }
+
+  religiousUnits:
+    displayName: "Religious Units"
+    commands:
+      purgeReligion:
+        description: "Purge religion from city"
+        params:
+          unitId: { type: integer, required: true }
+          religionType: { type: string, required: true, description: "Religion to purge" }
+
+      spreadReligionTribe:
+        description: "Spread religion to tribe"
+        params:
+          unitId: { type: integer, required: true }
+          tribeType: { type: string, required: true, description: "Target tribe" }
+
+      establishTheology:
+        description: "Establish theology"
+        params:
+          unitId: { type: integer, required: true }
+          theologyType: { type: string, required: true, description: "Theology type (e.g., THEOLOGY_CLERGY)" }
+
+  characterManagementExtended:
+    displayName: "Character Management Extended"
+    commands:
+      characterName:
+        description: "Set character name"
+        params:
+          characterId: { type: integer, required: true }
+          name: { type: string, required: true }
+
+      addCharacterTrait:
+        description: "Add or remove character trait"
+        params:
+          characterId: { type: integer, required: true }
+          traitType: { type: string, required: true, description: "Trait type (e.g., TRAIT_WARRIOR)" }
+          remove: { type: boolean, description: "Remove instead of add" }
+
+      setCharacterRating:
+        description: "Set character rating value"
+        params:
+          characterId: { type: integer, required: true }
+          ratingType: { type: string, required: true, description: "Rating type" }
+          value: { type: integer, required: true }
+
+      setCharacterExperience:
+        description: "Set character XP"
+        params:
+          characterId: { type: integer, required: true }
+          experience: { type: integer, required: true }
+
+      setCharacterCognomen:
+        description: "Set character cognomen/title"
+        params:
+          characterId: { type: integer, required: true }
+          cognomenType: { type: string, required: true, description: "Cognomen type" }
+
+      setCharacterNation:
+        description: "Set character nation"
+        params:
+          characterId: { type: integer, required: true }
+          nationType: { type: string, required: true, description: "Nation type" }
+
+      setCharacterFamily:
+        description: "Set character family"
+        params:
+          characterId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type" }
+
+      setCharacterReligion:
+        description: "Set character religion"
+        params:
+          characterId: { type: integer, required: true }
+          religionType: { type: string, required: true, description: "Religion type" }
+
+      setCharacterCourtier:
+        description: "Set character courtier role"
+        params:
+          characterId: { type: integer, required: true }
+          courtierType: { type: string, required: true, description: "Courtier type" }
+
+      setCharacterCouncil:
+        description: "Set character council position"
+        params:
+          characterId: { type: integer, required: true }
+          councilType: { type: string, required: true, description: "Council type" }
+
+      playerLeader:
+        description: "Set player leader"
+        params:
+          characterId: { type: integer, required: true }
+          playerType: { type: integer, required: true, description: "Player index" }
+
+      familyHead:
+        description: "Set family head"
+        params:
+          characterId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type" }
+
+      pinCharacter:
+        description: "Pin character in UI"
+        params:
+          characterId: { type: integer, required: true }
+          pin: { type: boolean, default: true }
+
+  cityManagement:
+    displayName: "City Management"
+    commands:
+      cityRename:
+        description: "Rename a city"
+        params:
+          cityId: { type: integer, required: true }
+          name: { type: string, required: true }
+
+      cityAutomate:
+        description: "Toggle city automation"
+        params:
+          cityId: { type: integer, required: true }
+          enable: { type: boolean, default: true }
+
+      buildSpecialist:
+        description: "Build specialist on tile"
+        params:
+          tileId: { type: integer, required: true }
+          specialistType: { type: string, required: true, description: "Specialist type (e.g., SPECIALIST_SAGE)" }
+          buyGoods: { type: boolean, description: "Pay for goods if needed" }
+          addFirst: { type: boolean, description: "Add to front of queue" }
+
+      setSpecialist:
+        description: "Set tile specialist"
+        params:
+          tileId: { type: integer, required: true }
+          specialistType: { type: string, required: true, description: "Specialist type" }
+
+      changeCitizens:
+        description: "Change city citizen count"
+        params:
+          cityId: { type: integer, required: true }
+          amount: { type: integer, required: true, description: "Amount to add (negative to remove)" }
+
+      changeReligion:
+        description: "Add or remove religion in city"
+        params:
+          cityId: { type: integer, required: true }
+          religionType: { type: string, required: true, description: "Religion type" }
+          add: { type: boolean, default: true, description: "Add (true) or remove (false)" }
+
+      changeFamily:
+        description: "Change city family"
+        params:
+          cityId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type" }
+
+      changeFamilySeat:
+        description: "Change family seat city"
+        params:
+          cityId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type" }
+
+  goalsCommunication:
+    displayName: "Goals & Communication"
+    commands:
+      abandonAmbition:
+        description: "Abandon an ambition"
+        params:
+          ambitionType: { type: string, required: true, description: "Ambition type" }
+
+      addPlayerGoal:
+        description: "Add a goal to player"
+        params:
+          goalType: { type: string, required: true, description: "Goal type" }
+          playerType: { type: integer, description: "Player index (defaults to current)" }
+
+      removePlayerGoal:
+        description: "Remove player goal"
+        params:
+          goalType: { type: string, required: true, description: "Goal type" }
+          playerType: { type: integer, description: "Player index (defaults to current)" }
+
+      eventStory:
+        description: "Trigger event story"
+        params:
+          eventType: { type: string, required: true, description: "Event type" }
+
+      finishGoal:
+        description: "Complete or fail a goal"
+        params:
+          goalType: { type: string, required: true, description: "Goal type" }
+          success: { type: boolean, default: true, description: "Complete (true) or fail (false)" }
+
+      chat:
+        description: "Send chat message"
+        params:
+          message: { type: string, required: true }
+          toPlayer: { type: integer, description: "Target player (omit for all)" }
+
+      ping:
+        description: "Ping a map location"
+        params:
+          tileId: { type: integer, required: true }
+          message: { type: string, description: "Optional ping message" }
+
+      customReminder:
+        description: "Create custom reminder"
+        params:
+          message: { type: string, required: true }
+          turn: { type: integer, required: true, description: "Turn to trigger reminder" }
+
+      clearChat:
+        description: "Clear chat history"
+        params: {}
+
+  gameStateTurn:
+    displayName: "Game State & Turn"
+    commands:
+      extendTime:
+        description: "Extend game time"
+        params:
+          seconds: { type: integer, required: true }
+
+      pause:
+        description: "Pause the game"
+        params: {}
+
+      undo:
+        description: "Undo last action"
+        params: {}
+
+      redo:
+        description: "Redo undone action"
+        params: {}
+
+      replayTurn:
+        description: "Replay previous turns"
+        params:
+          turn: { type: integer, required: true, description: "Turn number to replay from" }
+
+      aiFinishTurn:
+        description: "Let AI finish turn"
+        params: {}
+
+      toggleNoReplay:
+        description: "Toggle turn replay setting"
+        params: {}
+
+  diplomacyExtended:
+    displayName: "Diplomacy Extended"
+    commands:
+      teamAlliance:
+        description: "Create team alliance"
+        params:
+          targetPlayer: { type: integer, required: true, description: "Target player index" }
+          enable: { type: boolean, default: true }
+
+      tribeInvasion:
+        description: "Trigger tribe invasion"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+          targetPlayer: { type: integer, required: true, description: "Target player" }
+
+      victoryTeam:
+        description: "Set victory for team"
+        params:
+          team: { type: integer, required: true, description: "Team index" }
+
+  editorUnits:
+    displayName: "Editor/Debug - Units"
+    commands:
+      createUnit:
+        description: "Create a unit at a tile"
+        params:
+          tileId: { type: integer, required: true }
+          unitType: { type: string, required: true, description: "Unit type (e.g., UNIT_WARRIOR)" }
+          playerType: { type: integer, description: "Player index (defaults to current)" }
+          tribeType: { type: string, description: "Tribe type (for tribal units)" }
+
+      unitName:
+        description: "Set unit name"
+        params:
+          unitId: { type: integer, required: true }
+          name: { type: string, required: true }
+
+      setUnitFamily:
+        description: "Change unit's family"
+        params:
+          unitId: { type: integer, required: true }
+          familyType: { type: string, required: true, description: "Family type" }
+
+      changeUnitOwner:
+        description: "Transfer unit to player or tribe"
+        params:
+          unitId: { type: integer, required: true }
+          playerType: { type: integer, description: "New owner player index" }
+          tribeType: { type: string, description: "New owner tribe type" }
+
+      changeCooldown:
+        description: "Modify unit cooldown"
+        params:
+          unitId: { type: integer, required: true }
+          amount: { type: integer, required: true, description: "Amount to add (negative to reduce)" }
+
+      changeDamage:
+        description: "Modify unit damage"
+        params:
+          unitId: { type: integer, required: true }
+          amount: { type: integer, required: true, description: "Amount to add (negative to heal)" }
+
+      unitIncrementLevel:
+        description: "Increase unit level"
+        params:
+          unitId: { type: integer, required: true }
+          amount: { type: integer, default: 1, description: "Levels to add" }
+
+      unitChangePromotion:
+        description: "Add or remove promotion"
+        params:
+          unitId: { type: integer, required: true }
+          promotionType: { type: string, required: true, description: "Promotion type" }
+          remove: { type: boolean, description: "Remove instead of add" }
+
+  editorCities:
+    displayName: "Editor/Debug - Cities"
+    commands:
+      createCity:
+        description: "Create a city at a tile"
+        params:
+          tileId: { type: integer, required: true }
+          playerType: { type: integer, required: true, description: "Owner player index" }
+          familyType: { type: string, required: true, description: "Family type" }
+
+      removeCity:
+        description: "Remove a city"
+        params:
+          cityId: { type: integer, required: true }
+
+      cityOwner:
+        description: "Change city owner"
+        params:
+          cityId: { type: integer, required: true }
+          playerType: { type: integer, required: true, description: "New owner player index" }
+
+      changeCityDamage:
+        description: "Modify city damage"
+        params:
+          cityId: { type: integer, required: true }
+          amount: { type: integer, required: true }
+
+      changeCulture:
+        description: "Grow or shrink city culture"
+        params:
+          cityId: { type: integer, required: true }
+          amount: { type: integer, required: true, description: "Amount to add (negative to shrink)" }
+
+      changeCityBuildTurns:
+        description: "Modify build progress"
+        params:
+          cityId: { type: integer, required: true }
+          amount: { type: integer, required: true, description: "Turns to add (negative to reduce)" }
+
+      changeCityDiscontentLevel:
+        description: "Modify discontent"
+        params:
+          cityId: { type: integer, required: true }
+          amount: { type: integer, required: true }
+
+      changeProject:
+        description: "Modify project progress"
+        params:
+          cityId: { type: integer, required: true }
+          projectType: { type: string, required: true, description: "Project type" }
+          amount: { type: integer, required: true, description: "Progress to add" }
+
+  editorTiles:
+    displayName: "Editor/Debug - Tiles"
+    commands:
+      setTerrain:
+        description: "Set tile terrain type"
+        params:
+          tileId: { type: integer, required: true }
+          terrainType: { type: string, required: true, description: "Terrain type (e.g., TERRAIN_PLAINS)" }
+
+      setTerrainHeight:
+        description: "Set tile height"
+        params:
+          tileId: { type: integer, required: true }
+          heightType: { type: string, required: true, description: "Height type (e.g., HEIGHT_HILL)" }
+
+      setVegetation:
+        description: "Set tile vegetation"
+        params:
+          tileId: { type: integer, required: true }
+          vegetationType: { type: string, required: true, description: "Vegetation type" }
+
+      setResource:
+        description: "Set tile resource"
+        params:
+          tileId: { type: integer, required: true }
+          resourceType: { type: string, required: true, description: "Resource type" }
+
+      setRoad:
+        description: "Add or remove road"
+        params:
+          tileId: { type: integer, required: true }
+          enable: { type: boolean, default: true }
+
+      setImprovement:
+        description: "Set tile improvement"
+        params:
+          tileId: { type: integer, required: true }
+          improvementType: { type: string, required: true, description: "Improvement type" }
+
+      setTileOwner:
+        description: "Set tile owner"
+        params:
+          tileId: { type: integer, required: true }
+          playerType: { type: integer, required: true, description: "Owner player index" }
+
+      setCitySite:
+        description: "Set city site marker"
+        params:
+          tileId: { type: integer, required: true }
+          enable: { type: boolean, default: true }
+
+      improvementBuildTurns:
+        description: "Set improvement build turns"
+        params:
+          tileId: { type: integer, required: true }
+          turns: { type: integer, required: true }
+
+  editorMapPlayer:
+    displayName: "Editor/Debug - Map & Player"
+    commands:
+      mapReveal:
+        description: "Reveal entire map"
+        params:
+          playerType: { type: integer, description: "Player index (defaults to current)" }
+
+      mapUnreveal:
+        description: "Hide entire map"
+        params:
+          playerType: { type: integer, description: "Player index (defaults to current)" }
+
+      addTech:
+        description: "Grant technology to player"
+        params:
+          playerType: { type: integer, required: true, description: "Player index" }
+          techType: { type: string, required: true, description: "Tech type (e.g., TECH_IRONWORKING)" }
+
+      addYield:
+        description: "Add yield to player stockpile"
+        params:
+          playerType: { type: integer, required: true, description: "Player index" }
+          yieldType: { type: string, required: true, description: "Yield type" }
+          amount: { type: integer, required: true }
+
+      addMoney:
+        description: "Add money to player"
+        params:
+          playerType: { type: integer, required: true, description: "Player index" }
+          amount: { type: integer, required: true }
+
+      cheat:
+        description: "Execute cheat hotkey"
+        params:
+          cheatType: { type: string, required: true, description: "Cheat type" }
+
+  editorCharacters:
+    displayName: "Editor/Debug - Characters"
+    commands:
+      makeCharacterDead:
+        description: "Kill a character"
+        params:
+          characterId: { type: integer, required: true }
+
+      makeCharacterSafe:
+        description: "Make character immune to death"
+        params:
+          characterId: { type: integer, required: true }
+          safe: { type: boolean, default: true }
+
+      newCharacter:
+        description: "Create random character"
+        params:
+          playerType: { type: integer, required: true, description: "Owner player index" }
+          familyType: { type: string, description: "Family type" }
+
+      addCharacter:
+        description: "Add specific character type"
+        params:
+          playerType: { type: integer, required: true, description: "Owner player index" }
+          characterType: { type: string, required: true, description: "Character type" }
+
+      tribeLeader:
+        description: "Set tribe leader"
+        params:
+          tribeType: { type: string, required: true, description: "Tribe type" }
+          characterId: { type: integer, required: true }

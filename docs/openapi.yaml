@@ -27,41 +27,39 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-
 servers:
-  - url: http://localhost:9877
-    description: Local HTTP REST server
-
+- url: http://localhost:9877
+  description: Local HTTP REST server
 tags:
-  - name: State
-    description: Full game state
-  - name: Players
-    description: Player (nation) data
-  - name: Cities
-    description: City data
-  - name: Characters
-    description: Character data
-  - name: Units
-    description: Unit data
-  - name: Tiles
-    description: Map tile data
-  - name: Events
-    description: Turn-based event detection
-  - name: Tribes
-    description: Tribe (barbarian) data
-  - name: Diplomacy
-    description: Diplomatic relationships
-  - name: Religion
-    description: Global religion state
-  - name: Commands
-    description: Game command execution (single-player only)
-  - name: Config
-    description: Game configuration
-
+- name: State
+  description: Full game state
+- name: Players
+  description: Player (nation) data
+- name: Cities
+  description: City data
+- name: Characters
+  description: Character data
+- name: Units
+  description: Unit data
+- name: Tiles
+  description: Map tile data
+- name: Events
+  description: Turn-based event detection
+- name: Tribes
+  description: Tribe (barbarian) data
+- name: Diplomacy
+  description: Diplomatic relationships
+- name: Religion
+  description: Global religion state
+- name: Commands
+  description: Game command execution (single-player only)
+- name: Config
+  description: Game configuration
 paths:
   /state:
     get:
-      tags: [State]
+      tags:
+      - State
       summary: Get full game state
       description: Returns comprehensive game state including all players, cities, characters, tribes, and diplomacy.
       operationId: getState
@@ -74,10 +72,10 @@ paths:
                 $ref: '#/components/schemas/GameState'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /players:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get all players
       description: Returns array of all players with stockpiles and rates.
       operationId: getPlayers
@@ -92,21 +90,21 @@ paths:
                   $ref: '#/components/schemas/Player'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player by index
       description: Returns a single player by their 0-based index.
       operationId: getPlayerByIndex
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Player data
@@ -120,10 +118,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /cities:
     get:
-      tags: [Cities]
+      tags:
+      - Cities
       summary: Get all cities
       description: Returns array of all cities with ~80 fields each.
       operationId: getCities
@@ -138,20 +136,20 @@ paths:
                   $ref: '#/components/schemas/City'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /city/{id}:
     get:
-      tags: [Cities]
+      tags:
+      - Cities
       summary: Get city by ID
       description: Returns a single city by its unique ID.
       operationId: getCityById
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: City ID
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: City ID
       responses:
         '200':
           description: City data
@@ -165,10 +163,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /characters:
     get:
-      tags: [Characters]
+      tags:
+      - Characters
       summary: Get all characters
       description: Returns array of all characters with ~85 fields each.
       operationId: getCharacters
@@ -183,20 +181,20 @@ paths:
                   $ref: '#/components/schemas/Character'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /character/{id}:
     get:
-      tags: [Characters]
+      tags:
+      - Characters
       summary: Get character by ID
       description: Returns a single character by their unique ID.
       operationId: getCharacterById
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Character ID
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Character ID
       responses:
         '200':
           description: Character data
@@ -210,10 +208,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /character-events:
     get:
-      tags: [Events]
+      tags:
+      - Events
       summary: Get character events
       description: Returns character events detected from the last turn (births, deaths, marriages, leadership changes).
       operationId: getCharacterEvents
@@ -228,10 +226,10 @@ paths:
                   $ref: '#/components/schemas/CharacterEvent'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /unit-events:
     get:
-      tags: [Events]
+      tags:
+      - Events
       summary: Get unit events
       description: Returns unit events detected from the last turn (created, killed).
       operationId: getUnitEvents
@@ -246,10 +244,10 @@ paths:
                   $ref: '#/components/schemas/UnitEvent'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /city-events:
     get:
-      tags: [Events]
+      tags:
+      - Events
       summary: Get city events
       description: Returns city events detected from the last turn (founded, captured).
       operationId: getCityEvents
@@ -264,10 +262,10 @@ paths:
                   $ref: '#/components/schemas/CityEvent'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tribes:
     get:
-      tags: [Tribes]
+      tags:
+      - Tribes
       summary: Get all tribes
       description: Returns array of all tribes with status and alliance data.
       operationId: getTribes
@@ -282,21 +280,21 @@ paths:
                   $ref: '#/components/schemas/Tribe'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tribe/{tribeType}:
     get:
-      tags: [Tribes]
+      tags:
+      - Tribes
       summary: Get tribe by type
       description: Returns a single tribe by its type string (case-insensitive).
       operationId: getTribeByType
       parameters:
-        - name: tribeType
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Tribe type (e.g., TRIBE_GAULS)
-          example: TRIBE_GAULS
+      - name: tribeType
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Tribe type (e.g., TRIBE_GAULS)
+        example: TRIBE_GAULS
       responses:
         '200':
           description: Tribe data
@@ -310,10 +308,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /team-diplomacy:
     get:
-      tags: [Diplomacy]
+      tags:
+      - Diplomacy
       summary: Get team diplomacy
       description: Returns all directed diplomatic relationships between teams.
       operationId: getTeamDiplomacy
@@ -328,10 +326,10 @@ paths:
                   $ref: '#/components/schemas/TeamDiplomacy'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /team-alliances:
     get:
-      tags: [Diplomacy]
+      tags:
+      - Diplomacy
       summary: Get team alliances
       description: Returns all team alliance pairs.
       operationId: getTeamAlliances
@@ -346,10 +344,10 @@ paths:
                   $ref: '#/components/schemas/TeamAlliance'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tribe-diplomacy:
     get:
-      tags: [Diplomacy]
+      tags:
+      - Diplomacy
       summary: Get tribe diplomacy
       description: Returns all directed diplomatic relationships from tribes to teams.
       operationId: getTribeDiplomacy
@@ -364,10 +362,10 @@ paths:
                   $ref: '#/components/schemas/TribeDiplomacy'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tribe-alliances:
     get:
-      tags: [Diplomacy]
+      tags:
+      - Diplomacy
       summary: Get tribe alliances
       description: Returns all tribe-to-player alliances.
       operationId: getTribeAlliances
@@ -382,10 +380,10 @@ paths:
                   $ref: '#/components/schemas/TribeAlliance'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /units:
     get:
-      tags: [Units]
+      tags:
+      - Units
       summary: Get all units
       description: Returns array of all living units with position, health, and status.
       operationId: getUnits
@@ -400,20 +398,20 @@ paths:
                   $ref: '#/components/schemas/Unit'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /unit/{id}:
     get:
-      tags: [Units]
+      tags:
+      - Units
       summary: Get unit by ID
       description: Returns a single unit by its unique ID.
       operationId: getUnitById
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Unit ID
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Unit ID
       responses:
         '200':
           description: Unit data
@@ -425,21 +423,22 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/units:
     get:
-      tags: [Players, Units]
+      tags:
+      - Players
+      - Units
       summary: Get player units
       description: Returns all units owned by a specific player.
       operationId: getPlayerUnits
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Array of units
@@ -453,21 +452,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/techs:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player technologies
       description: Returns technology research state for a player.
       operationId: getPlayerTechs
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Technology state
@@ -479,21 +478,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/families:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player families
       description: Returns family relationship data for a player.
       operationId: getPlayerFamilies
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Family data
@@ -505,21 +504,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/religion:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player religion
       description: Returns religion state for a player.
       operationId: getPlayerReligion
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Religion state
@@ -531,21 +530,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/goals:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player goals
       description: Returns goals and ambitions for a player.
       operationId: getPlayerGoals
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Goals data
@@ -557,21 +556,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/decisions:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player decisions
       description: Returns pending decisions for a player.
       operationId: getPlayerDecisions
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Decisions data
@@ -583,21 +582,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/laws:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player laws
       description: Returns active laws for a player.
       operationId: getPlayerLaws
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Laws data
@@ -609,21 +608,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/missions:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player missions
       description: Returns active missions for a player.
       operationId: getPlayerMissions
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Missions data
@@ -635,21 +634,21 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /player/{index}/resources:
     get:
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player resources
       description: Returns resource and luxury counts for a player.
       operationId: getPlayerResources
       parameters:
-        - name: index
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-          description: Player index (0-based)
+      - name: index
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+        description: Player index (0-based)
       responses:
         '200':
           description: Resources data
@@ -661,10 +660,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /religions:
     get:
-      tags: [Religion]
+      tags:
+      - Religion
       summary: Get all religions
       description: Returns global religion state including founded religions and holy cities.
       operationId: getReligions
@@ -679,10 +678,10 @@ paths:
                   $ref: '#/components/schemas/Religion'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /map:
     get:
-      tags: [Tiles]
+      tags:
+      - Tiles
       summary: Get map metadata
       description: Returns map metadata including tile count.
       operationId: getMap
@@ -695,29 +694,29 @@ paths:
                 $ref: '#/components/schemas/MapMetadata'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tiles:
     get:
-      tags: [Tiles]
+      tags:
+      - Tiles
       summary: Get tiles (paginated)
       description: Returns paginated list of map tiles. Use offset and limit for pagination.
       operationId: getTiles
       parameters:
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-          description: Starting index for pagination
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 100
-            minimum: 1
-            maximum: 1000
-          description: Maximum tiles to return (max 1000)
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+        description: Starting index for pagination
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+        description: Maximum tiles to return (max 1000)
       responses:
         '200':
           description: Paginated tiles
@@ -727,20 +726,20 @@ paths:
                 $ref: '#/components/schemas/TilesPaginated'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tile/{id}:
     get:
-      tags: [Tiles]
+      tags:
+      - Tiles
       summary: Get tile by ID
       description: Returns a single tile by its unique ID.
       operationId: getTileById
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Tile ID
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Tile ID
       responses:
         '200':
           description: Tile data
@@ -752,26 +751,26 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /tile/{x}/{y}:
     get:
-      tags: [Tiles]
+      tags:
+      - Tiles
       summary: Get tile by coordinates
       description: Returns a single tile by its x,y coordinates.
       operationId: getTileByCoords
       parameters:
-        - name: x
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: X coordinate
-        - name: y
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Y coordinate
+      - name: x
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: X coordinate
+      - name: y
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Y coordinate
       responses:
         '200':
           description: Tile data
@@ -783,10 +782,10 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /config:
     get:
-      tags: [Config]
+      tags:
+      - Config
       summary: Get game configuration
       description: Returns game configuration including player count, turn, and year.
       operationId: getConfig
@@ -799,11 +798,10 @@ paths:
                 $ref: '#/components/schemas/GameConfig'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
-  # Command Endpoints
   /command:
     post:
-      tags: [Commands]
+      tags:
+      - Commands
       summary: Execute a single game command
       description: |
         Execute a game command such as moving units, attacking, building, or ending the turn.
@@ -1036,7 +1034,7 @@ paths:
                 summary: Move a unit
                 value:
                   action: moveUnit
-                  requestId: "req-123"
+                  requestId: req-123
                   params:
                     unitId: 42
                     targetTileId: 661
@@ -1059,13 +1057,13 @@ paths:
                   action: build
                   params:
                     cityId: 5
-                    unitType: "UNIT_WARRIOR"
+                    unitType: UNIT_WARRIOR
               research:
                 summary: Research a technology
                 value:
                   action: research
                   params:
-                    tech: "TECH_FORESTRY"
+                    tech: TECH_FORESTRY
               endTurn:
                 summary: End the turn
                 value:
@@ -1075,13 +1073,13 @@ paths:
                 value:
                   action: chooseLaw
                   params:
-                    lawType: "LAW_SLAVERY"
+                    lawType: LAW_SLAVERY
               buyYield:
                 summary: Buy training with money
                 value:
                   action: buyYield
                   params:
-                    yieldType: "YIELD_TRAINING"
+                    yieldType: YIELD_TRAINING
                     amount: 100
               tradeCityLuxury:
                 summary: Toggle luxury for a city
@@ -1089,15 +1087,15 @@ paths:
                   action: tradeCityLuxury
                   params:
                     cityId: 5
-                    resourceType: "RESOURCE_WINE"
+                    resourceType: RESOURCE_WINE
                     enable: true
               tribute:
                 summary: Send tribute to a tribe
                 value:
                   action: tribute
                   params:
-                    toTribe: "TRIBE_GAULS"
-                    yieldType: "YIELD_MONEY"
+                    toTribe: TRIBE_GAULS
+                    yieldType: YIELD_MONEY
                     amount: 200
               formation:
                 summary: Set unit formation
@@ -1105,7 +1103,7 @@ paths:
                   action: formation
                   params:
                     unitId: 42
-                    effectUnitType: "EFFECTUNIT_TESTUDO"
+                    effectUnitType: EFFECTUNIT_TESTUDO
               repair:
                 summary: Repair a unit
                 value:
@@ -1133,42 +1131,42 @@ paths:
                   action: establishTheology
                   params:
                     unitId: 42
-                    theologyType: "THEOLOGY_CLERGY"
+                    theologyType: THEOLOGY_CLERGY
               characterName:
                 summary: Rename a character
                 value:
                   action: characterName
                   params:
                     characterId: 5
-                    name: "Alexander"
+                    name: Alexander
               addCharacterTrait:
                 summary: Add trait to character
                 value:
                   action: addCharacterTrait
                   params:
                     characterId: 5
-                    traitType: "TRAIT_WARRIOR"
+                    traitType: TRAIT_WARRIOR
               cityRename:
                 summary: Rename a city
                 value:
                   action: cityRename
                   params:
                     cityId: 0
-                    name: "New Rome"
+                    name: New Rome
               buildSpecialist:
                 summary: Build specialist on tile
                 value:
                   action: buildSpecialist
                   params:
                     tileId: 123
-                    specialistType: "SPECIALIST_SAGE"
+                    specialistType: SPECIALIST_SAGE
               createUnit:
                 summary: Create a unit (editor)
                 value:
                   action: createUnit
                   params:
                     tileId: 100
-                    unitType: "UNIT_WARRIOR"
+                    unitType: UNIT_WARRIOR
                     playerType: 0
               setTerrain:
                 summary: Set tile terrain (editor)
@@ -1176,14 +1174,14 @@ paths:
                   action: setTerrain
                   params:
                     tileId: 100
-                    terrainType: "TERRAIN_PLAINS"
+                    terrainType: TERRAIN_PLAINS
               addTech:
                 summary: Grant technology (editor)
                 value:
                   action: addTech
                   params:
                     playerType: 0
-                    techType: "TECH_IRONWORKING"
+                    techType: TECH_IRONWORKING
               addMoney:
                 summary: Add money (editor)
                 value:
@@ -1201,21 +1199,21 @@ paths:
               examples:
                 success:
                   value:
-                    requestId: "req-123"
+                    requestId: req-123
                     success: true
                 failure:
                   value:
-                    requestId: "req-123"
+                    requestId: req-123
                     success: false
-                    error: "Unit not found: 999"
+                    error: 'Unit not found: 999'
         '400':
           $ref: '#/components/responses/BadRequest'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
   /commands:
     post:
-      tags: [Commands]
+      tags:
+      - Commands
       summary: Execute multiple commands in sequence
       description: |
         Execute a batch of commands in order. Useful for complex operations
@@ -1234,17 +1232,17 @@ paths:
               moveAndAttack:
                 summary: Move unit then attack
                 value:
-                  requestId: "batch-456"
+                  requestId: batch-456
                   stopOnError: true
                   commands:
-                    - action: moveUnit
-                      params:
-                        unitId: 42
-                        targetTileId: 661
-                    - action: attack
-                      params:
-                        unitId: 42
-                        targetTileId: 662
+                  - action: moveUnit
+                    params:
+                      unitId: 42
+                      targetTileId: 661
+                  - action: attack
+                    params:
+                      unitId: 42
+                      targetTileId: 662
       responses:
         '200':
           description: Batch executed (check allSucceeded and individual results)
@@ -1256,7 +1254,6 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '503':
           $ref: '#/components/responses/GameNotAvailable'
-
 components:
   schemas:
     GameState:
@@ -1304,7 +1301,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TribeAlliance'
-
     Player:
       type: object
       description: A player (nation) in the game
@@ -1341,12 +1337,10 @@ components:
           additionalProperties:
             type: integer
           description: Per-turn rates by yield type
-
     City:
       type: object
       description: A city with ~50 fields across 20 categories
       properties:
-        # 1. Identity & Location
         id:
           type: integer
           description: Unique city identifier
@@ -1372,7 +1366,6 @@ components:
         team:
           type: integer
           description: Team number
-        # 2. Status Flags
         isCapital:
           type: boolean
           description: Whether this is the nation's capital
@@ -1382,15 +1375,12 @@ components:
         isConnected:
           type: boolean
           description: Whether connected to the trade network
-        # 3. Founding & History
         foundedTurn:
           type: integer
           description: Turn when the city was founded
-        # 4. Population & Growth
         citizens:
           type: integer
           description: Number of citizen population
-        # 5. Military & Defense
         hp:
           type: integer
           description: Current hit points
@@ -1403,7 +1393,6 @@ components:
         strength:
           type: integer
           description: Defensive strength
-        # 6. Capture & Assimilation
         captureTurns:
           type: integer
           description: Turns until capture completes (0 if not being captured)
@@ -1416,7 +1405,6 @@ components:
         assimilateTurns:
           type: integer
           description: Turns until assimilation completes
-        # 7. Governor
         governorId:
           type: integer
           nullable: true
@@ -1424,7 +1412,6 @@ components:
         hasGovernor:
           type: boolean
           description: Whether the city has a governor assigned
-        # 8. Family & Faction
         family:
           type: string
           nullable: true
@@ -1435,7 +1422,6 @@ components:
         isFamilySeat:
           type: boolean
           description: Whether this is a family seat
-        # 9. Culture
         culture:
           type: string
           nullable: true
@@ -1443,7 +1429,6 @@ components:
         cultureStep:
           type: integer
           description: Progress within current culture level
-        # 10. Religion
         religions:
           type: array
           items:
@@ -1463,7 +1448,6 @@ components:
         isReligionHolyCityAny:
           type: boolean
           description: Whether this is a holy city for any religion
-        # 11. Production & Build Queue
         hasBuild:
           type: boolean
           description: Whether something is being built
@@ -1477,17 +1461,14 @@ components:
           items:
             $ref: '#/components/schemas/BuildQueueItem'
           description: Full build queue
-        # 12. Yields
         yields:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/YieldDetails'
           description: Per-yield production details
-        # 13. Specialists
         specialistCount:
           type: integer
           description: Number of specialists in the city
-        # 14. Improvements
         improvements:
           type: object
           additionalProperties:
@@ -1498,24 +1479,20 @@ components:
           additionalProperties:
             type: integer
           description: Count of improvements by class
-        # 15. Projects
         projects:
           type: object
           additionalProperties:
             type: integer
           description: Count of each project type
-        # 16. Trade & Connectivity
         tradeNetwork:
           type: integer
           description: Trade network identifier
         luxuryCount:
           type: integer
           description: Number of luxury resources
-        # 17. Happiness
         happinessLevel:
           type: integer
           description: Current happiness level
-        # 18. Cost Modifiers
         improvementCostModifier:
           type: integer
           description: Modifier to improvement costs (percentage)
@@ -1525,26 +1502,22 @@ components:
         projectCostModifier:
           type: integer
           description: Modifier to project costs (percentage)
-        # 19. Territory
         urbanTiles:
           type: integer
           description: Number of urban tiles
         territoryTileCount:
           type: integer
           description: Total tiles in territory
-        # 20. Misc
         raidedTurn:
           type: integer
           description: Turn when last raided (-1 if never)
         buyTileCount:
           type: integer
           description: Number of tiles that can be purchased
-
     Character:
       type: object
       description: A character with ~85 fields across 24 categories
       properties:
-        # 1. Identity
         id:
           type: integer
           description: Unique character identifier
@@ -1556,7 +1529,9 @@ components:
           description: Dynasty number suffix (e.g., 1, 2, 3)
         gender:
           type: string
-          enum: [Male, Female]
+          enum:
+          - Male
+          - Female
           description: Character gender
         age:
           type: integer
@@ -1565,7 +1540,6 @@ components:
           type: string
           nullable: true
           description: Predefined character type (e.g., CHARACTER_CLEOPATRA)
-        # 2. Player & Nation
         playerId:
           type: integer
           nullable: true
@@ -1578,7 +1552,6 @@ components:
           type: string
           nullable: true
           description: Tribe type if tribal character
-        # 3. Status
         isAlive:
           type: boolean
           description: Whether the character is alive
@@ -1594,7 +1567,6 @@ components:
         isTemporary:
           type: boolean
           description: Whether this is a temporary character
-        # 4. Leadership & Succession
         isLeader:
           type: boolean
           description: Whether currently the nation's leader
@@ -1613,7 +1585,6 @@ components:
         isRegent:
           type: boolean
           description: Whether serving as regent
-        # 5. Jobs & Positions
         job:
           type: string
           nullable: true
@@ -1626,7 +1597,6 @@ components:
           type: string
           nullable: true
           description: Courtier role (e.g., COURTIER_DIPLOMAT)
-        # 6. Governor/Agent
         isCityGovernor:
           type: boolean
           description: Whether governing a city
@@ -1641,7 +1611,6 @@ components:
           type: integer
           nullable: true
           description: ID of city where agent
-        # 7. Military
         hasUnit:
           type: boolean
           description: Whether commanding a unit
@@ -1652,7 +1621,6 @@ components:
         isGeneral:
           type: boolean
           description: Whether a general
-        # 8. Family
         family:
           type: string
           nullable: true
@@ -1664,7 +1632,6 @@ components:
         isFamilyHead:
           type: boolean
           description: Whether head of family
-        # 9. Religion
         religion:
           type: string
           nullable: true
@@ -1672,7 +1639,6 @@ components:
         isReligionHead:
           type: boolean
           description: Whether head of a religion
-        # 10. Parents (adoptive)
         fatherId:
           type: integer
           nullable: true
@@ -1681,7 +1647,6 @@ components:
           type: integer
           nullable: true
           description: Character ID of adoptive mother
-        # 11. Traits
         archetype:
           type: string
           nullable: true
@@ -1691,20 +1656,17 @@ components:
           items:
             type: string
           description: List of trait types (e.g., TRAIT_WARRIOR)
-        # 12. Ratings
         ratings:
           type: object
           additionalProperties:
             type: integer
           description: Character ratings (RATING_COURAGE, etc.)
-        # 13. XP & Level
         xp:
           type: integer
           description: Experience points
         level:
           type: integer
           description: Character level
-        # 14. Lifecycle Timeline
         birthTurn:
           type: integer
           description: Turn when born
@@ -1726,7 +1688,6 @@ components:
         nationTurn:
           type: integer
           description: Turn when joined nation
-        # 15. Extended Status Flags
         isInfertile:
           type: boolean
           description: Whether infertile
@@ -1748,7 +1709,6 @@ components:
         isSafe:
           type: boolean
           description: Whether currently safe
-        # 16. Biological Parents
         birthFatherId:
           type: integer
           nullable: true
@@ -1757,12 +1717,10 @@ components:
           type: integer
           nullable: true
           description: Biological mother ID
-        # 17. Birth Location
         birthCityId:
           type: integer
           nullable: true
           description: City where born
-        # 18. Spouse & Marriage Data
         spouseIds:
           type: array
           items:
@@ -1783,7 +1741,6 @@ components:
         hasSpouseTribe:
           type: boolean
           description: Whether has tribal spouse
-        # 19. Children Data
         childrenIds:
           type: array
           items:
@@ -1792,7 +1749,6 @@ components:
         numChildren:
           type: integer
           description: Number of children
-        # 20. Former Positions
         wasReligionHead:
           type: string
           nullable: true
@@ -1801,7 +1757,6 @@ components:
           type: string
           nullable: true
           description: Former family head position
-        # 21. Death Info
         deadCouncil:
           type: string
           nullable: true
@@ -1810,7 +1765,6 @@ components:
           type: string
           nullable: true
           description: Cause of death
-        # 22. Title & Cognomen
         title:
           type: string
           nullable: true
@@ -1823,7 +1777,6 @@ components:
           type: string
           nullable: true
           description: Nickname text
-        # 23. Relationships
         relationships:
           type: array
           items:
@@ -1836,7 +1789,6 @@ components:
                 type: integer
                 description: Related character ID
           description: Character relationships
-        # 24. Opinions
         opinions:
           type: object
           additionalProperties:
@@ -1850,7 +1802,6 @@ components:
                 type: integer
                 description: Opinion change rate
           description: Opinions towards players (keyed by player index)
-
     Tribe:
       type: object
       description: A tribe (barbarian or minor civilization) in the game
@@ -1914,14 +1865,16 @@ components:
         numTribeImprovements:
           type: integer
           description: Number of tribe-specific improvements
-
     BuildQueueItem:
       type: object
       nullable: true
       properties:
         buildType:
           type: string
-          enum: [UNIT, PROJECT, SPECIALIST]
+          enum:
+          - UNIT
+          - PROJECT
+          - SPECIALIST
         itemType:
           type: string
         progress:
@@ -1932,7 +1885,6 @@ components:
           type: integer
         hurried:
           type: boolean
-
     YieldDetails:
       type: object
       properties:
@@ -1944,7 +1896,6 @@ components:
           type: integer
         overflow:
           type: integer
-
     Location:
       type: object
       properties:
@@ -1954,14 +1905,18 @@ components:
           type: integer
         y:
           type: integer
-
     CharacterEvent:
       type: object
       description: Character lifecycle event (birth, death, leadership, marriage)
       properties:
         eventType:
           type: string
-          enum: [characterBorn, characterDied, leaderChanged, heirChanged, characterMarried]
+          enum:
+          - characterBorn
+          - characterDied
+          - leaderChanged
+          - heirChanged
+          - characterMarried
           description: Type of character event
         characterId:
           type: integer
@@ -1998,13 +1953,14 @@ components:
         character2Id:
           type: integer
           description: Second spouse ID (for characterMarried events)
-
     UnitEvent:
       type: object
       properties:
         eventType:
           type: string
-          enum: [unitCreated, unitKilled]
+          enum:
+          - unitCreated
+          - unitKilled
         unitId:
           type: integer
         unitType:
@@ -2017,13 +1973,14 @@ components:
           $ref: '#/components/schemas/Location'
         lastLocation:
           $ref: '#/components/schemas/Location'
-
     CityEvent:
       type: object
       properties:
         eventType:
           type: string
-          enum: [cityFounded, cityCapture]
+          enum:
+          - cityFounded
+          - cityCapture
         cityId:
           type: integer
         cityName:
@@ -2038,7 +1995,6 @@ components:
           type: boolean
         location:
           $ref: '#/components/schemas/Location'
-
     TeamDiplomacy:
       type: object
       description: Directed diplomatic relationship from one team to another
@@ -2087,7 +2043,6 @@ components:
         diplomacyBlockTurns:
           type: integer
           description: Turns remaining on diplomacy block
-
     TeamAlliance:
       type: object
       properties:
@@ -2095,7 +2050,6 @@ components:
           type: integer
         allyTeam:
           type: integer
-
     TribeDiplomacy:
       type: object
       description: Directed diplomatic relationship from a tribe to a team
@@ -2144,7 +2098,6 @@ components:
         diplomacyBlockTurns:
           type: integer
           description: Turns remaining on block
-
     TribeAlliance:
       type: object
       properties:
@@ -2154,7 +2107,6 @@ components:
           type: integer
         allyTeam:
           type: integer
-
     Unit:
       type: object
       description: A unit with position, health, and status
@@ -2218,7 +2170,6 @@ components:
           type: array
           items:
             type: string
-
     PlayerTechs:
       type: object
       description: Player technology research state
@@ -2242,7 +2193,6 @@ components:
           items:
             type: string
           description: Available tech types
-
     PlayerFamilies:
       type: object
       description: Player family relationships
@@ -2256,7 +2206,6 @@ components:
                 type: string
               opinionRate:
                 type: integer
-
     PlayerReligion:
       type: object
       description: Player religion state
@@ -2270,7 +2219,6 @@ components:
           additionalProperties:
             type: integer
           description: Count of cities with each religion
-
     PlayerGoals:
       type: object
       description: Player goals and ambitions
@@ -2282,7 +2230,6 @@ components:
         note:
           type: string
           description: API limitation note
-
     PlayerDecisions:
       type: object
       description: Player pending decisions
@@ -2294,7 +2241,6 @@ components:
         note:
           type: string
           description: API limitation note
-
     PlayerLaws:
       type: object
       description: Player active laws
@@ -2307,7 +2253,6 @@ components:
         note:
           type: string
           description: API limitation note
-
     PlayerMissions:
       type: object
       description: Player active missions
@@ -2319,7 +2264,6 @@ components:
         note:
           type: string
           description: API limitation note
-
     PlayerResources:
       type: object
       description: Player resource counts
@@ -2337,7 +2281,6 @@ components:
         note:
           type: string
           description: API limitation note
-
     Religion:
       type: object
       description: Global religion state
@@ -2352,14 +2295,12 @@ components:
         holyCityId:
           type: integer
           nullable: true
-
     MapMetadata:
       type: object
       description: Map metadata
       properties:
         numTiles:
           type: integer
-
     TilesPaginated:
       type: object
       description: Paginated tiles response
@@ -2379,7 +2320,6 @@ components:
               type: integer
             hasMore:
               type: boolean
-
     Tile:
       type: object
       description: A map tile
@@ -2416,7 +2356,6 @@ components:
         cityTerritoryId:
           type: integer
           nullable: true
-
     GameConfig:
       type: object
       description: Game configuration
@@ -2431,283 +2370,6 @@ components:
           type: integer
         year:
           type: integer
-
-    # Command Schemas
-    GameCommand:
-      type: object
-      description: A game command to execute
-      required:
-        - action
-      properties:
-        action:
-          type: string
-          description: |
-            The action to perform. Available actions:
-            - Unit Movement: moveUnit, attack, fortify, pass, skip, sleep, sentry, wake, heal, march, lock
-            - Unit Actions: disband, promote, pillage, burn, upgrade, spreadReligion
-            - Worker: buildImprovement, upgradeImprovement, addRoad
-            - City Foundation: foundCity, joinCity
-            - City Production: build, buildUnit, buildProject, buildQueue, hurryCivics, hurryTraining, hurryMoney, hurryPopulation, hurryOrders
-            - Research: research, redrawTech, targetTech
-            - Decisions: makeDecision, removeDecision
-            - Diplomacy: declareWar, makePeace, declareTruce, declareWarTribe, makePeaceTribe, declareTruceTribe, giftCity, giftYield, allyTribe
-            - Character: assignGovernor, releaseGovernor, assignGeneral, releaseGeneral, assignAgent, releaseAgent, startMission
-            - Turn: endTurn
-          enum:
-            # Unit Movement & Combat (10)
-            - moveUnit
-            - attack
-            - fortify
-            - pass
-            - skip
-            - sleep
-            - sentry
-            - wake
-            - heal
-            - march
-            - lock
-            # Unit Actions (11)
-            - disband
-            - promote
-            - pillage
-            - burn
-            - upgrade
-            - spreadReligion
-            - foundCity
-            - joinCity
-            - buildImprovement
-            - upgradeImprovement
-            - addRoad
-            # City Production (8)
-            - build
-            - buildUnit
-            - buildProject
-            - buildQueue
-            - hurryCivics
-            - hurryTraining
-            - hurryMoney
-            - hurryPopulation
-            - hurryOrders
-            # Research & Decisions (5)
-            - research
-            - redrawTech
-            - targetTech
-            - makeDecision
-            - removeDecision
-            # Diplomacy (9)
-            - declareWar
-            - makePeace
-            - declareTruce
-            - declareWarTribe
-            - makePeaceTribe
-            - declareTruceTribe
-            - giftCity
-            - giftYield
-            - allyTribe
-            # Character Management (7)
-            - assignGovernor
-            - releaseGovernor
-            - assignGeneral
-            - releaseGeneral
-            - assignAgent
-            - releaseAgent
-            - startMission
-            # Turn Control (1)
-            - endTurn
-            # Laws & Economy (7)
-            - chooseLaw
-            - cancelLaw
-            - buyYield
-            - sellYield
-            - convertOrders
-            - convertLegitimacy
-            - convertOrdersToScience
-            # Luxury Trading (5)
-            - tradeCityLuxury
-            - tradeFamilyLuxury
-            - tradeTribeLuxury
-            - tradePlayerLuxury
-            - tribute
-            # Unit Special Actions (20)
-            - swap
-            - doUnitQueue
-            - cancelUnitQueue
-            - formation
-            - unlimber
-            - anchor
-            - repair
-            - cancelImprovement
-            - removeVegetation
-            - harvestResource
-            - unitAutomate
-            - addUrban
-            - roadTo
-            - buyTile
-            - recruitMercenary
-            - hireMercenary
-            - giftUnit
-            - launchOffensive
-            - applyEffectUnit
-            - selectUnit
-            # Agent & Caravan (4)
-            - createAgentNetwork
-            - createTradeOutpost
-            - caravanMissionStart
-            - caravanMissionCancel
-            # Religious Units (3)
-            - purgeReligion
-            - spreadReligionTribe
-            - establishTheology
-            # Character Management Extended (13)
-            - characterName
-            - addCharacterTrait
-            - setCharacterRating
-            - setCharacterExperience
-            - setCharacterCognomen
-            - setCharacterNation
-            - setCharacterFamily
-            - setCharacterReligion
-            - setCharacterCourtier
-            - setCharacterCouncil
-            - playerLeader
-            - familyHead
-            - pinCharacter
-            # City Management (8)
-            - cityRename
-            - cityAutomate
-            - buildSpecialist
-            - setSpecialist
-            - changeCitizens
-            - changeReligion
-            - changeFamily
-            - changeFamilySeat
-            # Goals & Communication (9)
-            - abandonAmbition
-            - addPlayerGoal
-            - removePlayerGoal
-            - eventStory
-            - finishGoal
-            - chat
-            - ping
-            - customReminder
-            - clearChat
-            # Game State & Turn (7)
-            - extendTime
-            - pause
-            - undo
-            - redo
-            - replayTurn
-            - aiFinishTurn
-            - toggleNoReplay
-            # Diplomacy Extended (3)
-            - teamAlliance
-            - tribeInvasion
-            - victoryTeam
-            # Editor/Debug - Units (8)
-            - createUnit
-            - unitName
-            - setUnitFamily
-            - changeUnitOwner
-            - changeCooldown
-            - changeDamage
-            - unitIncrementLevel
-            - unitChangePromotion
-            # Editor/Debug - Cities (8)
-            - createCity
-            - removeCity
-            - cityOwner
-            - changeCityDamage
-            - changeCulture
-            - changeCityBuildTurns
-            - changeCityDiscontentLevel
-            - changeProject
-            # Editor/Debug - Tiles (9)
-            - setTerrain
-            - setTerrainHeight
-            - setVegetation
-            - setResource
-            - setRoad
-            - setImprovement
-            - setTileOwner
-            - setCitySite
-            - improvementBuildTurns
-            # Editor/Debug - Map & Player (6)
-            - mapReveal
-            - mapUnreveal
-            - addTech
-            - addYield
-            - addMoney
-            - cheat
-            # Editor/Debug - Characters (5)
-            - makeCharacterDead
-            - makeCharacterSafe
-            - newCharacter
-            - addCharacter
-            - tribeLeader
-        requestId:
-          type: string
-          description: Optional client-provided ID for response correlation
-        params:
-          type: object
-          description: |
-            Action-specific parameters. Required params by action:
-
-            Unit Movement:
-            - moveUnit: unitId (int), targetTileId (int), queue? (bool), march? (bool), waypointTileId? (int)
-            - attack: unitId (int), targetTileId (int)
-            - fortify/pass/skip/sleep/sentry/wake: unitId (int)
-            - heal: unitId (int), auto? (bool)
-            - march/lock: unitId (int)
-
-            Unit Actions:
-            - disband: unitId (int), force? (bool)
-            - promote: unitId (int), promotion (string, e.g., "PROMOTION_FIERCE")
-            - pillage/burn: unitId (int)
-            - upgrade: unitId (int), unitType (string), buyGoods? (bool)
-            - spreadReligion: unitId (int), cityId (int)
-
-            Worker:
-            - buildImprovement: unitId (int), improvementType (string), tileId (int), buyGoods? (bool), queue? (bool)
-            - upgradeImprovement: unitId (int), buyGoods? (bool)
-            - addRoad: unitId (int), tileId (int), buyGoods? (bool), queue? (bool)
-
-            City Foundation:
-            - foundCity: unitId (int), familyType (string), nationType? (string)
-            - joinCity: unitId (int)
-
-            City Production:
-            - buildUnit: cityId (int), unitType (string), buyGoods? (bool), first? (bool)
-            - buildProject: cityId (int), projectType (string), buyGoods? (bool), first? (bool), repeat? (bool)
-            - buildQueue: cityId (int), oldSlot (int), newSlot (int)
-            - hurryCivics/hurryTraining/hurryMoney/hurryPopulation/hurryOrders: cityId (int)
-
-            Research & Decisions:
-            - research: tech (string, e.g., "TECH_FORESTRY")
-            - redrawTech: (no params)
-            - targetTech: techType (string)
-            - makeDecision: decisionId (int), choiceIndex (int), data? (int)
-            - removeDecision: decisionId (int)
-
-            Diplomacy:
-            - declareWar/makePeace/declareTruce: targetPlayer (int)
-            - declareWarTribe/makePeaceTribe/declareTruceTribe: tribeType (string)
-            - giftCity: cityId (int), targetPlayer (int)
-            - giftYield: yieldType (string), targetPlayer (int), reverse? (bool)
-            - allyTribe: tribeType (string)
-
-            Character Management:
-            - assignGovernor: cityId (int), characterId (int)
-            - releaseGovernor: cityId (int)
-            - assignGeneral: unitId (int), characterId (int)
-            - releaseGeneral: unitId (int)
-            - assignAgent: cityId (int), characterId (int)
-            - releaseAgent: cityId (int)
-            - startMission: missionType (string), characterId (int), target? (string), cancel? (bool)
-
-            Turn:
-            - endTurn: force? (bool, default true)
-          additionalProperties: true
-
     CommandResult:
       type: object
       description: Result of executing a single command
@@ -2724,26 +2386,6 @@ components:
         data:
           type: object
           description: Optional data returned by the command
-
-    BulkCommand:
-      type: object
-      description: A batch of commands to execute in sequence
-      required:
-        - commands
-      properties:
-        requestId:
-          type: string
-          description: Optional ID for the entire batch
-        commands:
-          type: array
-          description: List of commands to execute in order
-          items:
-            $ref: '#/components/schemas/GameCommand'
-        stopOnError:
-          type: boolean
-          default: true
-          description: If true, stop execution when any command fails
-
     BulkCommandResult:
       type: object
       description: Result of executing a bulk command batch
@@ -2762,7 +2404,6 @@ components:
         stoppedAtIndex:
           type: integer
           description: If stopOnError was true and an error occurred, the index where execution stopped
-
     BulkCommandItemResult:
       type: object
       description: Result of a single command within a bulk execution
@@ -2779,7 +2420,6 @@ components:
         error:
           type: string
           description: Error message if this command failed
-
     Error:
       type: object
       properties:
@@ -2789,7 +2429,4441 @@ components:
         code:
           type: integer
           description: HTTP status code
-
+    MoveUnitParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+          description: Unit ID to move
+        targetTileId:
+          type: integer
+          description: Destination tile ID
+        queue:
+          type: boolean
+          description: Queue the move instead of executing immediately
+        march:
+          type: boolean
+          description: Use march movement mode
+        waypointTileId:
+          type: integer
+          description: Optional waypoint tile ID
+      required:
+      - unitId
+      - targetTileId
+    MoveUnitCommand:
+      type: object
+      description: Move a unit to a target tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: moveUnit
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MoveUnitParams'
+    AttackParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        targetTileId:
+          type: integer
+      required:
+      - unitId
+      - targetTileId
+    AttackCommand:
+      type: object
+      description: Attack a target tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: attack
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AttackParams'
+    FortifyParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    FortifyCommand:
+      type: object
+      description: Fortify a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: fortify
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FortifyParams'
+    PassParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    PassCommand:
+      type: object
+      description: Skip a unit's turn
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: pass
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PassParams'
+    SleepParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    SleepCommand:
+      type: object
+      description: Put a unit to sleep
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: sleep
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SleepParams'
+    SentryParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    SentryCommand:
+      type: object
+      description: Set a unit to sentry mode
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: sentry
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SentryParams'
+    WakeParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    WakeCommand:
+      type: object
+      description: Wake a sleeping or sentry unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: wake
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/WakeParams'
+    HealParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        auto:
+          type: boolean
+          description: Enable auto-heal mode
+      required:
+      - unitId
+    HealCommand:
+      type: object
+      description: Heal a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: heal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HealParams'
+    MarchParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    MarchCommand:
+      type: object
+      description: Set unit to march mode
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: march
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MarchParams'
+    LockParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    LockCommand:
+      type: object
+      description: Lock a unit in place
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: lock
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/LockParams'
+    DisbandParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        force:
+          type: boolean
+          description: Force disband without confirmation
+      required:
+      - unitId
+    DisbandCommand:
+      type: object
+      description: Disband a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: disband
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DisbandParams'
+    PromoteParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        promotion:
+          type: string
+          description: Promotion type (e.g., PROMOTION_FIERCE)
+      required:
+      - unitId
+      - promotion
+    PromoteCommand:
+      type: object
+      description: Apply a promotion to a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: promote
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PromoteParams'
+    PillageParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    PillageCommand:
+      type: object
+      description: Pillage with a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: pillage
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PillageParams'
+    BurnParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    BurnCommand:
+      type: object
+      description: Burn with a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: burn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BurnParams'
+    UpgradeParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        unitType:
+          type: string
+          description: Target unit type (e.g., UNIT_SWORDSMAN)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+      required:
+      - unitId
+      - unitType
+    UpgradeCommand:
+      type: object
+      description: Upgrade a unit to a new type
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: upgrade
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UpgradeParams'
+    SpreadReligionParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        cityId:
+          type: integer
+      required:
+      - unitId
+      - cityId
+    SpreadReligionCommand:
+      type: object
+      description: Spread religion to a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: spreadReligion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SpreadReligionParams'
+    BuildImprovementParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        improvementType:
+          type: string
+          description: Improvement type (e.g., IMPROVEMENT_FARM)
+        tileId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        queue:
+          type: boolean
+          description: Queue the action
+      required:
+      - unitId
+      - improvementType
+      - tileId
+    BuildImprovementCommand:
+      type: object
+      description: Build an improvement on a tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buildImprovement
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildImprovementParams'
+    UpgradeImprovementParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+      required:
+      - unitId
+    UpgradeImprovementCommand:
+      type: object
+      description: Upgrade an existing improvement
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: upgradeImprovement
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UpgradeImprovementParams'
+    AddRoadParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        tileId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        queue:
+          type: boolean
+          description: Queue the action
+      required:
+      - unitId
+      - tileId
+    AddRoadCommand:
+      type: object
+      description: Add a road to a tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addRoad
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddRoadParams'
+    FoundCityParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type (e.g., FAMILY_CHAMPIONS)
+        nationType:
+          type: string
+          description: Nation type for the city
+      required:
+      - unitId
+      - familyType
+    FoundCityCommand:
+      type: object
+      description: Found a new city with a settler
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: foundCity
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FoundCityParams'
+    JoinCityParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    JoinCityCommand:
+      type: object
+      description: Join a unit to a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: joinCity
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/JoinCityParams'
+    BuildParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        unitType:
+          type: string
+          description: Unit type (e.g., UNIT_WARRIOR)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        first:
+          type: boolean
+          description: Add to front of build queue
+      required:
+      - cityId
+      - unitType
+    BuildCommand:
+      type: object
+      description: Start building a unit in a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: build
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildParams'
+    BuildProjectParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        projectType:
+          type: string
+          description: Project type (e.g., PROJECT_GRANARY)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        first:
+          type: boolean
+          description: Add to front of build queue
+        repeat:
+          type: boolean
+          description: Repeat when complete
+      required:
+      - cityId
+      - projectType
+    BuildProjectCommand:
+      type: object
+      description: Start building a project in a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buildProject
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildProjectParams'
+    BuildQueueParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        oldSlot:
+          type: integer
+          description: Current position in queue
+        newSlot:
+          type: integer
+          description: New position in queue
+      required:
+      - cityId
+      - oldSlot
+      - newSlot
+    BuildQueueCommand:
+      type: object
+      description: Reorder the build queue
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buildQueue
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildQueueParams'
+    HurryCivicsParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    HurryCivicsCommand:
+      type: object
+      description: Rush production with civics
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hurryCivics
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HurryCivicsParams'
+    HurryTrainingParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    HurryTrainingCommand:
+      type: object
+      description: Rush production with training
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hurryTraining
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HurryTrainingParams'
+    HurryMoneyParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    HurryMoneyCommand:
+      type: object
+      description: Rush production with money
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hurryMoney
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HurryMoneyParams'
+    HurryPopulationParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    HurryPopulationCommand:
+      type: object
+      description: Rush production with population
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hurryPopulation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HurryPopulationParams'
+    HurryOrdersParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    HurryOrdersCommand:
+      type: object
+      description: Rush production with orders
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hurryOrders
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HurryOrdersParams'
+    ResearchParams:
+      type: object
+      properties:
+        tech:
+          type: string
+          description: Tech type (e.g., TECH_FORESTRY)
+      required:
+      - tech
+    ResearchCommand:
+      type: object
+      description: Set the current research target
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: research
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ResearchParams'
+    RedrawTechCommand:
+      type: object
+      description: Redraw available technologies
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: redrawTech
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    TargetTechParams:
+      type: object
+      properties:
+        techType:
+          type: string
+          description: Tech type (e.g., TECH_IRONWORKING)
+      required:
+      - techType
+    TargetTechCommand:
+      type: object
+      description: Set a long-term tech target
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: targetTech
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TargetTechParams'
+    MakeDecisionParams:
+      type: object
+      properties:
+        decisionId:
+          type: integer
+        choiceIndex:
+          type: integer
+          description: Index of the choice to select
+        data:
+          type: integer
+          description: Optional data for the choice
+      required:
+      - decisionId
+      - choiceIndex
+    MakeDecisionCommand:
+      type: object
+      description: Make a decision choice
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: makeDecision
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MakeDecisionParams'
+    RemoveDecisionParams:
+      type: object
+      properties:
+        decisionId:
+          type: integer
+      required:
+      - decisionId
+    RemoveDecisionCommand:
+      type: object
+      description: Remove or dismiss a decision
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: removeDecision
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RemoveDecisionParams'
+    EndTurnParams:
+      type: object
+      properties:
+        force:
+          type: boolean
+          description: Force end turn even with pending actions
+          default: true
+    EndTurnCommand:
+      type: object
+      description: End the current turn
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: endTurn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/EndTurnParams'
+    DeclareWarParams:
+      type: object
+      properties:
+        targetPlayer:
+          type: integer
+          description: Target player index
+      required:
+      - targetPlayer
+    DeclareWarCommand:
+      type: object
+      description: Declare war on another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: declareWar
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DeclareWarParams'
+    MakePeaceParams:
+      type: object
+      properties:
+        targetPlayer:
+          type: integer
+          description: Target player index
+      required:
+      - targetPlayer
+    MakePeaceCommand:
+      type: object
+      description: Make peace with another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: makePeace
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MakePeaceParams'
+    DeclareTruceParams:
+      type: object
+      properties:
+        targetPlayer:
+          type: integer
+          description: Target player index
+      required:
+      - targetPlayer
+    DeclareTruceCommand:
+      type: object
+      description: Declare a truce with another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: declareTruce
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DeclareTruceParams'
+    DeclareWarTribeParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type (e.g., TRIBE_GAULS)
+      required:
+      - tribeType
+    DeclareWarTribeCommand:
+      type: object
+      description: Declare war on a tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: declareWarTribe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DeclareWarTribeParams'
+    MakePeaceTribeParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+      required:
+      - tribeType
+    MakePeaceTribeCommand:
+      type: object
+      description: Make peace with a tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: makePeaceTribe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MakePeaceTribeParams'
+    DeclareTruceTribeParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+      required:
+      - tribeType
+    DeclareTruceTribeCommand:
+      type: object
+      description: Declare a truce with a tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: declareTruceTribe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DeclareTruceTribeParams'
+    AllyTribeParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+      required:
+      - tribeType
+    AllyTribeCommand:
+      type: object
+      description: Form an alliance with a tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: allyTribe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AllyTribeParams'
+    GiftCityParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        targetPlayer:
+          type: integer
+          description: Target player index
+      required:
+      - cityId
+      - targetPlayer
+    GiftCityCommand:
+      type: object
+      description: Gift a city to another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: giftCity
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/GiftCityParams'
+    GiftYieldParams:
+      type: object
+      properties:
+        yieldType:
+          type: string
+          description: Yield type (e.g., YIELD_FOOD)
+        targetPlayer:
+          type: integer
+          description: Target player index
+        reverse:
+          type: boolean
+          description: Request instead of gift
+      required:
+      - yieldType
+      - targetPlayer
+    GiftYieldCommand:
+      type: object
+      description: Gift resources to another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: giftYield
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/GiftYieldParams'
+    AssignGovernorParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        characterId:
+          type: integer
+      required:
+      - cityId
+      - characterId
+    AssignGovernorCommand:
+      type: object
+      description: Assign a character as city governor
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: assignGovernor
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AssignGovernorParams'
+    ReleaseGovernorParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    ReleaseGovernorCommand:
+      type: object
+      description: Release a city's governor
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: releaseGovernor
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ReleaseGovernorParams'
+    AssignGeneralParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        characterId:
+          type: integer
+      required:
+      - unitId
+      - characterId
+    AssignGeneralCommand:
+      type: object
+      description: Assign a character as unit general
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: assignGeneral
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AssignGeneralParams'
+    ReleaseGeneralParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    ReleaseGeneralCommand:
+      type: object
+      description: Release a unit's general
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: releaseGeneral
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ReleaseGeneralParams'
+    AssignAgentParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        characterId:
+          type: integer
+      required:
+      - cityId
+      - characterId
+    AssignAgentCommand:
+      type: object
+      description: Assign a character as city agent
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: assignAgent
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AssignAgentParams'
+    ReleaseAgentParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    ReleaseAgentCommand:
+      type: object
+      description: Release a city's agent
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: releaseAgent
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ReleaseAgentParams'
+    StartMissionParams:
+      type: object
+      properties:
+        missionType:
+          type: string
+          description: Mission type (e.g., MISSION_INFLUENCE)
+        characterId:
+          type: integer
+        target:
+          type: string
+          description: Optional target for the mission
+        cancel:
+          type: boolean
+          description: Cancel an existing mission
+      required:
+      - missionType
+      - characterId
+    StartMissionCommand:
+      type: object
+      description: Start a character mission
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: startMission
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/StartMissionParams'
+    ChooseLawParams:
+      type: object
+      properties:
+        lawType:
+          type: string
+          description: Law type (e.g., LAW_SLAVERY)
+      required:
+      - lawType
+    ChooseLawCommand:
+      type: object
+      description: Enact a law
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: chooseLaw
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChooseLawParams'
+    CancelLawParams:
+      type: object
+      properties:
+        lawType:
+          type: string
+          description: Law type
+      required:
+      - lawType
+    CancelLawCommand:
+      type: object
+      description: Cancel an active law
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cancelLaw
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CancelLawParams'
+    BuyYieldParams:
+      type: object
+      properties:
+        yieldType:
+          type: string
+          description: Yield type (e.g., YIELD_TRAINING)
+        amount:
+          type: integer
+      required:
+      - yieldType
+      - amount
+    BuyYieldCommand:
+      type: object
+      description: Buy resources with money
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buyYield
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuyYieldParams'
+    SellYieldParams:
+      type: object
+      properties:
+        yieldType:
+          type: string
+          description: Yield type
+        amount:
+          type: integer
+      required:
+      - yieldType
+      - amount
+    SellYieldCommand:
+      type: object
+      description: Sell resources for money
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: sellYield
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SellYieldParams'
+    ConvertOrdersCommand:
+      type: object
+      description: Convert orders to money
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: convertOrders
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    ConvertLegitimacyCommand:
+      type: object
+      description: Convert legitimacy
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: convertLegitimacy
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    ConvertOrdersToScienceCommand:
+      type: object
+      description: Convert orders to science
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: convertOrdersToScience
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    TradeCityLuxuryParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        resourceType:
+          type: string
+          description: Resource type (e.g., RESOURCE_WINE)
+        enable:
+          type: boolean
+          default: true
+      required:
+      - cityId
+      - resourceType
+    TradeCityLuxuryCommand:
+      type: object
+      description: Toggle luxury trading for a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tradeCityLuxury
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TradeCityLuxuryParams'
+    TradeFamilyLuxuryParams:
+      type: object
+      properties:
+        familyType:
+          type: string
+          description: Family type
+        resourceType:
+          type: string
+          description: Resource type
+        enable:
+          type: boolean
+          default: true
+      required:
+      - familyType
+      - resourceType
+    TradeFamilyLuxuryCommand:
+      type: object
+      description: Toggle luxury trading for a family
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tradeFamilyLuxury
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TradeFamilyLuxuryParams'
+    TradeTribeLuxuryParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+        resourceType:
+          type: string
+          description: Resource type
+        enable:
+          type: boolean
+          default: true
+      required:
+      - tribeType
+      - resourceType
+    TradeTribeLuxuryCommand:
+      type: object
+      description: Toggle luxury trading with a tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tradeTribeLuxury
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TradeTribeLuxuryParams'
+    TradePlayerLuxuryParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index
+        resourceType:
+          type: string
+          description: Resource type
+        enable:
+          type: boolean
+          default: true
+      required:
+      - playerType
+      - resourceType
+    TradePlayerLuxuryCommand:
+      type: object
+      description: Toggle luxury trading with another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tradePlayerLuxury
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TradePlayerLuxuryParams'
+    TributeParams:
+      type: object
+      properties:
+        yieldType:
+          type: string
+          description: Yield type
+        amount:
+          type: integer
+        toPlayer:
+          type: integer
+          description: Target player index (or use toTribe)
+        toTribe:
+          type: string
+          description: Target tribe type (or use toPlayer)
+        fromPlayer:
+          type: integer
+          description: Source player (defaults to current)
+      required:
+      - yieldType
+      - amount
+    TributeCommand:
+      type: object
+      description: Send tribute to a player or tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tribute
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TributeParams'
+    SwapParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        targetTileId:
+          type: integer
+        forceMarch:
+          type: boolean
+          description: Force march to swap position
+      required:
+      - unitId
+      - targetTileId
+    SwapCommand:
+      type: object
+      description: Swap unit position with another unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: swap
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SwapParams'
+    DoUnitQueueParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    DoUnitQueueCommand:
+      type: object
+      description: Execute unit's queued actions
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: doUnitQueue
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/DoUnitQueueParams'
+    CancelUnitQueueParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        all:
+          type: boolean
+          description: Cancel all queued actions
+      required:
+      - unitId
+    CancelUnitQueueCommand:
+      type: object
+      description: Cancel unit's queued actions
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cancelUnitQueue
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CancelUnitQueueParams'
+    FormationParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        effectUnitType:
+          type: string
+          description: Formation type (e.g., EFFECTUNIT_TESTUDO)
+      required:
+      - unitId
+      - effectUnitType
+    FormationCommand:
+      type: object
+      description: Set unit formation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: formation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FormationParams'
+    UnlimberParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    UnlimberCommand:
+      type: object
+      description: Unlimber artillery unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unlimber
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnlimberParams'
+    AnchorParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    AnchorCommand:
+      type: object
+      description: Anchor ship
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: anchor
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AnchorParams'
+    RepairParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        queue:
+          type: boolean
+          description: Queue the action
+        tileId:
+          type: integer
+          description: Tile to repair at
+      required:
+      - unitId
+    RepairCommand:
+      type: object
+      description: Repair a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: repair
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RepairParams'
+    CancelImprovementParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    CancelImprovementCommand:
+      type: object
+      description: Cancel improvement being built
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cancelImprovement
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CancelImprovementParams'
+    RemoveVegetationParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    RemoveVegetationCommand:
+      type: object
+      description: Remove vegetation from tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: removeVegetation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RemoveVegetationParams'
+    HarvestResourceParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+      required:
+      - unitId
+    HarvestResourceCommand:
+      type: object
+      description: Harvest resource with worker
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: harvestResource
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HarvestResourceParams'
+    UnitAutomateParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    UnitAutomateCommand:
+      type: object
+      description: Toggle unit automation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unitAutomate
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnitAutomateParams'
+    AddUrbanParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+      required:
+      - unitId
+    AddUrbanCommand:
+      type: object
+      description: Add urban tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addUrban
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddUrbanParams'
+    RoadToParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        tileIds:
+          type: string
+          description: Comma-separated tile IDs for the path
+      required:
+      - unitId
+    RoadToCommand:
+      type: object
+      description: Build road to tiles
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: roadTo
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RoadToParams'
+    BuyTileParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        tileId:
+          type: integer
+        yieldType:
+          type: string
+          description: Yield type to use for payment
+      required:
+      - unitId
+      - tileId
+    BuyTileCommand:
+      type: object
+      description: Buy a tile for a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buyTile
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuyTileParams'
+    RecruitMercenaryParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    RecruitMercenaryCommand:
+      type: object
+      description: Recruit mercenary
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: recruitMercenary
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RecruitMercenaryParams'
+    HireMercenaryParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    HireMercenaryCommand:
+      type: object
+      description: Hire mercenary
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: hireMercenary
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/HireMercenaryParams'
+    GiftUnitParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        targetPlayer:
+          type: integer
+          description: Target player index
+      required:
+      - unitId
+      - targetPlayer
+    GiftUnitCommand:
+      type: object
+      description: Gift unit to another player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: giftUnit
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/GiftUnitParams'
+    LaunchOffensiveParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    LaunchOffensiveCommand:
+      type: object
+      description: Launch offensive with general
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: launchOffensive
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/LaunchOffensiveParams'
+    ApplyEffectUnitParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        effectUnitType:
+          type: string
+          description: Effect type
+      required:
+      - unitId
+      - effectUnitType
+    ApplyEffectUnitCommand:
+      type: object
+      description: Apply effect to unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: applyEffectUnit
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ApplyEffectUnitParams'
+    SelectUnitParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    SelectUnitCommand:
+      type: object
+      description: Select a unit
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: selectUnit
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SelectUnitParams'
+    CreateAgentNetworkParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        cityId:
+          type: integer
+      required:
+      - unitId
+      - cityId
+    CreateAgentNetworkCommand:
+      type: object
+      description: Create agent network in city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: createAgentNetwork
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CreateAgentNetworkParams'
+    CreateTradeOutpostParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        tileId:
+          type: integer
+      required:
+      - unitId
+      - tileId
+    CreateTradeOutpostCommand:
+      type: object
+      description: Create trade outpost on tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: createTradeOutpost
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CreateTradeOutpostParams'
+    CaravanMissionStartParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        missionType:
+          type: string
+          description: Mission type
+      required:
+      - unitId
+      - missionType
+    CaravanMissionStartCommand:
+      type: object
+      description: Start caravan mission
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: caravanMissionStart
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CaravanMissionStartParams'
+    CaravanMissionCancelParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+      required:
+      - unitId
+    CaravanMissionCancelCommand:
+      type: object
+      description: Cancel caravan mission
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: caravanMissionCancel
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CaravanMissionCancelParams'
+    PurgeReligionParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        religionType:
+          type: string
+          description: Religion to purge
+      required:
+      - unitId
+      - religionType
+    PurgeReligionCommand:
+      type: object
+      description: Purge religion from city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: purgeReligion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PurgeReligionParams'
+    SpreadReligionTribeParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        tribeType:
+          type: string
+          description: Target tribe
+      required:
+      - unitId
+      - tribeType
+    SpreadReligionTribeCommand:
+      type: object
+      description: Spread religion to tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: spreadReligionTribe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SpreadReligionTribeParams'
+    EstablishTheologyParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        theologyType:
+          type: string
+          description: Theology type (e.g., THEOLOGY_CLERGY)
+      required:
+      - unitId
+      - theologyType
+    EstablishTheologyCommand:
+      type: object
+      description: Establish theology
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: establishTheology
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/EstablishTheologyParams'
+    CharacterNameParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        name:
+          type: string
+      required:
+      - characterId
+      - name
+    CharacterNameCommand:
+      type: object
+      description: Set character name
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: characterName
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CharacterNameParams'
+    AddCharacterTraitParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        traitType:
+          type: string
+          description: Trait type (e.g., TRAIT_WARRIOR)
+        remove:
+          type: boolean
+          description: Remove instead of add
+      required:
+      - characterId
+      - traitType
+    AddCharacterTraitCommand:
+      type: object
+      description: Add or remove character trait
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addCharacterTrait
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddCharacterTraitParams'
+    SetCharacterRatingParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        ratingType:
+          type: string
+          description: Rating type
+        value:
+          type: integer
+      required:
+      - characterId
+      - ratingType
+      - value
+    SetCharacterRatingCommand:
+      type: object
+      description: Set character rating value
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterRating
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterRatingParams'
+    SetCharacterExperienceParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        experience:
+          type: integer
+      required:
+      - characterId
+      - experience
+    SetCharacterExperienceCommand:
+      type: object
+      description: Set character XP
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterExperience
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterExperienceParams'
+    SetCharacterCognomenParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        cognomenType:
+          type: string
+          description: Cognomen type
+      required:
+      - characterId
+      - cognomenType
+    SetCharacterCognomenCommand:
+      type: object
+      description: Set character cognomen/title
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterCognomen
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterCognomenParams'
+    SetCharacterNationParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        nationType:
+          type: string
+          description: Nation type
+      required:
+      - characterId
+      - nationType
+    SetCharacterNationCommand:
+      type: object
+      description: Set character nation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterNation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterNationParams'
+    SetCharacterFamilyParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - characterId
+      - familyType
+    SetCharacterFamilyCommand:
+      type: object
+      description: Set character family
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterFamily
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterFamilyParams'
+    SetCharacterReligionParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        religionType:
+          type: string
+          description: Religion type
+      required:
+      - characterId
+      - religionType
+    SetCharacterReligionCommand:
+      type: object
+      description: Set character religion
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterReligion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterReligionParams'
+    SetCharacterCourtierParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        courtierType:
+          type: string
+          description: Courtier type
+      required:
+      - characterId
+      - courtierType
+    SetCharacterCourtierCommand:
+      type: object
+      description: Set character courtier role
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterCourtier
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterCourtierParams'
+    SetCharacterCouncilParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        councilType:
+          type: string
+          description: Council type
+      required:
+      - characterId
+      - councilType
+    SetCharacterCouncilCommand:
+      type: object
+      description: Set character council position
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCharacterCouncil
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCharacterCouncilParams'
+    PlayerLeaderParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        playerType:
+          type: integer
+          description: Player index
+      required:
+      - characterId
+      - playerType
+    PlayerLeaderCommand:
+      type: object
+      description: Set player leader
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: playerLeader
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PlayerLeaderParams'
+    FamilyHeadParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - characterId
+      - familyType
+    FamilyHeadCommand:
+      type: object
+      description: Set family head
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: familyHead
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FamilyHeadParams'
+    PinCharacterParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        pin:
+          type: boolean
+          default: true
+      required:
+      - characterId
+    PinCharacterCommand:
+      type: object
+      description: Pin character in UI
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: pinCharacter
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PinCharacterParams'
+    CityRenameParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        name:
+          type: string
+      required:
+      - cityId
+      - name
+    CityRenameCommand:
+      type: object
+      description: Rename a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cityRename
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CityRenameParams'
+    CityAutomateParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        enable:
+          type: boolean
+          default: true
+      required:
+      - cityId
+    CityAutomateCommand:
+      type: object
+      description: Toggle city automation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cityAutomate
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CityAutomateParams'
+    BuildSpecialistParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        specialistType:
+          type: string
+          description: Specialist type (e.g., SPECIALIST_SAGE)
+        buyGoods:
+          type: boolean
+          description: Pay for goods if needed
+        addFirst:
+          type: boolean
+          description: Add to front of queue
+      required:
+      - tileId
+      - specialistType
+    BuildSpecialistCommand:
+      type: object
+      description: Build specialist on tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: buildSpecialist
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/BuildSpecialistParams'
+    SetSpecialistParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        specialistType:
+          type: string
+          description: Specialist type
+      required:
+      - tileId
+      - specialistType
+    SetSpecialistCommand:
+      type: object
+      description: Set tile specialist
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setSpecialist
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetSpecialistParams'
+    ChangeCitizensParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        amount:
+          type: integer
+          description: Amount to add (negative to remove)
+      required:
+      - cityId
+      - amount
+    ChangeCitizensCommand:
+      type: object
+      description: Change city citizen count
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCitizens
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCitizensParams'
+    ChangeReligionParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        religionType:
+          type: string
+          description: Religion type
+        add:
+          type: boolean
+          description: Add (true) or remove (false)
+          default: true
+      required:
+      - cityId
+      - religionType
+    ChangeReligionCommand:
+      type: object
+      description: Add or remove religion in city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeReligion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeReligionParams'
+    ChangeFamilyParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - cityId
+      - familyType
+    ChangeFamilyCommand:
+      type: object
+      description: Change city family
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeFamily
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeFamilyParams'
+    ChangeFamilySeatParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - cityId
+      - familyType
+    ChangeFamilySeatCommand:
+      type: object
+      description: Change family seat city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeFamilySeat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeFamilySeatParams'
+    AbandonAmbitionParams:
+      type: object
+      properties:
+        ambitionType:
+          type: string
+          description: Ambition type
+      required:
+      - ambitionType
+    AbandonAmbitionCommand:
+      type: object
+      description: Abandon an ambition
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: abandonAmbition
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AbandonAmbitionParams'
+    AddPlayerGoalParams:
+      type: object
+      properties:
+        goalType:
+          type: string
+          description: Goal type
+        playerType:
+          type: integer
+          description: Player index (defaults to current)
+      required:
+      - goalType
+    AddPlayerGoalCommand:
+      type: object
+      description: Add a goal to player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addPlayerGoal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddPlayerGoalParams'
+    RemovePlayerGoalParams:
+      type: object
+      properties:
+        goalType:
+          type: string
+          description: Goal type
+        playerType:
+          type: integer
+          description: Player index (defaults to current)
+      required:
+      - goalType
+    RemovePlayerGoalCommand:
+      type: object
+      description: Remove player goal
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: removePlayerGoal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RemovePlayerGoalParams'
+    EventStoryParams:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: Event type
+      required:
+      - eventType
+    EventStoryCommand:
+      type: object
+      description: Trigger event story
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: eventStory
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/EventStoryParams'
+    FinishGoalParams:
+      type: object
+      properties:
+        goalType:
+          type: string
+          description: Goal type
+        success:
+          type: boolean
+          description: Complete (true) or fail (false)
+          default: true
+      required:
+      - goalType
+    FinishGoalCommand:
+      type: object
+      description: Complete or fail a goal
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: finishGoal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/FinishGoalParams'
+    ChatParams:
+      type: object
+      properties:
+        message:
+          type: string
+        toPlayer:
+          type: integer
+          description: Target player (omit for all)
+      required:
+      - message
+    ChatCommand:
+      type: object
+      description: Send chat message
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: chat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChatParams'
+    PingParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        message:
+          type: string
+          description: Optional ping message
+      required:
+      - tileId
+    PingCommand:
+      type: object
+      description: Ping a map location
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: ping
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/PingParams'
+    CustomReminderParams:
+      type: object
+      properties:
+        message:
+          type: string
+        turn:
+          type: integer
+          description: Turn to trigger reminder
+      required:
+      - message
+      - turn
+    CustomReminderCommand:
+      type: object
+      description: Create custom reminder
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: customReminder
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CustomReminderParams'
+    ClearChatCommand:
+      type: object
+      description: Clear chat history
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: clearChat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    ExtendTimeParams:
+      type: object
+      properties:
+        seconds:
+          type: integer
+      required:
+      - seconds
+    ExtendTimeCommand:
+      type: object
+      description: Extend game time
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: extendTime
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ExtendTimeParams'
+    PauseCommand:
+      type: object
+      description: Pause the game
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: pause
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    UndoCommand:
+      type: object
+      description: Undo last action
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: undo
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    RedoCommand:
+      type: object
+      description: Redo undone action
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: redo
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    ReplayTurnParams:
+      type: object
+      properties:
+        turn:
+          type: integer
+          description: Turn number to replay from
+      required:
+      - turn
+    ReplayTurnCommand:
+      type: object
+      description: Replay previous turns
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: replayTurn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ReplayTurnParams'
+    AiFinishTurnCommand:
+      type: object
+      description: Let AI finish turn
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: aiFinishTurn
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    ToggleNoReplayCommand:
+      type: object
+      description: Toggle turn replay setting
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          const: toggleNoReplay
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+    TeamAllianceParams:
+      type: object
+      properties:
+        targetPlayer:
+          type: integer
+          description: Target player index
+        enable:
+          type: boolean
+          default: true
+      required:
+      - targetPlayer
+    TeamAllianceCommand:
+      type: object
+      description: Create team alliance
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: teamAlliance
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TeamAllianceParams'
+    TribeInvasionParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+        targetPlayer:
+          type: integer
+          description: Target player
+      required:
+      - tribeType
+      - targetPlayer
+    TribeInvasionCommand:
+      type: object
+      description: Trigger tribe invasion
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tribeInvasion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TribeInvasionParams'
+    VictoryTeamParams:
+      type: object
+      properties:
+        team:
+          type: integer
+          description: Team index
+      required:
+      - team
+    VictoryTeamCommand:
+      type: object
+      description: Set victory for team
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: victoryTeam
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/VictoryTeamParams'
+    CreateUnitParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        unitType:
+          type: string
+          description: Unit type (e.g., UNIT_WARRIOR)
+        playerType:
+          type: integer
+          description: Player index (defaults to current)
+        tribeType:
+          type: string
+          description: Tribe type (for tribal units)
+      required:
+      - tileId
+      - unitType
+    CreateUnitCommand:
+      type: object
+      description: Create a unit at a tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: createUnit
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CreateUnitParams'
+    UnitNameParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        name:
+          type: string
+      required:
+      - unitId
+      - name
+    UnitNameCommand:
+      type: object
+      description: Set unit name
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unitName
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnitNameParams'
+    SetUnitFamilyParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - unitId
+      - familyType
+    SetUnitFamilyCommand:
+      type: object
+      description: Change unit's family
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setUnitFamily
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetUnitFamilyParams'
+    ChangeUnitOwnerParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        playerType:
+          type: integer
+          description: New owner player index
+        tribeType:
+          type: string
+          description: New owner tribe type
+      required:
+      - unitId
+    ChangeUnitOwnerCommand:
+      type: object
+      description: Transfer unit to player or tribe
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeUnitOwner
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeUnitOwnerParams'
+    ChangeCooldownParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        amount:
+          type: integer
+          description: Amount to add (negative to reduce)
+      required:
+      - unitId
+      - amount
+    ChangeCooldownCommand:
+      type: object
+      description: Modify unit cooldown
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCooldown
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCooldownParams'
+    ChangeDamageParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        amount:
+          type: integer
+          description: Amount to add (negative to heal)
+      required:
+      - unitId
+      - amount
+    ChangeDamageCommand:
+      type: object
+      description: Modify unit damage
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeDamage
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeDamageParams'
+    UnitIncrementLevelParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        amount:
+          type: integer
+          description: Levels to add
+          default: 1
+      required:
+      - unitId
+    UnitIncrementLevelCommand:
+      type: object
+      description: Increase unit level
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unitIncrementLevel
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnitIncrementLevelParams'
+    UnitChangePromotionParams:
+      type: object
+      properties:
+        unitId:
+          type: integer
+        promotionType:
+          type: string
+          description: Promotion type
+        remove:
+          type: boolean
+          description: Remove instead of add
+      required:
+      - unitId
+      - promotionType
+    UnitChangePromotionCommand:
+      type: object
+      description: Add or remove promotion
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: unitChangePromotion
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/UnitChangePromotionParams'
+    CreateCityParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        playerType:
+          type: integer
+          description: Owner player index
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - tileId
+      - playerType
+      - familyType
+    CreateCityCommand:
+      type: object
+      description: Create a city at a tile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: createCity
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CreateCityParams'
+    RemoveCityParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+      required:
+      - cityId
+    RemoveCityCommand:
+      type: object
+      description: Remove a city
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: removeCity
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/RemoveCityParams'
+    CityOwnerParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        playerType:
+          type: integer
+          description: New owner player index
+      required:
+      - cityId
+      - playerType
+    CityOwnerCommand:
+      type: object
+      description: Change city owner
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cityOwner
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CityOwnerParams'
+    ChangeCityDamageParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        amount:
+          type: integer
+      required:
+      - cityId
+      - amount
+    ChangeCityDamageCommand:
+      type: object
+      description: Modify city damage
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCityDamage
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCityDamageParams'
+    ChangeCultureParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        amount:
+          type: integer
+          description: Amount to add (negative to shrink)
+      required:
+      - cityId
+      - amount
+    ChangeCultureCommand:
+      type: object
+      description: Grow or shrink city culture
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCulture
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCultureParams'
+    ChangeCityBuildTurnsParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        amount:
+          type: integer
+          description: Turns to add (negative to reduce)
+      required:
+      - cityId
+      - amount
+    ChangeCityBuildTurnsCommand:
+      type: object
+      description: Modify build progress
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCityBuildTurns
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCityBuildTurnsParams'
+    ChangeCityDiscontentLevelParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        amount:
+          type: integer
+      required:
+      - cityId
+      - amount
+    ChangeCityDiscontentLevelCommand:
+      type: object
+      description: Modify discontent
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeCityDiscontentLevel
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeCityDiscontentLevelParams'
+    ChangeProjectParams:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        projectType:
+          type: string
+          description: Project type
+        amount:
+          type: integer
+          description: Progress to add
+      required:
+      - cityId
+      - projectType
+      - amount
+    ChangeProjectCommand:
+      type: object
+      description: Modify project progress
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: changeProject
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ChangeProjectParams'
+    SetTerrainParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        terrainType:
+          type: string
+          description: Terrain type (e.g., TERRAIN_PLAINS)
+      required:
+      - tileId
+      - terrainType
+    SetTerrainCommand:
+      type: object
+      description: Set tile terrain type
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setTerrain
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetTerrainParams'
+    SetTerrainHeightParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        heightType:
+          type: string
+          description: Height type (e.g., HEIGHT_HILL)
+      required:
+      - tileId
+      - heightType
+    SetTerrainHeightCommand:
+      type: object
+      description: Set tile height
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setTerrainHeight
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetTerrainHeightParams'
+    SetVegetationParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        vegetationType:
+          type: string
+          description: Vegetation type
+      required:
+      - tileId
+      - vegetationType
+    SetVegetationCommand:
+      type: object
+      description: Set tile vegetation
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setVegetation
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetVegetationParams'
+    SetResourceParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        resourceType:
+          type: string
+          description: Resource type
+      required:
+      - tileId
+      - resourceType
+    SetResourceCommand:
+      type: object
+      description: Set tile resource
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setResource
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetResourceParams'
+    SetRoadParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        enable:
+          type: boolean
+          default: true
+      required:
+      - tileId
+    SetRoadCommand:
+      type: object
+      description: Add or remove road
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setRoad
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetRoadParams'
+    SetImprovementParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        improvementType:
+          type: string
+          description: Improvement type
+      required:
+      - tileId
+      - improvementType
+    SetImprovementCommand:
+      type: object
+      description: Set tile improvement
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setImprovement
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetImprovementParams'
+    SetTileOwnerParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        playerType:
+          type: integer
+          description: Owner player index
+      required:
+      - tileId
+      - playerType
+    SetTileOwnerCommand:
+      type: object
+      description: Set tile owner
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setTileOwner
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetTileOwnerParams'
+    SetCitySiteParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        enable:
+          type: boolean
+          default: true
+      required:
+      - tileId
+    SetCitySiteCommand:
+      type: object
+      description: Set city site marker
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: setCitySite
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/SetCitySiteParams'
+    ImprovementBuildTurnsParams:
+      type: object
+      properties:
+        tileId:
+          type: integer
+        turns:
+          type: integer
+      required:
+      - tileId
+      - turns
+    ImprovementBuildTurnsCommand:
+      type: object
+      description: Set improvement build turns
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: improvementBuildTurns
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/ImprovementBuildTurnsParams'
+    MapRevealParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index (defaults to current)
+    MapRevealCommand:
+      type: object
+      description: Reveal entire map
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: mapReveal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MapRevealParams'
+    MapUnrevealParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index (defaults to current)
+    MapUnrevealCommand:
+      type: object
+      description: Hide entire map
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: mapUnreveal
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MapUnrevealParams'
+    AddTechParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index
+        techType:
+          type: string
+          description: Tech type (e.g., TECH_IRONWORKING)
+      required:
+      - playerType
+      - techType
+    AddTechCommand:
+      type: object
+      description: Grant technology to player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addTech
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddTechParams'
+    AddYieldParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index
+        yieldType:
+          type: string
+          description: Yield type
+        amount:
+          type: integer
+      required:
+      - playerType
+      - yieldType
+      - amount
+    AddYieldCommand:
+      type: object
+      description: Add yield to player stockpile
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addYield
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddYieldParams'
+    AddMoneyParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Player index
+        amount:
+          type: integer
+      required:
+      - playerType
+      - amount
+    AddMoneyCommand:
+      type: object
+      description: Add money to player
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addMoney
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddMoneyParams'
+    CheatParams:
+      type: object
+      properties:
+        cheatType:
+          type: string
+          description: Cheat type
+      required:
+      - cheatType
+    CheatCommand:
+      type: object
+      description: Execute cheat hotkey
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: cheat
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/CheatParams'
+    MakeCharacterDeadParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+      required:
+      - characterId
+    MakeCharacterDeadCommand:
+      type: object
+      description: Kill a character
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: makeCharacterDead
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MakeCharacterDeadParams'
+    MakeCharacterSafeParams:
+      type: object
+      properties:
+        characterId:
+          type: integer
+        safe:
+          type: boolean
+          default: true
+      required:
+      - characterId
+    MakeCharacterSafeCommand:
+      type: object
+      description: Make character immune to death
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: makeCharacterSafe
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/MakeCharacterSafeParams'
+    NewCharacterParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Owner player index
+        familyType:
+          type: string
+          description: Family type
+      required:
+      - playerType
+    NewCharacterCommand:
+      type: object
+      description: Create random character
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: newCharacter
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/NewCharacterParams'
+    AddCharacterParams:
+      type: object
+      properties:
+        playerType:
+          type: integer
+          description: Owner player index
+        characterType:
+          type: string
+          description: Character type
+      required:
+      - playerType
+      - characterType
+    AddCharacterCommand:
+      type: object
+      description: Add specific character type
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: addCharacter
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/AddCharacterParams'
+    TribeLeaderParams:
+      type: object
+      properties:
+        tribeType:
+          type: string
+          description: Tribe type
+        characterId:
+          type: integer
+      required:
+      - tribeType
+      - characterId
+    TribeLeaderCommand:
+      type: object
+      description: Set tribe leader
+      required:
+      - action
+      - params
+      properties:
+        action:
+          type: string
+          const: tribeLeader
+        requestId:
+          type: string
+          description: Optional client-provided ID for response correlation
+        params:
+          $ref: '#/components/schemas/TribeLeaderParams'
+    GameCommand:
+      oneOf:
+      - $ref: '#/components/schemas/MoveUnitCommand'
+      - $ref: '#/components/schemas/AttackCommand'
+      - $ref: '#/components/schemas/FortifyCommand'
+      - $ref: '#/components/schemas/PassCommand'
+      - $ref: '#/components/schemas/SleepCommand'
+      - $ref: '#/components/schemas/SentryCommand'
+      - $ref: '#/components/schemas/WakeCommand'
+      - $ref: '#/components/schemas/HealCommand'
+      - $ref: '#/components/schemas/MarchCommand'
+      - $ref: '#/components/schemas/LockCommand'
+      - $ref: '#/components/schemas/DisbandCommand'
+      - $ref: '#/components/schemas/PromoteCommand'
+      - $ref: '#/components/schemas/PillageCommand'
+      - $ref: '#/components/schemas/BurnCommand'
+      - $ref: '#/components/schemas/UpgradeCommand'
+      - $ref: '#/components/schemas/SpreadReligionCommand'
+      - $ref: '#/components/schemas/BuildImprovementCommand'
+      - $ref: '#/components/schemas/UpgradeImprovementCommand'
+      - $ref: '#/components/schemas/AddRoadCommand'
+      - $ref: '#/components/schemas/FoundCityCommand'
+      - $ref: '#/components/schemas/JoinCityCommand'
+      - $ref: '#/components/schemas/BuildCommand'
+      - $ref: '#/components/schemas/BuildProjectCommand'
+      - $ref: '#/components/schemas/BuildQueueCommand'
+      - $ref: '#/components/schemas/HurryCivicsCommand'
+      - $ref: '#/components/schemas/HurryTrainingCommand'
+      - $ref: '#/components/schemas/HurryMoneyCommand'
+      - $ref: '#/components/schemas/HurryPopulationCommand'
+      - $ref: '#/components/schemas/HurryOrdersCommand'
+      - $ref: '#/components/schemas/ResearchCommand'
+      - $ref: '#/components/schemas/RedrawTechCommand'
+      - $ref: '#/components/schemas/TargetTechCommand'
+      - $ref: '#/components/schemas/MakeDecisionCommand'
+      - $ref: '#/components/schemas/RemoveDecisionCommand'
+      - $ref: '#/components/schemas/EndTurnCommand'
+      - $ref: '#/components/schemas/DeclareWarCommand'
+      - $ref: '#/components/schemas/MakePeaceCommand'
+      - $ref: '#/components/schemas/DeclareTruceCommand'
+      - $ref: '#/components/schemas/DeclareWarTribeCommand'
+      - $ref: '#/components/schemas/MakePeaceTribeCommand'
+      - $ref: '#/components/schemas/DeclareTruceTribeCommand'
+      - $ref: '#/components/schemas/AllyTribeCommand'
+      - $ref: '#/components/schemas/GiftCityCommand'
+      - $ref: '#/components/schemas/GiftYieldCommand'
+      - $ref: '#/components/schemas/AssignGovernorCommand'
+      - $ref: '#/components/schemas/ReleaseGovernorCommand'
+      - $ref: '#/components/schemas/AssignGeneralCommand'
+      - $ref: '#/components/schemas/ReleaseGeneralCommand'
+      - $ref: '#/components/schemas/AssignAgentCommand'
+      - $ref: '#/components/schemas/ReleaseAgentCommand'
+      - $ref: '#/components/schemas/StartMissionCommand'
+      - $ref: '#/components/schemas/ChooseLawCommand'
+      - $ref: '#/components/schemas/CancelLawCommand'
+      - $ref: '#/components/schemas/BuyYieldCommand'
+      - $ref: '#/components/schemas/SellYieldCommand'
+      - $ref: '#/components/schemas/ConvertOrdersCommand'
+      - $ref: '#/components/schemas/ConvertLegitimacyCommand'
+      - $ref: '#/components/schemas/ConvertOrdersToScienceCommand'
+      - $ref: '#/components/schemas/TradeCityLuxuryCommand'
+      - $ref: '#/components/schemas/TradeFamilyLuxuryCommand'
+      - $ref: '#/components/schemas/TradeTribeLuxuryCommand'
+      - $ref: '#/components/schemas/TradePlayerLuxuryCommand'
+      - $ref: '#/components/schemas/TributeCommand'
+      - $ref: '#/components/schemas/SwapCommand'
+      - $ref: '#/components/schemas/DoUnitQueueCommand'
+      - $ref: '#/components/schemas/CancelUnitQueueCommand'
+      - $ref: '#/components/schemas/FormationCommand'
+      - $ref: '#/components/schemas/UnlimberCommand'
+      - $ref: '#/components/schemas/AnchorCommand'
+      - $ref: '#/components/schemas/RepairCommand'
+      - $ref: '#/components/schemas/CancelImprovementCommand'
+      - $ref: '#/components/schemas/RemoveVegetationCommand'
+      - $ref: '#/components/schemas/HarvestResourceCommand'
+      - $ref: '#/components/schemas/UnitAutomateCommand'
+      - $ref: '#/components/schemas/AddUrbanCommand'
+      - $ref: '#/components/schemas/RoadToCommand'
+      - $ref: '#/components/schemas/BuyTileCommand'
+      - $ref: '#/components/schemas/RecruitMercenaryCommand'
+      - $ref: '#/components/schemas/HireMercenaryCommand'
+      - $ref: '#/components/schemas/GiftUnitCommand'
+      - $ref: '#/components/schemas/LaunchOffensiveCommand'
+      - $ref: '#/components/schemas/ApplyEffectUnitCommand'
+      - $ref: '#/components/schemas/SelectUnitCommand'
+      - $ref: '#/components/schemas/CreateAgentNetworkCommand'
+      - $ref: '#/components/schemas/CreateTradeOutpostCommand'
+      - $ref: '#/components/schemas/CaravanMissionStartCommand'
+      - $ref: '#/components/schemas/CaravanMissionCancelCommand'
+      - $ref: '#/components/schemas/PurgeReligionCommand'
+      - $ref: '#/components/schemas/SpreadReligionTribeCommand'
+      - $ref: '#/components/schemas/EstablishTheologyCommand'
+      - $ref: '#/components/schemas/CharacterNameCommand'
+      - $ref: '#/components/schemas/AddCharacterTraitCommand'
+      - $ref: '#/components/schemas/SetCharacterRatingCommand'
+      - $ref: '#/components/schemas/SetCharacterExperienceCommand'
+      - $ref: '#/components/schemas/SetCharacterCognomenCommand'
+      - $ref: '#/components/schemas/SetCharacterNationCommand'
+      - $ref: '#/components/schemas/SetCharacterFamilyCommand'
+      - $ref: '#/components/schemas/SetCharacterReligionCommand'
+      - $ref: '#/components/schemas/SetCharacterCourtierCommand'
+      - $ref: '#/components/schemas/SetCharacterCouncilCommand'
+      - $ref: '#/components/schemas/PlayerLeaderCommand'
+      - $ref: '#/components/schemas/FamilyHeadCommand'
+      - $ref: '#/components/schemas/PinCharacterCommand'
+      - $ref: '#/components/schemas/CityRenameCommand'
+      - $ref: '#/components/schemas/CityAutomateCommand'
+      - $ref: '#/components/schemas/BuildSpecialistCommand'
+      - $ref: '#/components/schemas/SetSpecialistCommand'
+      - $ref: '#/components/schemas/ChangeCitizensCommand'
+      - $ref: '#/components/schemas/ChangeReligionCommand'
+      - $ref: '#/components/schemas/ChangeFamilyCommand'
+      - $ref: '#/components/schemas/ChangeFamilySeatCommand'
+      - $ref: '#/components/schemas/AbandonAmbitionCommand'
+      - $ref: '#/components/schemas/AddPlayerGoalCommand'
+      - $ref: '#/components/schemas/RemovePlayerGoalCommand'
+      - $ref: '#/components/schemas/EventStoryCommand'
+      - $ref: '#/components/schemas/FinishGoalCommand'
+      - $ref: '#/components/schemas/ChatCommand'
+      - $ref: '#/components/schemas/PingCommand'
+      - $ref: '#/components/schemas/CustomReminderCommand'
+      - $ref: '#/components/schemas/ClearChatCommand'
+      - $ref: '#/components/schemas/ExtendTimeCommand'
+      - $ref: '#/components/schemas/PauseCommand'
+      - $ref: '#/components/schemas/UndoCommand'
+      - $ref: '#/components/schemas/RedoCommand'
+      - $ref: '#/components/schemas/ReplayTurnCommand'
+      - $ref: '#/components/schemas/AiFinishTurnCommand'
+      - $ref: '#/components/schemas/ToggleNoReplayCommand'
+      - $ref: '#/components/schemas/TeamAllianceCommand'
+      - $ref: '#/components/schemas/TribeInvasionCommand'
+      - $ref: '#/components/schemas/VictoryTeamCommand'
+      - $ref: '#/components/schemas/CreateUnitCommand'
+      - $ref: '#/components/schemas/UnitNameCommand'
+      - $ref: '#/components/schemas/SetUnitFamilyCommand'
+      - $ref: '#/components/schemas/ChangeUnitOwnerCommand'
+      - $ref: '#/components/schemas/ChangeCooldownCommand'
+      - $ref: '#/components/schemas/ChangeDamageCommand'
+      - $ref: '#/components/schemas/UnitIncrementLevelCommand'
+      - $ref: '#/components/schemas/UnitChangePromotionCommand'
+      - $ref: '#/components/schemas/CreateCityCommand'
+      - $ref: '#/components/schemas/RemoveCityCommand'
+      - $ref: '#/components/schemas/CityOwnerCommand'
+      - $ref: '#/components/schemas/ChangeCityDamageCommand'
+      - $ref: '#/components/schemas/ChangeCultureCommand'
+      - $ref: '#/components/schemas/ChangeCityBuildTurnsCommand'
+      - $ref: '#/components/schemas/ChangeCityDiscontentLevelCommand'
+      - $ref: '#/components/schemas/ChangeProjectCommand'
+      - $ref: '#/components/schemas/SetTerrainCommand'
+      - $ref: '#/components/schemas/SetTerrainHeightCommand'
+      - $ref: '#/components/schemas/SetVegetationCommand'
+      - $ref: '#/components/schemas/SetResourceCommand'
+      - $ref: '#/components/schemas/SetRoadCommand'
+      - $ref: '#/components/schemas/SetImprovementCommand'
+      - $ref: '#/components/schemas/SetTileOwnerCommand'
+      - $ref: '#/components/schemas/SetCitySiteCommand'
+      - $ref: '#/components/schemas/ImprovementBuildTurnsCommand'
+      - $ref: '#/components/schemas/MapRevealCommand'
+      - $ref: '#/components/schemas/MapUnrevealCommand'
+      - $ref: '#/components/schemas/AddTechCommand'
+      - $ref: '#/components/schemas/AddYieldCommand'
+      - $ref: '#/components/schemas/AddMoneyCommand'
+      - $ref: '#/components/schemas/CheatCommand'
+      - $ref: '#/components/schemas/MakeCharacterDeadCommand'
+      - $ref: '#/components/schemas/MakeCharacterSafeCommand'
+      - $ref: '#/components/schemas/NewCharacterCommand'
+      - $ref: '#/components/schemas/AddCharacterCommand'
+      - $ref: '#/components/schemas/TribeLeaderCommand'
+      discriminator:
+        propertyName: action
+        mapping:
+          moveUnit: '#/components/schemas/MoveUnitCommand'
+          attack: '#/components/schemas/AttackCommand'
+          fortify: '#/components/schemas/FortifyCommand'
+          pass: '#/components/schemas/PassCommand'
+          skip: '#/components/schemas/PassCommand'
+          sleep: '#/components/schemas/SleepCommand'
+          sentry: '#/components/schemas/SentryCommand'
+          wake: '#/components/schemas/WakeCommand'
+          heal: '#/components/schemas/HealCommand'
+          march: '#/components/schemas/MarchCommand'
+          lock: '#/components/schemas/LockCommand'
+          disband: '#/components/schemas/DisbandCommand'
+          promote: '#/components/schemas/PromoteCommand'
+          pillage: '#/components/schemas/PillageCommand'
+          burn: '#/components/schemas/BurnCommand'
+          upgrade: '#/components/schemas/UpgradeCommand'
+          spreadReligion: '#/components/schemas/SpreadReligionCommand'
+          buildImprovement: '#/components/schemas/BuildImprovementCommand'
+          upgradeImprovement: '#/components/schemas/UpgradeImprovementCommand'
+          addRoad: '#/components/schemas/AddRoadCommand'
+          foundCity: '#/components/schemas/FoundCityCommand'
+          joinCity: '#/components/schemas/JoinCityCommand'
+          build: '#/components/schemas/BuildCommand'
+          buildUnit: '#/components/schemas/BuildCommand'
+          buildProject: '#/components/schemas/BuildProjectCommand'
+          buildQueue: '#/components/schemas/BuildQueueCommand'
+          hurryCivics: '#/components/schemas/HurryCivicsCommand'
+          hurry: '#/components/schemas/HurryCivicsCommand'
+          hurryTraining: '#/components/schemas/HurryTrainingCommand'
+          hurryMoney: '#/components/schemas/HurryMoneyCommand'
+          hurryPopulation: '#/components/schemas/HurryPopulationCommand'
+          hurryOrders: '#/components/schemas/HurryOrdersCommand'
+          research: '#/components/schemas/ResearchCommand'
+          redrawTech: '#/components/schemas/RedrawTechCommand'
+          targetTech: '#/components/schemas/TargetTechCommand'
+          makeDecision: '#/components/schemas/MakeDecisionCommand'
+          removeDecision: '#/components/schemas/RemoveDecisionCommand'
+          endTurn: '#/components/schemas/EndTurnCommand'
+          declareWar: '#/components/schemas/DeclareWarCommand'
+          makePeace: '#/components/schemas/MakePeaceCommand'
+          declareTruce: '#/components/schemas/DeclareTruceCommand'
+          declareWarTribe: '#/components/schemas/DeclareWarTribeCommand'
+          makePeaceTribe: '#/components/schemas/MakePeaceTribeCommand'
+          declareTruceTribe: '#/components/schemas/DeclareTruceTribeCommand'
+          allyTribe: '#/components/schemas/AllyTribeCommand'
+          giftCity: '#/components/schemas/GiftCityCommand'
+          giftYield: '#/components/schemas/GiftYieldCommand'
+          assignGovernor: '#/components/schemas/AssignGovernorCommand'
+          releaseGovernor: '#/components/schemas/ReleaseGovernorCommand'
+          assignGeneral: '#/components/schemas/AssignGeneralCommand'
+          releaseGeneral: '#/components/schemas/ReleaseGeneralCommand'
+          assignAgent: '#/components/schemas/AssignAgentCommand'
+          releaseAgent: '#/components/schemas/ReleaseAgentCommand'
+          startMission: '#/components/schemas/StartMissionCommand'
+          chooseLaw: '#/components/schemas/ChooseLawCommand'
+          cancelLaw: '#/components/schemas/CancelLawCommand'
+          buyYield: '#/components/schemas/BuyYieldCommand'
+          sellYield: '#/components/schemas/SellYieldCommand'
+          convertOrders: '#/components/schemas/ConvertOrdersCommand'
+          convertLegitimacy: '#/components/schemas/ConvertLegitimacyCommand'
+          convertOrdersToScience: '#/components/schemas/ConvertOrdersToScienceCommand'
+          tradeCityLuxury: '#/components/schemas/TradeCityLuxuryCommand'
+          tradeFamilyLuxury: '#/components/schemas/TradeFamilyLuxuryCommand'
+          tradeTribeLuxury: '#/components/schemas/TradeTribeLuxuryCommand'
+          tradePlayerLuxury: '#/components/schemas/TradePlayerLuxuryCommand'
+          tribute: '#/components/schemas/TributeCommand'
+          swap: '#/components/schemas/SwapCommand'
+          doUnitQueue: '#/components/schemas/DoUnitQueueCommand'
+          cancelUnitQueue: '#/components/schemas/CancelUnitQueueCommand'
+          formation: '#/components/schemas/FormationCommand'
+          unlimber: '#/components/schemas/UnlimberCommand'
+          anchor: '#/components/schemas/AnchorCommand'
+          repair: '#/components/schemas/RepairCommand'
+          cancelImprovement: '#/components/schemas/CancelImprovementCommand'
+          removeVegetation: '#/components/schemas/RemoveVegetationCommand'
+          harvestResource: '#/components/schemas/HarvestResourceCommand'
+          unitAutomate: '#/components/schemas/UnitAutomateCommand'
+          addUrban: '#/components/schemas/AddUrbanCommand'
+          roadTo: '#/components/schemas/RoadToCommand'
+          buyTile: '#/components/schemas/BuyTileCommand'
+          recruitMercenary: '#/components/schemas/RecruitMercenaryCommand'
+          hireMercenary: '#/components/schemas/HireMercenaryCommand'
+          giftUnit: '#/components/schemas/GiftUnitCommand'
+          launchOffensive: '#/components/schemas/LaunchOffensiveCommand'
+          applyEffectUnit: '#/components/schemas/ApplyEffectUnitCommand'
+          selectUnit: '#/components/schemas/SelectUnitCommand'
+          createAgentNetwork: '#/components/schemas/CreateAgentNetworkCommand'
+          createTradeOutpost: '#/components/schemas/CreateTradeOutpostCommand'
+          caravanMissionStart: '#/components/schemas/CaravanMissionStartCommand'
+          caravanMissionCancel: '#/components/schemas/CaravanMissionCancelCommand'
+          purgeReligion: '#/components/schemas/PurgeReligionCommand'
+          spreadReligionTribe: '#/components/schemas/SpreadReligionTribeCommand'
+          establishTheology: '#/components/schemas/EstablishTheologyCommand'
+          characterName: '#/components/schemas/CharacterNameCommand'
+          addCharacterTrait: '#/components/schemas/AddCharacterTraitCommand'
+          setCharacterRating: '#/components/schemas/SetCharacterRatingCommand'
+          setCharacterExperience: '#/components/schemas/SetCharacterExperienceCommand'
+          setCharacterCognomen: '#/components/schemas/SetCharacterCognomenCommand'
+          setCharacterNation: '#/components/schemas/SetCharacterNationCommand'
+          setCharacterFamily: '#/components/schemas/SetCharacterFamilyCommand'
+          setCharacterReligion: '#/components/schemas/SetCharacterReligionCommand'
+          setCharacterCourtier: '#/components/schemas/SetCharacterCourtierCommand'
+          setCharacterCouncil: '#/components/schemas/SetCharacterCouncilCommand'
+          playerLeader: '#/components/schemas/PlayerLeaderCommand'
+          familyHead: '#/components/schemas/FamilyHeadCommand'
+          pinCharacter: '#/components/schemas/PinCharacterCommand'
+          cityRename: '#/components/schemas/CityRenameCommand'
+          cityAutomate: '#/components/schemas/CityAutomateCommand'
+          buildSpecialist: '#/components/schemas/BuildSpecialistCommand'
+          setSpecialist: '#/components/schemas/SetSpecialistCommand'
+          changeCitizens: '#/components/schemas/ChangeCitizensCommand'
+          changeReligion: '#/components/schemas/ChangeReligionCommand'
+          changeFamily: '#/components/schemas/ChangeFamilyCommand'
+          changeFamilySeat: '#/components/schemas/ChangeFamilySeatCommand'
+          abandonAmbition: '#/components/schemas/AbandonAmbitionCommand'
+          addPlayerGoal: '#/components/schemas/AddPlayerGoalCommand'
+          removePlayerGoal: '#/components/schemas/RemovePlayerGoalCommand'
+          eventStory: '#/components/schemas/EventStoryCommand'
+          finishGoal: '#/components/schemas/FinishGoalCommand'
+          chat: '#/components/schemas/ChatCommand'
+          ping: '#/components/schemas/PingCommand'
+          customReminder: '#/components/schemas/CustomReminderCommand'
+          clearChat: '#/components/schemas/ClearChatCommand'
+          extendTime: '#/components/schemas/ExtendTimeCommand'
+          pause: '#/components/schemas/PauseCommand'
+          undo: '#/components/schemas/UndoCommand'
+          redo: '#/components/schemas/RedoCommand'
+          replayTurn: '#/components/schemas/ReplayTurnCommand'
+          aiFinishTurn: '#/components/schemas/AiFinishTurnCommand'
+          toggleNoReplay: '#/components/schemas/ToggleNoReplayCommand'
+          teamAlliance: '#/components/schemas/TeamAllianceCommand'
+          tribeInvasion: '#/components/schemas/TribeInvasionCommand'
+          victoryTeam: '#/components/schemas/VictoryTeamCommand'
+          createUnit: '#/components/schemas/CreateUnitCommand'
+          unitName: '#/components/schemas/UnitNameCommand'
+          setUnitFamily: '#/components/schemas/SetUnitFamilyCommand'
+          changeUnitOwner: '#/components/schemas/ChangeUnitOwnerCommand'
+          changeCooldown: '#/components/schemas/ChangeCooldownCommand'
+          changeDamage: '#/components/schemas/ChangeDamageCommand'
+          unitIncrementLevel: '#/components/schemas/UnitIncrementLevelCommand'
+          unitChangePromotion: '#/components/schemas/UnitChangePromotionCommand'
+          createCity: '#/components/schemas/CreateCityCommand'
+          removeCity: '#/components/schemas/RemoveCityCommand'
+          cityOwner: '#/components/schemas/CityOwnerCommand'
+          changeCityDamage: '#/components/schemas/ChangeCityDamageCommand'
+          changeCulture: '#/components/schemas/ChangeCultureCommand'
+          changeCityBuildTurns: '#/components/schemas/ChangeCityBuildTurnsCommand'
+          changeCityDiscontentLevel: '#/components/schemas/ChangeCityDiscontentLevelCommand'
+          changeProject: '#/components/schemas/ChangeProjectCommand'
+          setTerrain: '#/components/schemas/SetTerrainCommand'
+          setTerrainHeight: '#/components/schemas/SetTerrainHeightCommand'
+          setVegetation: '#/components/schemas/SetVegetationCommand'
+          setResource: '#/components/schemas/SetResourceCommand'
+          setRoad: '#/components/schemas/SetRoadCommand'
+          setImprovement: '#/components/schemas/SetImprovementCommand'
+          setTileOwner: '#/components/schemas/SetTileOwnerCommand'
+          setCitySite: '#/components/schemas/SetCitySiteCommand'
+          improvementBuildTurns: '#/components/schemas/ImprovementBuildTurnsCommand'
+          mapReveal: '#/components/schemas/MapRevealCommand'
+          mapUnreveal: '#/components/schemas/MapUnrevealCommand'
+          addTech: '#/components/schemas/AddTechCommand'
+          addYield: '#/components/schemas/AddYieldCommand'
+          addMoney: '#/components/schemas/AddMoneyCommand'
+          cheat: '#/components/schemas/CheatCommand'
+          makeCharacterDead: '#/components/schemas/MakeCharacterDeadCommand'
+          makeCharacterSafe: '#/components/schemas/MakeCharacterSafeCommand'
+          newCharacter: '#/components/schemas/NewCharacterCommand'
+          addCharacter: '#/components/schemas/AddCharacterCommand'
+          tribeLeader: '#/components/schemas/TribeLeaderCommand'
   responses:
     BadRequest:
       description: Invalid request parameters
@@ -2798,9 +6872,8 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Invalid player index. Use /player/{index}"
+            error: Invalid player index. Use /player/{index}
             code: 400
-
     NotFound:
       description: Resource not found
       content:
@@ -2808,9 +6881,8 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Player not found: 99"
+            error: 'Player not found: 99'
             code: 404
-
     GameNotAvailable:
       description: Game not loaded or unavailable
       content:
@@ -2818,5 +6890,5 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Game not available"
+            error: Game not available
             code: 503

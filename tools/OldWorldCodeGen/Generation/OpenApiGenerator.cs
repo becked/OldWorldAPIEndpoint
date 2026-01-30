@@ -164,8 +164,11 @@ public class OpenApiGenerator
             sb.AppendLine($"        {endpoint.Description}");
         }
 
-        if (!string.IsNullOrEmpty(endpoint.OperationId))
-            sb.AppendLine($"      operationId: {endpoint.OperationId}");
+        // operationId - use explicit if provided, otherwise auto-generate
+        var operationId = !string.IsNullOrEmpty(endpoint.OperationId)
+            ? endpoint.OperationId
+            : GenerateOperationId(endpoint.Path, endpoint.Method);
+        sb.AppendLine($"      operationId: {operationId}");
 
         // Parameters
         if (endpoint.Params?.Count > 0 || endpoint.Pagination)
@@ -760,6 +763,60 @@ public class OpenApiGenerator
     {
         if (string.IsNullOrEmpty(input)) return input;
         return char.ToUpperInvariant(input[0]) + input[1..];
+    }
+
+    /// <summary>
+    /// Generate operationId from path and HTTP method.
+    /// Examples:
+    ///   GET /state → getState
+    ///   GET /players → getPlayers
+    ///   GET /player/{index} → getPlayer
+    ///   GET /player/{index}/units → getPlayerUnits
+    ///   GET /tile/{x}/{y} → getTileByCoords
+    /// </summary>
+    private static string GenerateOperationId(string path, string method)
+    {
+        // Start with the HTTP method in lowercase
+        var prefix = method.ToLowerInvariant();
+
+        // Remove leading slash and split into segments
+        var segments = path.TrimStart('/').Split('/');
+
+        var parts = new List<string>();
+        var hasPathParams = false;
+
+        foreach (var segment in segments)
+        {
+            if (segment.StartsWith("{") && segment.EndsWith("}"))
+            {
+                // Path parameter - note it but don't add to name directly
+                hasPathParams = true;
+                var paramName = segment.Trim('{', '}');
+
+                // Special case: coordinate params like {x}/{y} get combined
+                if (paramName == "x" || paramName == "y")
+                {
+                    // Will be handled after loop
+                    continue;
+                }
+            }
+            else
+            {
+                // Regular segment - capitalize for camelCase
+                parts.Add(ToPascalCase(segment));
+            }
+        }
+
+        // Check for coordinate pattern: /tile/{x}/{y}
+        if (path.Contains("{x}") && path.Contains("{y}"))
+        {
+            parts.Add("ByCoords");
+        }
+
+        // Build the operation ID
+        var operationId = prefix + string.Join("", parts);
+
+        return operationId;
     }
 
     #endregion

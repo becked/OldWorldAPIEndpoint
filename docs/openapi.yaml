@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-30T22:39:33.5631240Z
+# Generated at: 2026-01-30T22:58:09.8420250Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -23,7 +23,7 @@ info:
     ## Connection
 
     The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
-  version: "3.0.0"
+  version: "3.0.1"
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -69,6 +69,7 @@ paths:
       summary: Get full game state
       description: |
         Returns comprehensive game state including all players, cities, characters, tribes, and diplomacy.
+      operationId: getState
       responses:
         '200':
           description: Full game state
@@ -90,6 +91,7 @@ paths:
       summary: Get all players
       description: |
         Returns array of all players with stockpiles and rates.
+      operationId: getPlayers
       responses:
         '200':
           description: Array of players
@@ -113,6 +115,7 @@ paths:
       summary: Get player by index
       description: |
         Returns a single player by their 0-based index.
+      operationId: getPlayer
       parameters:
         - name: index
           in: path
@@ -139,6 +142,7 @@ paths:
       tags:
         - Players
       summary: Get player units
+      operationId: getPlayerUnits
       parameters:
         - name: index
           in: path
@@ -166,6 +170,7 @@ paths:
       tags:
         - Players
       summary: Get player technologies
+      operationId: getPlayerTechs
       parameters:
         - name: index
           in: path
@@ -191,6 +196,7 @@ paths:
       tags:
         - Players
       summary: Get player families
+      operationId: getPlayerFamilies
       parameters:
         - name: index
           in: path
@@ -216,6 +222,7 @@ paths:
       tags:
         - Players
       summary: Get player religion state
+      operationId: getPlayerReligion
       parameters:
         - name: index
           in: path
@@ -241,6 +248,7 @@ paths:
       tags:
         - Players
       summary: Get player goals
+      operationId: getPlayerGoals
       parameters:
         - name: index
           in: path
@@ -266,6 +274,7 @@ paths:
       tags:
         - Players
       summary: Get player decisions
+      operationId: getPlayerDecisions
       parameters:
         - name: index
           in: path
@@ -291,6 +300,7 @@ paths:
       tags:
         - Players
       summary: Get player laws
+      operationId: getPlayerLaws
       parameters:
         - name: index
           in: path
@@ -316,6 +326,7 @@ paths:
       tags:
         - Players
       summary: Get player missions
+      operationId: getPlayerMissions
       parameters:
         - name: index
           in: path
@@ -341,6 +352,7 @@ paths:
       tags:
         - Players
       summary: Get player resources
+      operationId: getPlayerResources
       parameters:
         - name: index
           in: path
@@ -368,6 +380,7 @@ paths:
       summary: Get all cities
       description: |
         Returns array of all cities with full details.
+      operationId: getCities
       responses:
         '200':
           description: Array of cities
@@ -389,6 +402,7 @@ paths:
       tags:
         - Cities
       summary: Get city by ID
+      operationId: getCity
       parameters:
         - name: id
           in: path
@@ -417,6 +431,7 @@ paths:
       summary: Get all characters
       description: |
         Returns array of all characters with full details.
+      operationId: getCharacters
       responses:
         '200':
           description: Array of characters
@@ -438,6 +453,7 @@ paths:
       tags:
         - Characters
       summary: Get character by ID
+      operationId: getCharacter
       parameters:
         - name: id
           in: path
@@ -466,6 +482,7 @@ paths:
       summary: Get all units
       description: |
         Returns array of all living units.
+      operationId: getUnits
       responses:
         '200':
           description: Array of units
@@ -487,6 +504,7 @@ paths:
       tags:
         - Units
       summary: Get unit by ID
+      operationId: getUnit
       parameters:
         - name: id
           in: path
@@ -515,6 +533,7 @@ paths:
       summary: Get tiles (paginated)
       description: |
         Returns paginated array of map tiles.
+      operationId: getTiles
       parameters:
         - name: offset
           in: query
@@ -549,6 +568,7 @@ paths:
       tags:
         - Tiles
       summary: Get tile by ID
+      operationId: getTile
       parameters:
         - name: id
           in: path
@@ -575,6 +595,7 @@ paths:
       tags:
         - Tiles
       summary: Get tile by coordinates
+      operationId: getTileByCoords
       parameters:
         - name: x
           in: path
@@ -609,6 +630,7 @@ paths:
       summary: Get character events
       description: |
         Returns events for characters this turn.
+      operationId: getEventsCharacters
       responses:
         '200':
           description: array data
@@ -632,6 +654,7 @@ paths:
       summary: Get unit events
       description: |
         Returns events for units this turn.
+      operationId: getEventsUnits
       responses:
         '200':
           description: array data
@@ -655,6 +678,7 @@ paths:
       summary: Get city events
       description: |
         Returns events for cities this turn.
+      operationId: getEventsCities
       responses:
         '200':
           description: array data
@@ -676,6 +700,7 @@ paths:
       tags:
         - Tribes
       summary: Get all tribes
+      operationId: getTribes
       responses:
         '200':
           description: array data
@@ -697,6 +722,7 @@ paths:
       tags:
         - Tribes
       summary: Get tribe by type
+      operationId: getTribe
       parameters:
         - name: tribeType
           in: path
@@ -723,6 +749,7 @@ paths:
       tags:
         - Diplomacy
       summary: Get team diplomacy
+      operationId: getDiplomacyTeams
       responses:
         '200':
           description: array data
@@ -744,6 +771,7 @@ paths:
       tags:
         - Diplomacy
       summary: Get team alliances
+      operationId: getAlliancesTeams
       responses:
         '200':
           description: array data
@@ -765,6 +793,7 @@ paths:
       tags:
         - Diplomacy
       summary: Get tribe diplomacy
+      operationId: getDiplomacyTribes
       responses:
         '200':
           description: array data
@@ -786,6 +815,7 @@ paths:
       tags:
         - Diplomacy
       summary: Get tribe alliances
+      operationId: getAlliancesTribes
       responses:
         '200':
           description: array data
@@ -807,6 +837,7 @@ paths:
       tags:
         - Religion
       summary: Get global religion state
+      operationId: getReligions
       responses:
         '200':
           description: array data
@@ -828,6 +859,7 @@ paths:
       tags:
         - Config
       summary: Get game configuration
+      operationId: getConfig
       responses:
         '200':
           description: GameConfig data
@@ -847,6 +879,7 @@ paths:
       tags:
         - Config
       summary: Get map metadata
+      operationId: getMap
       responses:
         '200':
           description: MapMetadata data

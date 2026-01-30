@@ -3,6 +3,11 @@
 
 ## [3.0.1] - 2025-01-30
 
+### Added
+- **OpenAPI operationId** - All endpoints now have auto-generated `operationId` for CLI code generators:
+  - Pattern: `{method}{Resource}` (e.g., `getPlayers`, `getPlayerUnits`, `getTileByCoords`)
+  - Enables typed client generation in any language
+
 ### Fixed
 - **Property naming in generated code** - Fixed camelCase conversion for consecutive uppercase letters:
   - `getID()` → `id` (was `iD`)

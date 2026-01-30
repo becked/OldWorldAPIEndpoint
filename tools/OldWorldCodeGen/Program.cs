@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using CommandLine;
 using OldWorldCodeGen.Parsing;
 using OldWorldCodeGen.Generation;
@@ -107,8 +108,11 @@ class Program
 
             // Generate OpenAPI
             Console.WriteLine("Generating openapi.yaml...");
+            var modInfoPath = Path.GetFullPath("../../ModInfo.xml");
+            var version = ReadVersionFromModInfo(modInfoPath);
+            Console.WriteLine($"  Using version from ModInfo.xml: {version}");
             var openApiGen = new OpenApiGenerator(typeAnalyzer);
-            var openApiYaml = openApiGen.Generate(sendMethods);
+            var openApiYaml = openApiGen.Generate(sendMethods, version);
 
             Directory.CreateDirectory(Path.GetDirectoryName(openApiPath)!);
             File.WriteAllText(openApiPath, openApiYaml);
@@ -161,6 +165,24 @@ class Program
             return macPath;
 
         return null;
+    }
+
+    static string ReadVersionFromModInfo(string modInfoPath)
+    {
+        if (!File.Exists(modInfoPath))
+        {
+            throw new FileNotFoundException($"ModInfo.xml not found at {modInfoPath}");
+        }
+
+        var doc = XDocument.Load(modInfoPath);
+        var version = doc.Root?.Element("modversion")?.Value;
+
+        if (string.IsNullOrEmpty(version))
+        {
+            throw new InvalidOperationException("Could not read modversion from ModInfo.xml");
+        }
+
+        return version;
     }
 
     static void PrintMethodSummary(List<MethodSignature> methods, TypeAnalyzer typeAnalyzer)

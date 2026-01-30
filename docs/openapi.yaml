@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-30T18:29:14.0808440Z
+# Generated at: 2026-01-30T19:12:13.6086070Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -9,7 +9,7 @@ info:
   description: |
     REST API for controlling Old World game. This API is auto-generated
     from the game's source code and exposes all available game commands.
-  version: "2.3.0"
+  version: "2.4.0"
   contact:
     name: Old World API Endpoint
     url: https://github.com/becked/OldWorldAPIEndpoint

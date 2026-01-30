@@ -207,41 +207,40 @@ After making code changes, always complete these steps:
    - Expected event counts in log messages
 4. **Update Documentation** (if API changed) - see below
 
-**IMPORTANT: When adding new commands to CommandExecutor.cs, you MUST also update:**
-- `commands.yaml` - Add command parameters to the appropriate category
-- Run `python3 scripts/generate-openapi.py` to regenerate typed schemas
-- `docs/api-reference.md` - Document the command with parameters and examples
+## Code Generation
 
-## Command Schema Generation
+The mod uses a Roslyn-based code generator that parses the decompiled game source and automatically generates:
+- `Source/CommandExecutor.Generated.cs` - All 209 command implementations
+- `Source/DataBuilders.Generated.cs` - Entity builders for Player, City, Unit, Character, Tile
+- `docs/openapi.yaml` - API documentation
 
-Command parameters are defined in `commands.yaml` (single source of truth). The generator script produces typed OpenAPI schemas using oneOf + discriminator for progenitor (Rust) compatibility.
+**The game source is the single source of truth.** When the game updates with new commands, simply regenerate:
 
-**When adding/modifying commands in CommandExecutor.cs:**
+```bash
+# Regenerate all code from game source
+dotnet run --project tools/OldWorldCodeGen
 
-1. Update `commands.yaml` with the command parameters
-2. Run: `python3 scripts/generate-openapi.py`
-3. Verify: The script reports the command count
-
-**Parameter extraction from C# to YAML:**
-- `TryGetIntParam(cmd, "x", ...)` → `x: { type: integer, required: true }`
-- `TryGetStringParam(cmd, "x", ...)` → `x: { type: string, required: true }`
-- `GetBoolParam(cmd, "x", false)` → `x: { type: boolean }`
-- `GetIntParam(cmd, "x", -1)` → `x: { type: integer }`
-
-**YAML format:**
-```yaml
-categories:
-  categoryName:
-    displayName: "Human Readable Name"
-    commands:
-      commandName:
-        description: "What the command does"
-        params:
-          paramName:
-            type: integer|string|boolean
-            required: true  # omit for optional
-            default: value  # for optional with default
+# Build and test
+./deploy.sh
+./test-headless.sh "/Users/jeff/Library/Application Support/OldWorld/Saves/APITestSave.zip" 2
 ```
+
+**The generator automatically:**
+- Parses all 212 `send*` methods from ClientManager.cs
+- Categorizes parameters (Entity, EnumType, Primitive)
+- Generates type resolvers for 39 enum types using Infos lookups
+- Skips methods with unsupported parameter types (ActionData, int[], etc.)
+
+**Hand-written files:**
+- `Source/CommandExecutor.cs` - Partial class with helper methods
+- `Source/DataBuilders.cs` - Partial class with helper methods
+- Both call into the generated code
+
+**When game updates:**
+1. Update Old World via Steam
+2. Run `dotnet run --project tools/OldWorldCodeGen`
+3. Run `./deploy.sh` to build
+4. Run headless test to verify
 
 ## Documentation
 
@@ -261,16 +260,15 @@ Update documentation when:
 
 | Change Type | Files to Update |
 |-------------|-----------------|
-| New/changed command | `commands.yaml`, run `generate-openapi.py`, `docs/api-reference.md` |
+| New/changed command | Regenerate with `dotnet run --project tools/OldWorldCodeGen` |
 | New/changed fields | `docs/schemas/{entity}.schema.json`, `docs/schemas/{entity}.md` |
-| New endpoint | `docs/openapi.yaml`, `docs/api-reference.md` |
+| New endpoint | `docs/api-reference.md` |
 | New event type | `docs/schemas/events.schema.json`, `docs/schemas/events.md` |
 | New entity type | Create new schema files, update `docs/_sidebar.md` |
 
 ### Key Documentation Files
 
-- `commands.yaml` - Command parameter definitions (source of truth)
-- `docs/openapi.yaml` - OpenAPI 3.0 spec (generated command schemas)
+- `docs/openapi.yaml` - OpenAPI 3.0 spec (auto-generated)
 - `docs/schemas/*.schema.json` - JSON Schema definitions
 - `docs/schemas/*.md` - Human-readable schema docs
 - `docs/api-reference.md` - Endpoint reference with examples

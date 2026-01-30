@@ -2,6 +2,20 @@
 
 
 
+## [2.4.0] - 2025-01-30
+
+### Fixed
+- **40+ parameter discrepancies** in commands.yaml corrected against CommandExecutor.cs implementation
+  - Renamed params: playerType→teamType (mapReveal/mapUnreveal), amount→delta (changeCitizens/changeCooldown/changeDamage), experience→xp, all→clearAll, buyGoods→autoHarvest, enable→hasRoad, cheatType→hotkeyType
+  - Wrong params: buyTile now uses cityId (not unitId), caravanMissionStart uses targetPlayer int (not missionType string)
+  - Missing required params: eventStory.playerType, chat.chatType, ping.pingType, teamAlliance.player1/player2, victoryTeam.victoryType/actionType, addCharacter.familyType
+  - Type fixes: abandonAmbition/removePlayerGoal now use goalId (int) not goalType/ambitionType (string), finishGoal.success→fail (inverted logic), setCitySite.enable→citySiteType (string)
+  - Removed non-existent params: extendTime.seconds, customReminder.turn, unitIncrementLevel.amount, pinCharacter.pin
+  - Added missing optionals: undo.turnUndo, replayTurn.numTurns/step, aiFinishTurn.numTurns, createCity.turn, newCharacter.age/fillValue, setTileOwner.tribeType
+
+### Changed
+- Regenerated OpenAPI schema with corrected command parameter definitions
+
 ## [2.3.0] - 2025-01-29
 
 ### Added

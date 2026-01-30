@@ -124,9 +124,9 @@ test_endpoint() {
     fi
 }
 
-# Use TCP as sync signal - wait for first TCP data before testing HTTP
-# TCP data means game is loaded and running
-echo -n "  Waiting for game (via TCP sync): "
+# Poll HTTP server directly for availability
+# This catches the window between server start and game shutdown
+echo -n "  Waiting for HTTP server: "
 HTTP_READY=0
 for i in {1..120}; do
     # Check if game process is still running
@@ -134,13 +134,19 @@ for i in {1..120}; do
         echo -e " ${YELLOW}game exited${NC}"
         break
     fi
-    # Check if TCP has received data (means game is loaded)
-    if [ -s "$TCP_OUTPUT" ]; then
-        echo -e "${GREEN}TCP data received - game ready${NC}"
+    # Try to reach HTTP server (503 = server up but game not ready, 200 = ready)
+    HTTP_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$HTTP_PORT/state" 2>/dev/null || echo "000")
+    if [ "$HTTP_CHECK" = "200" ]; then
+        echo -e "${GREEN}ready (HTTP 200)${NC}"
         HTTP_READY=1
         break
+    elif [ "$HTTP_CHECK" = "503" ]; then
+        # Server is up but game not loaded yet - keep polling
+        echo -n "."
+    else
+        # Server not up yet
+        echo -n "."
     fi
-    echo -n "."
     sleep 0.25
 done
 

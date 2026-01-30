@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-30T19:47:29.0273270Z
+# Generated at: 2026-01-30T22:39:33.5631240Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -23,7 +23,7 @@ info:
     ## Connection
 
     The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
-  version: "2.4.0"
+  version: "3.0.0"
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -1113,7 +1113,7 @@ components:
           type: boolean
         headReligion:
           type: string
-        iD:
+        id:
           type: integer
           format: int32
         isAbdicated:
@@ -1352,7 +1352,7 @@ components:
           type: string
         wasReligionHead:
           type: string
-        xP:
+        xp:
           type: integer
           format: int32
         childrenIds:
@@ -1518,13 +1518,13 @@ components:
         healExtra:
           type: integer
           format: int32
-        hP:
+        hp:
           type: integer
           format: int32
-        hPMax:
+        hpMax:
           type: integer
           format: int32
-        hPMaxExtra:
+        hpMaxExtra:
           type: integer
           format: int32
         hurryCivicsCost:
@@ -1563,7 +1563,7 @@ components:
         hurryTrainingCount:
           type: integer
           format: int32
-        iD:
+        id:
           type: integer
           format: int32
         improvementCostModifier:
@@ -1749,7 +1749,7 @@ components:
       type: object
       description: Player entity data
       properties:
-        aIAutoPlayToTurn:
+        aiAutoPlayToTurn:
           type: integer
           format: int32
         borderVisibility:
@@ -2155,7 +2155,7 @@ components:
           type: string
         hiddenTerrain:
           type: string
-        iD:
+        id:
           type: integer
           format: int32
         improvement:
@@ -2494,13 +2494,13 @@ components:
           type: boolean
         hasZOC:
           type: boolean
-        hP:
+        hp:
           type: integer
           format: int32
-        hPMax:
+        hpMax:
           type: integer
           format: int32
-        iD:
+        id:
           type: integer
           format: int32
         initialGender:
@@ -2685,10 +2685,10 @@ components:
           type: string
         workerAnimationType:
           type: string
-        xP:
+        xp:
           type: integer
           format: int32
-        xPThreshold:
+        xpThreshold:
           type: integer
           format: int32
         promotions:

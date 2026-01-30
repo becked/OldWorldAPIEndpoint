@@ -108,14 +108,38 @@ public class GetterSignature
     {
         get
         {
+            string baseName;
             if (Name.StartsWith("get", StringComparison.Ordinal) && Name.Length > 3)
-                return char.ToLowerInvariant(Name[3]) + Name[4..];
-            if (Name.StartsWith("is", StringComparison.Ordinal) && Name.Length > 2)
-                return char.ToLowerInvariant(Name[0]) + Name[1..];
-            if (Name.StartsWith("has", StringComparison.Ordinal) && Name.Length > 3)
-                return char.ToLowerInvariant(Name[0]) + Name[1..];
-            return Name;
+                baseName = Name[3..];  // getID → ID, getHP → HP, getHPMax → HPMax
+            else if (Name.StartsWith("is", StringComparison.Ordinal) && Name.Length > 2)
+                baseName = Name;  // isAlive → isAlive (keep as-is)
+            else if (Name.StartsWith("has", StringComparison.Ordinal) && Name.Length > 3)
+                baseName = Name;  // hasUnit → hasUnit (keep as-is)
+            else
+                return Name;
+
+            return ToCamelCase(baseName);
         }
+    }
+
+    /// <summary>
+    /// Convert a name to proper camelCase, handling consecutive uppercase letters.
+    /// Examples: ID → id, HP → hp, HPMax → hpMax, Name → name, isAlive → isAlive
+    /// </summary>
+    private static string ToCamelCase(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+
+        // Find where the leading uppercase run ends
+        int i = 0;
+        while (i < name.Length && char.IsUpper(name[i])) i++;
+
+        if (i == 0) return name;  // Already starts lowercase (isAlive, hasUnit)
+        if (i == 1) return char.ToLowerInvariant(name[0]) + name[1..];  // Single uppercase: Name → name
+        if (i == name.Length) return name.ToLowerInvariant();  // All uppercase: ID → id, HP → hp
+
+        // Multiple uppercase followed by lowercase: HPMax → hpMax, IDValue → idValue
+        return name[..(i-1)].ToLowerInvariant() + name[(i-1)..];
     }
 
     /// <summary>Return type</summary>

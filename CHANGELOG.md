@@ -1,6 +1,23 @@
 # Changelog
 
 
+## [3.0.1] - 2025-01-30
+
+### Fixed
+- **Property naming in generated code** - Fixed camelCase conversion for consecutive uppercase letters:
+  - `getID()` → `id` (was `iD`)
+  - `getHP()` → `hp` (was `hP`)
+  - `getHPMax()` → `hpMax` (was `hPMax`)
+  - `getXP()` → `xp` (was `xP`)
+
+### Changed
+- **Entity builders now fully auto-generated** - City, Character, Unit, and Tile builders delegate to generated code
+- **Null-safe code generation** - Each property access wrapped in try-catch, failed properties skipped gracefully
+- **Expanded entity fields** - Generated builders expose 120-180 properties per entity (vs 20-80 hand-written)
+- **Removed complex computed fields** - Build queue details, yield dictionaries, religion lists removed in favor of raw game data
+- **Excluded non-serializable types** - Generator now filters out complex game objects (CitySite, CityQueueData, Vector3, etc.)
+
+
 ## [3.0.0] - 2025-01-30
 
 ### BREAKING CHANGES

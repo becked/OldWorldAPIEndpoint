@@ -33,6 +33,15 @@ public class DataBuilderGenerator
         sb.AppendLine("{");
         sb.AppendLine("    public static partial class DataBuilders");
         sb.AppendLine("    {");
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Safely add a property to the data dictionary, catching any exceptions.");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAdd(Dictionary<string, object> data, string key, Func<object> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { data[key] = getValue(); }");
+        sb.AppendLine("            catch { /* Skip properties that throw */ }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
 
         foreach (var (entityName, getters) in entityGetters.OrderBy(kv => kv.Key))
         {
@@ -59,21 +68,21 @@ public class DataBuilderGenerator
         sb.AppendLine($"        /// <summary>");
         sb.AppendLine($"        /// Build a {entityName} object for JSON serialization.");
         sb.AppendLine($"        /// Auto-generated from {entityName}.cs - {simpleGetters.Count} properties.");
+        sb.AppendLine($"        /// Each property access is wrapped in try-catch for null safety.");
         sb.AppendLine($"        /// </summary>");
         sb.AppendLine($"        public static object Build{entityName}ObjectGenerated({entityName} entity, Game game, Infos infos)");
         sb.AppendLine("        {");
-        sb.AppendLine("            return new");
-        sb.AppendLine("            {");
+        sb.AppendLine("            var data = new Dictionary<string, object>();");
+        sb.AppendLine();
 
-        for (int i = 0; i < simpleGetters.Count; i++)
+        foreach (var getter in simpleGetters)
         {
-            var getter = simpleGetters[i];
-            var comma = i < simpleGetters.Count - 1 ? "," : "";
             var accessor = GenerateGetterAccessor(getter, entityName);
-            sb.AppendLine($"                {getter.PropertyName} = {accessor}{comma}");
+            sb.AppendLine($"            TryAdd(data, \"{getter.PropertyName}\", () => {accessor});");
         }
 
-        sb.AppendLine("            };");
+        sb.AppendLine();
+        sb.AppendLine("            return data;");
         sb.AppendLine("        }");
         sb.AppendLine();
 
@@ -148,6 +157,24 @@ public class DataBuilderGenerator
         if (baseType.Contains("Builder") || baseType.Contains("IEnumerable") ||
             baseType.Contains("List") || baseType.Contains("Dictionary") ||
             baseType.Contains("[]") || baseType.Contains("<"))
+        {
+            return false;
+        }
+
+        // Skip game object types that can't be serialized (have circular references)
+        var unsupportedTypes = new[]
+        {
+            "CitySite", "CityQueueData", "TextVariable", "CharacterStoryData",
+            "Tile", "City", "Unit", "Character", "Player", "Family", "Tribe"
+        };
+        if (unsupportedTypes.Contains(baseType, StringComparer.Ordinal))
+        {
+            return false;
+        }
+
+        // Skip Unity types that have self-referencing properties
+        if (baseType.StartsWith("Vector") || baseType.StartsWith("Color") ||
+            baseType == "Quaternion" || baseType == "Rect" || baseType == "Bounds")
         {
             return false;
         }

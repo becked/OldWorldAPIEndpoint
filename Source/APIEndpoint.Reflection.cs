@@ -21,7 +21,6 @@ namespace OldWorldAPIEndpoint
         // Alternative reflection paths for headless mode
         private static PropertyInfo _serverProperty;
         private static MethodInfo _getLocalGameServerMethod;
-        private static PropertyInfo _localGameProperty;
 
         private static void InitializeReflection()
         {
@@ -34,17 +33,6 @@ namespace OldWorldAPIEndpoint
                     if (assembly.GetName().Name == "Assembly-CSharp")
                     {
                         _appMainType = assembly.GetType("AppMain");
-
-                        // Get GameServerBehaviour and GameNetworkBehaviour for headless access
-                        var gameServerBehaviourType = assembly.GetType("GameServerBehaviour");
-                        var gameNetworkBehaviourType = assembly.GetType("GameNetworkBehaviour");
-
-                        if (gameNetworkBehaviourType != null)
-                        {
-                            _localGameProperty = gameNetworkBehaviourType.GetProperty("LocalGame",
-                                BindingFlags.Public | BindingFlags.Instance);
-                        }
-
                         break;
                     }
                 }

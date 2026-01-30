@@ -34,7 +34,6 @@ namespace OldWorldAPIEndpoint
         private static MethodInfo _sendHurryOrdersMethod;
         private static MethodInfo _sendResearchMethod;
         private static MethodInfo _sendEndTurnMethod;
-        private static PropertyInfo _gameClientProperty;
 
         // Phase 1: Unit commands
         private static MethodInfo _sendHealMethod;
@@ -232,10 +231,6 @@ namespace OldWorldAPIEndpoint
 
                 // Core action check
                 _canDoActionsMethod = _clientManagerType.GetMethod("canDoActions",
-                    BindingFlags.Public | BindingFlags.Instance);
-
-                // GameClient property
-                _gameClientProperty = _clientManagerType.GetProperty("GameClient",
                     BindingFlags.Public | BindingFlags.Instance);
 
                 // Unit commands - methods take Unit/Tile objects, not IDs

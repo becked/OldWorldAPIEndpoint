@@ -1,6 +1,31 @@
 # Changelog
 
 
+## [3.0.0] - 2025-01-30
+
+### BREAKING CHANGES
+- **All command parameter names changed** - Stripped Hungarian notation for cleaner API:
+  - `pX` → `x_id` (e.g., `pUnit` → `unit_id`, `pCity` → `city_id`)
+  - `eX` → `x_type` (e.g., `eUnit` → `unit_type`, `eYield` → `yield_type`)
+  - `zX` → `x` (e.g., `zName` → `name`)
+  - `bX` → `x` (e.g., `bForce` → `force`, `bQueue` → `queue`)
+  - `iX` → context-dependent (e.g., `iCharacterID` → `character_id`, `iTurn` → `turn`)
+- **Clients must update all command requests** to use the new parameter names
+- Original game parameter names preserved in OpenAPI `x-game-param` extension for reference
+
+### Added
+- **`/commands` bulk endpoint** - Execute multiple commands in a single request
+- **Roslyn-based code generator** (`tools/OldWorldCodeGen/`) - Parses game source and generates:
+  - `CommandExecutor.Generated.cs` - All 209 command implementations
+  - `DataBuilders.Generated.cs` - Entity builders for Player, City, Unit, Character, Tile
+  - `docs/openapi.yaml` - Complete OpenAPI spec with all endpoints and schemas
+- **Complete OpenAPI spec** - Now includes read endpoints (`/state`, `/players`, `/cities`, etc.) with full response schemas
+- **Reference documentation** for decompiled game source
+
+### Changed
+- OpenAPI spec now auto-generated from game source (replaces hand-maintained `commands.yaml`)
+- Version now read from `ModInfo.xml` during code generation
+
 
 ## [2.4.0] - 2025-01-30
 

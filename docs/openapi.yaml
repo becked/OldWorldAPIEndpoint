@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-30T19:35:37.6779750Z
+# Generated at: 2026-01-30T19:47:29.0273270Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -884,6 +884,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CommandResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /commands:
+    post:
+      tags:
+        - Commands
+      summary: Execute multiple commands in sequence
+      description: |
+        Execute a batch of commands sequentially. Useful for operations like
+        move + attack sequences. If stopOnError is true (default), execution
+        stops at the first failure. Commands are disabled in multiplayer games.
+      operationId: executeBulkCommands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCommand'
+      responses:
+        '200':
+          description: Bulk command execution results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkCommandResult'
         '400':
           $ref: '#/components/responses/BadRequest'
         '503':
@@ -2702,6 +2730,62 @@ components:
         hurried:
           type: boolean
           description: Whether production has been hurried
+
+    BulkCommand:
+      type: object
+      description: Batch of commands to execute sequentially
+      properties:
+        requestId:
+          type: string
+          description: Optional request ID for the entire batch
+        commands:
+          type: array
+          description: List of commands to execute in order
+          items:
+            $ref: '#/components/schemas/GameCommand'
+        stopOnError:
+          type: boolean
+          description: If true, stop execution when any command fails (default true)
+      required:
+        - commands
+
+    BulkCommandItemResult:
+      type: object
+      description: Result of a single command in a bulk batch
+      properties:
+        index:
+          type: integer
+          description: Index of this command in the batch
+        action:
+          type: string
+          description: The action that was attempted
+        success:
+          type: boolean
+          description: Whether this command succeeded
+        error:
+          type: string
+          nullable: true
+          description: Error message if command failed
+
+    BulkCommandResult:
+      type: object
+      description: Result of bulk command execution
+      properties:
+        requestId:
+          type: string
+          description: Echo of the request ID if provided
+        allSucceeded:
+          type: boolean
+          description: Whether all commands in the batch succeeded
+        results:
+          type: array
+          description: Individual results for each command
+          items:
+            $ref: '#/components/schemas/BulkCommandItemResult'
+        stoppedAtIndex:
+          type: integer
+          nullable: true
+          description: If stopOnError was true and an error occurred, the index where execution stopped
 
     CharacterOpinion:
       type: object

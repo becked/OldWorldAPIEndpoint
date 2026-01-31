@@ -78,6 +78,8 @@ namespace OldWorldAPIEndpoint
         public override void Shutdown()
         {
             Debug.Log("[APIEndpoint] Shutdown() called");
+            _cachedGame = null;
+            _clientManager = null;
             base.Shutdown();
         }
 

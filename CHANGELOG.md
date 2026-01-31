@@ -1,6 +1,12 @@
 # Changelog
 
 
+## [3.0.2] - 2025-01-30
+
+### Fixed
+- **API unavailable after switching games** - Clear cached game and client manager references on shutdown so API works correctly when loading a different game and returning
+
+
 ## [3.0.1] - 2025-01-30
 
 ### Added

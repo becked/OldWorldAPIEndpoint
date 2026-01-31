@@ -125,56 +125,89 @@ namespace OldWorldAPIEndpoint
         /// Get a single tile by ID using Game API O(1) direct array lookup.
         /// Falls back to iteration if direct access fails (edge cases).
         /// </summary>
-        public static object GetTileById(Game game, int tileId)
+        /// <param name="game">The game instance</param>
+        /// <param name="tileId">Tile ID to look up</param>
+        /// <param name="fields">Optional set of field names to include (null = all fields)</param>
+        public static object GetTileById(Game game, int tileId, HashSet<string> fields = null)
         {
+            object tileData = null;
+
             // Try direct O(1) array access first
             try
             {
                 var tile = game.tile(tileId);
                 if (tile != null)
-                    return BuildTileObject(tile, game, game.infos());
+                    tileData = BuildTileObject(tile, game, game.infos());
             }
             catch { }
 
             // Fallback for edge cases where direct access fails
-            try
+            if (tileData == null)
             {
-                foreach (var tile in game.allTiles())
+                try
                 {
-                    if (tile != null && tile.getID() == tileId)
-                        return BuildTileObject(tile, game, game.infos());
+                    foreach (var tile in game.allTiles())
+                    {
+                        if (tile != null && tile.getID() == tileId)
+                        {
+                            tileData = BuildTileObject(tile, game, game.infos());
+                            break;
+                        }
+                    }
                 }
+                catch { }
             }
-            catch { }
-            return null;
+
+            // Apply field filtering if requested
+            if (tileData != null && fields != null)
+                return DataBuilders.FilterTileFields(tileData, fields);
+
+            return tileData;
         }
 
         /// <summary>
         /// Get a single tile by coordinates using Game API O(1) grid lookup.
         /// Falls back to iteration if grid access fails (edge cases).
         /// </summary>
-        public static object GetTileByCoords(Game game, int x, int y)
+        /// <param name="game">The game instance</param>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <param name="fields">Optional set of field names to include (null = all fields)</param>
+        public static object GetTileByCoords(Game game, int x, int y, HashSet<string> fields = null)
         {
+            object tileData = null;
+
             // Try direct O(1) grid access first
             try
             {
                 var tile = game.tileGrid(x, y);
                 if (tile != null)
-                    return BuildTileObject(tile, game, game.infos());
+                    tileData = BuildTileObject(tile, game, game.infos());
             }
             catch { }
 
             // Fallback for edge cases where grid access fails
-            try
+            if (tileData == null)
             {
-                foreach (var tile in game.allTiles())
+                try
                 {
-                    if (tile != null && tile.getX() == x && tile.getY() == y)
-                        return BuildTileObject(tile, game, game.infos());
+                    foreach (var tile in game.allTiles())
+                    {
+                        if (tile != null && tile.getX() == x && tile.getY() == y)
+                        {
+                            tileData = BuildTileObject(tile, game, game.infos());
+                            break;
+                        }
+                    }
                 }
+                catch { }
             }
-            catch { }
-            return null;
+
+            // Apply field filtering if requested
+            if (tileData != null && fields != null)
+                return DataBuilders.FilterTileFields(tileData, fields);
+
+            return tileData;
         }
 
         #endregion

@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-31T20:39:07.7863090Z
+# Generated at: 2026-01-31T21:39:29.8027210Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -23,7 +23,7 @@ info:
     ## Connection
 
     The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
-  version: "3.2.0"
+  version: "3.3.0"
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -532,9 +532,15 @@ paths:
         - Tiles
       summary: Get tiles (paginated)
       description: |
-        Returns paginated array of map tiles.
+        Returns paginated array of map tiles. Use the fields parameter to request only specific fields and reduce payload size.
       operationId: getTiles
       parameters:
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of field names to include (e.g., "x,y,terrain,height"). Omit to return all fields.
         - name: offset
           in: query
           required: false
@@ -576,6 +582,12 @@ paths:
           schema:
             type: integer
           description: Tile ID
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of field names to include (e.g., "id,terrain,height"). Omit to return all fields.
       responses:
         '200':
           description: Tile data
@@ -609,6 +621,12 @@ paths:
           schema:
             type: integer
           description: Y coordinate
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of field names to include (e.g., "x,y,resource"). Omit to return all fields.
       responses:
         '200':
           description: Tile data

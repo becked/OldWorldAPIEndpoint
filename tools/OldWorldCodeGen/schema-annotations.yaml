@@ -1013,10 +1013,16 @@ endpoints:
     method: get
     operationId: getTiles
     summary: Get tiles (paginated)
-    description: Returns paginated array of map tiles.
+    description: Returns paginated array of map tiles. Use the fields parameter to request only specific fields and reduce payload size.
     tags: [Tiles]
     response: PaginatedTiles
     pagination: true
+    params:
+      - name: fields
+        in: query
+        type: string
+        required: false
+        description: Comma-separated list of field names to include (e.g., "x,y,terrain,height"). Omit to return all fields.
 
   - path: /tile/{id}
     method: get
@@ -1029,6 +1035,11 @@ endpoints:
         in: path
         type: integer
         description: Tile ID
+      - name: fields
+        in: query
+        type: string
+        required: false
+        description: Comma-separated list of field names to include (e.g., "id,terrain,height"). Omit to return all fields.
 
   - path: /tile/{x}/{y}
     method: get
@@ -1045,6 +1056,11 @@ endpoints:
         in: path
         type: integer
         description: Y coordinate
+      - name: fields
+        in: query
+        type: string
+        required: false
+        description: Comma-separated list of field names to include (e.g., "x,y,resource"). Omit to return all fields.
 
   # Turn Summary (Events)
   - path: /turn-summary

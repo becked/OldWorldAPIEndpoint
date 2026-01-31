@@ -742,7 +742,11 @@ namespace OldWorldAPIEndpoint
         /// <summary>
         /// Build paginated tiles list for JSON serialization.
         /// </summary>
-        public static object BuildTilesObjectPaginated(Game game, int offset, int limit)
+        /// <param name="game">The game instance</param>
+        /// <param name="offset">Starting index for pagination</param>
+        /// <param name="limit">Maximum tiles to return</param>
+        /// <param name="fields">Optional set of field names to include (null = all fields)</param>
+        public static object BuildTilesObjectPaginated(Game game, int offset, int limit, HashSet<string> fields = null)
         {
             Infos infos = game.infos();
             var tiles = new List<object>();
@@ -763,7 +767,12 @@ namespace OldWorldAPIEndpoint
                         {
                             var tile = tileList[i];
                             if (tile != null)
-                                tiles.Add(BuildTileObject(tile, game, infos));
+                            {
+                                var tileData = BuildTileObject(tile, game, infos);
+                                if (fields != null)
+                                    tileData = DataBuilders.FilterTileFields(tileData, fields);
+                                tiles.Add(tileData);
+                            }
                         }
                         catch { }
                     }

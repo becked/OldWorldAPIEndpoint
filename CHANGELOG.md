@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [3.3.0] - 2025-01-31
+
+### Added
+- **Field filtering for tile endpoints** - Request only specific fields to reduce payload size:
+  - `GET /tiles?fields=x,y,terrain` - returns only requested fields per tile
+  - `GET /tile/{id}?fields=id,terrain,height` - single tile with specific fields
+  - `GET /tile/{x}/{y}?fields=x,y,resource` - tile by coords with specific fields
+  - Field names are case-insensitive
+  - Invalid field names return HTTP 400 with error message
+  - Omitting `fields` parameter returns all fields (existing behavior)
+- **Auto-generated field name registry** - `TileFieldNames` HashSet with all 119 valid tile field names, kept in sync with code generator
+
+
 ## [3.2.0] - 2025-01-31
 
 ### Changed

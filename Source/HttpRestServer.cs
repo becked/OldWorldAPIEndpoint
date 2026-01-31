@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -877,13 +878,41 @@ namespace OldWorldAPIEndpoint
                 limit = Math.Min(limit, 1000);
             }
 
-            var tiles = APIEndpoint.BuildTilesObjectPaginated(game, offset, limit);
+            // Parse and validate fields parameter
+            var requestedFields = ParseFieldsParameter(context);
+            if (requestedFields != null)
+            {
+                var invalidFields = ValidateFields(requestedFields, DataBuilders.TileFieldNames);
+                if (invalidFields.Count > 0)
+                {
+                    SendErrorResponse(context.Response,
+                        $"Unknown field(s): {string.Join(", ", invalidFields)}",
+                        400);
+                    return;
+                }
+            }
+
+            var tiles = APIEndpoint.BuildTilesObjectPaginated(game, offset, limit, requestedFields);
             SendJsonResponse(context.Response, tiles);
         }
 
         private void HandleTileRequest(HttpListenerContext context, Game game, int tileId)
         {
-            var tile = APIEndpoint.GetTileById(game, tileId);
+            // Parse and validate fields parameter
+            var requestedFields = ParseFieldsParameter(context);
+            if (requestedFields != null)
+            {
+                var invalidFields = ValidateFields(requestedFields, DataBuilders.TileFieldNames);
+                if (invalidFields.Count > 0)
+                {
+                    SendErrorResponse(context.Response,
+                        $"Unknown field(s): {string.Join(", ", invalidFields)}",
+                        400);
+                    return;
+                }
+            }
+
+            var tile = APIEndpoint.GetTileById(game, tileId, requestedFields);
             if (tile != null)
                 SendJsonResponse(context.Response, tile);
             else
@@ -892,7 +921,21 @@ namespace OldWorldAPIEndpoint
 
         private void HandleTileByCoords(HttpListenerContext context, Game game, int x, int y)
         {
-            var tile = APIEndpoint.GetTileByCoords(game, x, y);
+            // Parse and validate fields parameter
+            var requestedFields = ParseFieldsParameter(context);
+            if (requestedFields != null)
+            {
+                var invalidFields = ValidateFields(requestedFields, DataBuilders.TileFieldNames);
+                if (invalidFields.Count > 0)
+                {
+                    SendErrorResponse(context.Response,
+                        $"Unknown field(s): {string.Join(", ", invalidFields)}",
+                        400);
+                    return;
+                }
+            }
+
+            var tile = APIEndpoint.GetTileByCoords(game, x, y, requestedFields);
             if (tile != null)
                 SendJsonResponse(context.Response, tile);
             else
@@ -949,6 +992,42 @@ namespace OldWorldAPIEndpoint
 
             response.OutputStream.Write(buffer, 0, buffer.Length);
             response.Close();
+        }
+
+        /// <summary>
+        /// Parse comma-separated field names from query string.
+        /// Returns null if no fields parameter (meaning return all fields).
+        /// </summary>
+        private static HashSet<string> ParseFieldsParameter(HttpListenerContext context)
+        {
+            var fieldsParam = context.Request.QueryString["fields"];
+            if (string.IsNullOrWhiteSpace(fieldsParam))
+                return null;
+
+            var fields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var field in fieldsParam.Split(','))
+            {
+                var trimmed = field.Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    fields.Add(trimmed);
+            }
+
+            return fields.Count > 0 ? fields : null;
+        }
+
+        /// <summary>
+        /// Validate requested fields against valid field names.
+        /// Returns list of invalid field names, or empty list if all valid.
+        /// </summary>
+        private static List<string> ValidateFields(HashSet<string> requestedFields, HashSet<string> validFields)
+        {
+            var invalidFields = new List<string>();
+            foreach (var field in requestedFields)
+            {
+                if (!validFields.Contains(field))
+                    invalidFields.Add(field);
+            }
+            return invalidFields;
         }
 
         #endregion

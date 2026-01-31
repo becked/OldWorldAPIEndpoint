@@ -460,6 +460,9 @@ public class DataBuilderGenerator
         sb.AppendLine("        }");
         sb.AppendLine();
 
+        // Generate field names set for field filtering
+        EmitFieldNamesSet(sb, entityName, simpleGetters, enumIndexedGetters, enumCollectionGetters);
+
         // Generate list of unsupported getters (for reference)
         if (unsupportedGetters.Any())
         {
@@ -578,6 +581,48 @@ public class DataBuilderGenerator
         sb.AppendLine($"                data[\"{propertyName}\"] = {propertyName};");
         sb.AppendLine($"            }}");
         sb.AppendLine($"            catch {{ }}");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Emit a static HashSet of valid field names for an entity type.
+    /// Used for field filtering in API queries.
+    /// </summary>
+    private void EmitFieldNamesSet(
+        StringBuilder sb,
+        string entityName,
+        List<GetterSignature> simpleGetters,
+        List<GetterSignature> enumIndexedGetters,
+        List<GetterSignature> enumCollectionGetters)
+    {
+        // Collect all field names with their actual JSON property names
+        var fieldNames = new List<string>();
+
+        // Simple getters use PropertyName directly
+        fieldNames.AddRange(simpleGetters.Select(g => g.PropertyName));
+
+        // Enum-indexed getters add "s" suffix (e.g., rating → ratings)
+        fieldNames.AddRange(enumIndexedGetters.Select(g => g.PropertyName + "s"));
+
+        // Enum collection getters use PropertyName directly
+        fieldNames.AddRange(enumCollectionGetters.Select(g => g.PropertyName));
+
+        // Sort for consistent output
+        fieldNames.Sort(StringComparer.OrdinalIgnoreCase);
+
+        sb.AppendLine($"        /// <summary>");
+        sb.AppendLine($"        /// Valid field names for {entityName} objects (for ?fields= query filtering).");
+        sb.AppendLine($"        /// Auto-generated - {fieldNames.Count} fields.");
+        sb.AppendLine($"        /// </summary>");
+        sb.AppendLine($"        public static readonly HashSet<string> {entityName}FieldNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)");
+        sb.AppendLine("        {");
+
+        foreach (var field in fieldNames)
+        {
+            sb.AppendLine($"            \"{field}\",");
+        }
+
+        sb.AppendLine("        };");
         sb.AppendLine();
     }
 

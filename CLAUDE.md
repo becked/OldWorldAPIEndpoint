@@ -217,19 +217,43 @@ The mod uses a Roslyn-based code generator that parses the decompiled game sourc
 **The game source is the single source of truth.** When the game updates with new commands, simply regenerate:
 
 ```bash
-# Regenerate all code from game source
-dotnet run --project tools/OldWorldCodeGen
+# Regenerate all code from game source (run from tools/OldWorldCodeGen directory)
+cd tools/OldWorldCodeGen && dotnet run -- --output "../../Source"
 
 # Build and test
 ./deploy.sh
 ./test-headless.sh "/Users/jeff/Library/Application Support/OldWorld/Saves/APITestSave.zip" 2
 ```
 
+### Getter Pattern Detection
+
+The DataBuilders generator automatically detects and handles three getter patterns:
+
+| Pattern | Example | Output |
+|---------|---------|--------|
+| **Simple** | `getAge()` → `int` | `"age": 42` |
+| **Enum-Indexed** | `getRating(RatingType)` → `int` | `"ratings": {"RATING_COURAGE": 7, ...}` |
+| **Enum Collection** | `getTraits()` → `ReadOnlyList<TraitType>` | `"traits": ["TRAIT_WARRIOR", ...]` |
+
+This means new enum-indexed getters (like yield lookups, tech progress, etc.) and collection-returning getters are automatically exposed without manual code.
+
+**Current property counts per entity:**
+
+| Entity | Simple | Enum-Indexed | Collections | Total |
+|--------|--------|--------------|-------------|-------|
+| Character | 180 | 23 | 5 | 208 |
+| City | 123 | 48 | 1 | 172 |
+| Player | 122 | 88 | 1 | 211 |
+| Tile | 115 | 6 | 0 | 121 |
+| Unit | 151 | 16 | 1 | 168 |
+
+### Command Generation
+
 **The generator automatically:**
 - Parses all 212 `send*` methods from ClientManager.cs
 - Categorizes parameters (Entity, EnumType, Primitive)
 - Generates type resolvers for 39 enum types using Infos lookups
-- Skips methods with unsupported parameter types (ActionData, int[], etc.)
+- Skips methods with unsupported parameter types (ActionData, int[], out params, etc.)
 
 **Hand-written files:**
 - `Source/CommandExecutor.cs` - Partial class with helper methods
@@ -238,7 +262,7 @@ dotnet run --project tools/OldWorldCodeGen
 
 **When game updates:**
 1. Update Old World via Steam
-2. Run `dotnet run --project tools/OldWorldCodeGen`
+2. Run `cd tools/OldWorldCodeGen && dotnet run -- --output "../../Source"`
 3. Run `./deploy.sh` to build
 4. Run headless test to verify
 

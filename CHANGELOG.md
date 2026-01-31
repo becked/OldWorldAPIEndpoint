@@ -1,6 +1,33 @@
 # Changelog
 
 
+## [3.0.3] - 2025-01-30
+
+### Added
+- **Character `ratings` object** - All four core stats now exposed automatically:
+  - `RATING_COURAGE`, `RATING_WISDOM`, `RATING_CHARISMA`, `RATING_DISCIPLINE`
+  - Example: `"ratings": {"RATING_COURAGE": 7, "RATING_WISDOM": 5, ...}`
+- **Character `traits` array** - Full list of character traits:
+  - Example: `"traits": ["TRAIT_COMMANDER_ARCHETYPE", "TRAIT_PIOUS"]`
+- **Enum-indexed properties across all entities** - Automatic dictionary generation for getters like `getRating(RatingType)`, `getYieldStockpile(YieldType)`, `getTechProgress(TechType)`
+- **Collection properties** - Automatic array generation for getters returning `ReadOnlyList<EnumType>`
+
+### Changed
+- **Expanded entity field counts** via new code generator patterns:
+  | Entity | Simple | Enum-Indexed | Collections | Total |
+  |--------|--------|--------------|-------------|-------|
+  | Character | 180 | 23 | 5 | **208** |
+  | Player | 122 | 88 | 1 | **211** |
+  | City | 123 | 48 | 1 | **172** |
+  | Unit | 151 | 16 | 1 | **168** |
+  | Tile | 115 | 6 | 0 | **121** |
+- **Code generator now detects three getter patterns**:
+  1. Simple: `getAge()` → `"age": 42`
+  2. Enum-indexed: `getRating(RatingType)` → `"ratings": {...}`
+  3. Collections: `getTraits()` → `"traits": [...]`
+- **bump-version.sh** now also updates `docs/openapi.yaml` version
+
+
 ## [3.0.2] - 2025-01-30
 
 ### Fixed

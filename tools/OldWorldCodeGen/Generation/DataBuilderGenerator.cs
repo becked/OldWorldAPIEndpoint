@@ -15,6 +15,70 @@ public class DataBuilderGenerator
         _typeAnalyzer = typeAnalyzer;
     }
 
+    /// <summary>
+    /// Classification of getter patterns for code generation.
+    /// </summary>
+    private enum GetterPattern
+    {
+        /// <summary>No params, simple return type - existing behavior</summary>
+        Simple,
+        /// <summary>Single enum param, returns value (e.g., getRating(RatingType) → int)</summary>
+        EnumIndexed,
+        /// <summary>No params, returns collection of enum (e.g., getTraits() → ReadOnlyList&lt;TraitType&gt;)</summary>
+        EnumCollection,
+        /// <summary>Can't auto-generate</summary>
+        Unsupported
+    }
+
+    /// <summary>
+    /// Classify a getter into a pattern for code generation.
+    /// </summary>
+    private GetterPattern ClassifyGetter(GetterSignature getter)
+    {
+        // Skip methods with out/ref parameters - we can't auto-generate these
+        if (getter.HasOutOrRefParams)
+            return GetterPattern.Unsupported;
+
+        // Pattern 1: Simple (existing behavior) - no params, supported simple return type
+        if (!getter.HasParameters && IsSupportedReturnType(getter.ReturnType))
+            return GetterPattern.Simple;
+
+        // Pattern 2: Enum-indexed (e.g., getRating(RatingType) → int)
+        if (getter.ParameterCount == 1 &&
+            getter.ParameterTypes.Count > 0 &&
+            IsEnumWithInfosLookup(getter.ParameterTypes[0]) &&
+            IsSupportedValueType(getter.ReturnType))
+            return GetterPattern.EnumIndexed;
+
+        // Pattern 3: Collection of enum (e.g., getTraits() → ReadOnlyList<TraitType>)
+        if (!getter.HasParameters &&
+            getter.CollectionElementType != null &&
+            IsEnumWithInfosLookup(getter.CollectionElementType))
+            return GetterPattern.EnumCollection;
+
+        return GetterPattern.Unsupported;
+    }
+
+    /// <summary>
+    /// Check if an enum type has an Infos lookup method (needed for pattern matching).
+    /// </summary>
+    private bool IsEnumWithInfosLookup(string typeName)
+    {
+        var info = _typeAnalyzer.GetEnumTypeInfo(typeName);
+        return info != null;
+    }
+
+    /// <summary>
+    /// Check if a return type is a simple value type suitable for enum-indexed getters.
+    /// </summary>
+    private static bool IsSupportedValueType(string returnType)
+    {
+        var baseType = returnType.TrimEnd('?');
+        return new[] { "int", "Int32", "long", "Int64", "bool", "Boolean", "string", "String",
+                       "float", "Single", "double", "Double" }
+            .Contains(baseType, StringComparer.OrdinalIgnoreCase);
+    }
+
     public string Generate(Dictionary<string, List<GetterSignature>> entityGetters)
     {
         var sb = new StringBuilder();
@@ -56,18 +120,43 @@ public class DataBuilderGenerator
 
     private void GenerateEntityBuilder(StringBuilder sb, string entityName, List<GetterSignature> getters)
     {
-        // Filter to simple getters (no parameters) for the basic builder
-        var simpleGetters = getters
-            .Where(g => !g.HasParameters)
-            .Where(g => IsSupportedReturnType(g.ReturnType))
+        // Classify all getters into patterns
+        var classified = getters
+            .Select(g => (getter: g, pattern: ClassifyGetter(g)))
+            .ToList();
+
+        var simpleGetters = classified
+            .Where(c => c.pattern == GetterPattern.Simple)
+            .Select(c => c.getter)
             .OrderBy(g => g.PropertyName)
             .ToList();
+
+        var enumIndexedGetters = classified
+            .Where(c => c.pattern == GetterPattern.EnumIndexed)
+            .Select(c => c.getter)
+            .OrderBy(g => g.PropertyName)
+            .ToList();
+
+        var enumCollectionGetters = classified
+            .Where(c => c.pattern == GetterPattern.EnumCollection)
+            .Select(c => c.getter)
+            .OrderBy(g => g.PropertyName)
+            .ToList();
+
+        var unsupportedGetters = classified
+            .Where(c => c.pattern == GetterPattern.Unsupported)
+            .Select(c => c.getter)
+            .OrderBy(g => g.Name)
+            .ToList();
+
+        var totalProps = simpleGetters.Count + enumIndexedGetters.Count + enumCollectionGetters.Count;
 
         sb.AppendLine($"        #region {entityName} Builder");
         sb.AppendLine();
         sb.AppendLine($"        /// <summary>");
         sb.AppendLine($"        /// Build a {entityName} object for JSON serialization.");
-        sb.AppendLine($"        /// Auto-generated from {entityName}.cs - {simpleGetters.Count} properties.");
+        sb.AppendLine($"        /// Auto-generated from {entityName}.cs - {totalProps} properties");
+        sb.AppendLine($"        /// ({simpleGetters.Count} simple, {enumIndexedGetters.Count} enum-indexed, {enumCollectionGetters.Count} collections).");
         sb.AppendLine($"        /// Each property access is wrapped in try-catch for null safety.");
         sb.AppendLine($"        /// </summary>");
         sb.AppendLine($"        public static object Build{entityName}ObjectGenerated({entityName} entity, Game game, Infos infos)");
@@ -75,10 +164,33 @@ public class DataBuilderGenerator
         sb.AppendLine("            var data = new Dictionary<string, object>();");
         sb.AppendLine();
 
+        // Emit simple getters (existing behavior)
         foreach (var getter in simpleGetters)
         {
             var accessor = GenerateGetterAccessor(getter, entityName);
             sb.AppendLine($"            TryAdd(data, \"{getter.PropertyName}\", () => {accessor});");
+        }
+
+        // Emit enum-indexed getters
+        if (enumIndexedGetters.Any())
+        {
+            sb.AppendLine();
+            sb.AppendLine("            // Enum-indexed properties");
+            foreach (var getter in enumIndexedGetters)
+            {
+                EmitEnumIndexedGetter(sb, getter, "entity");
+            }
+        }
+
+        // Emit enum collection getters
+        if (enumCollectionGetters.Any())
+        {
+            sb.AppendLine();
+            sb.AppendLine("            // Collection properties");
+            foreach (var getter in enumCollectionGetters)
+            {
+                EmitEnumCollectionGetter(sb, getter, "entity");
+            }
         }
 
         sb.AppendLine();
@@ -86,22 +198,20 @@ public class DataBuilderGenerator
         sb.AppendLine("        }");
         sb.AppendLine();
 
-        // Generate list of getters with parameters (for reference)
-        var parameterizedGetters = getters
-            .Where(g => g.HasParameters)
-            .OrderBy(g => g.Name)
-            .ToList();
-
-        if (parameterizedGetters.Any())
+        // Generate list of unsupported getters (for reference)
+        if (unsupportedGetters.Any())
         {
-            sb.AppendLine($"        // Parameterized getters not included in basic builder:");
-            foreach (var getter in parameterizedGetters.Take(20)) // Limit output
+            sb.AppendLine($"        // Unsupported getters ({unsupportedGetters.Count} total):");
+            foreach (var getter in unsupportedGetters.Take(20))
             {
-                sb.AppendLine($"        // - {getter.Name}({getter.ParameterCount} params) -> {getter.ReturnType}");
+                var paramInfo = getter.HasParameters
+                    ? $"({string.Join(", ", getter.ParameterTypes)})"
+                    : "()";
+                sb.AppendLine($"        // - {getter.Name}{paramInfo} -> {getter.ReturnType}");
             }
-            if (parameterizedGetters.Count > 20)
+            if (unsupportedGetters.Count > 20)
             {
-                sb.AppendLine($"        // ... and {parameterizedGetters.Count - 20} more");
+                sb.AppendLine($"        // ... and {unsupportedGetters.Count - 20} more");
             }
             sb.AppendLine();
         }
@@ -134,6 +244,61 @@ public class DataBuilderGenerator
 
         // Simple types
         return $"{entityVar}.{getter.Name}()";
+    }
+
+    /// <summary>
+    /// Emit code for an enum-indexed getter (e.g., getRating(RatingType) → int).
+    /// Generates a dictionary mapping enum type strings to values.
+    /// </summary>
+    private void EmitEnumIndexedGetter(StringBuilder sb, GetterSignature getter, string entityVar)
+    {
+        var enumType = getter.ParameterTypes[0];
+        var enumInfo = _typeAnalyzer.GetEnumTypeInfo(enumType)!;
+        var propertyName = getter.PropertyName + "s"; // rating → ratings
+
+        sb.AppendLine($"            // {getter.Name}({enumType}) → Dictionary");
+        sb.AppendLine($"            try");
+        sb.AppendLine($"            {{");
+        sb.AppendLine($"                var {propertyName} = new Dictionary<string, object>();");
+        sb.AppendLine($"                for (int i = 0; i < (int)infos.{enumInfo.CountMethod}(); i++)");
+        sb.AppendLine($"                {{");
+        sb.AppendLine($"                    var enumVal = ({enumType})i;");
+        sb.AppendLine($"                    var key = infos.{enumInfo.InfosMethod}(enumVal)?.mzType;");
+        sb.AppendLine($"                    if (key != null)");
+        sb.AppendLine($"                    {{");
+        sb.AppendLine($"                        try {{ {propertyName}[key] = {entityVar}.{getter.Name}(enumVal); }}");
+        sb.AppendLine($"                        catch {{ }}");
+        sb.AppendLine($"                    }}");
+        sb.AppendLine($"                }}");
+        sb.AppendLine($"                data[\"{propertyName}\"] = {propertyName};");
+        sb.AppendLine($"            }}");
+        sb.AppendLine($"            catch {{ }}");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Emit code for an enum collection getter (e.g., getTraits() → ReadOnlyList&lt;TraitType&gt;).
+    /// Generates an array of enum type strings.
+    /// </summary>
+    private void EmitEnumCollectionGetter(StringBuilder sb, GetterSignature getter, string entityVar)
+    {
+        var elementType = getter.CollectionElementType!;
+        var enumInfo = _typeAnalyzer.GetEnumTypeInfo(elementType)!;
+        var propertyName = getter.PropertyName; // traits stays traits
+
+        sb.AppendLine($"            // {getter.Name}() → List<string>");
+        sb.AppendLine($"            try");
+        sb.AppendLine($"            {{");
+        sb.AppendLine($"                var {propertyName} = new List<string>();");
+        sb.AppendLine($"                foreach (var item in {entityVar}.{getter.Name}())");
+        sb.AppendLine($"                {{");
+        sb.AppendLine($"                    var name = infos.{enumInfo.InfosMethod}(item)?.mzType;");
+        sb.AppendLine($"                    if (name != null) {propertyName}.Add(name);");
+        sb.AppendLine($"                }}");
+        sb.AppendLine($"                data[\"{propertyName}\"] = {propertyName};");
+        sb.AppendLine($"            }}");
+        sb.AppendLine($"            catch {{ }}");
+        sb.AppendLine();
     }
 
     private bool IsSupportedReturnType(string returnType)

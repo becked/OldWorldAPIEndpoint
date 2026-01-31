@@ -150,4 +150,13 @@ public class GetterSignature
 
     /// <summary>Number of parameters</summary>
     public int ParameterCount { get; set; }
+
+    /// <summary>Parameter type names for pattern matching (e.g., ["RatingType"] for getRating(RatingType))</summary>
+    public List<string> ParameterTypes { get; set; } = new();
+
+    /// <summary>For collection return types, the element type (e.g., "TraitType" for ReadOnlyList&lt;TraitType&gt;)</summary>
+    public string? CollectionElementType { get; set; }
+
+    /// <summary>Whether the method has out or ref parameters (which we can't auto-generate)</summary>
+    public bool HasOutOrRefParams { get; set; }
 }

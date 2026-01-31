@@ -85,6 +85,17 @@ if [ -f "workshop_content/ModInfo.xml" ]; then
     fi
 fi
 
+# Also update docs/openapi.yaml if it exists
+OPENAPI="docs/openapi.yaml"
+if [ -f "$OPENAPI" ]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|^  version: \"$CURRENT\"|  version: \"$NEW_VERSION\"|" "$OPENAPI"
+    else
+        sed -i "s|^  version: \"$CURRENT\"|  version: \"$NEW_VERSION\"|" "$OPENAPI"
+    fi
+    echo "Updated $OPENAPI: $CURRENT -> $NEW_VERSION"
+fi
+
 echo ""
 echo "Updated $MODINFO: $CURRENT -> $NEW_VERSION"
 

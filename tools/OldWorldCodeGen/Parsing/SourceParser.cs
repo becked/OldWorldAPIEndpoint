@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -81,13 +82,39 @@ public class SourceParser
 
     private GetterSignature ParseGetterDeclaration(MethodDeclarationSyntax method)
     {
+        var parameters = method.ParameterList.Parameters;
+
+        // Check for out/ref parameters which we can't handle in code generation
+        bool hasOutOrRefParams = parameters.Any(p =>
+            p.Modifiers.Any(SyntaxKind.OutKeyword) ||
+            p.Modifiers.Any(SyntaxKind.RefKeyword));
+
+        var paramTypes = parameters
+            .Select(p => p.Type?.ToString() ?? "object")
+            .ToList();
+
+        var returnType = method.ReturnType.ToString();
+        string? elementType = ExtractCollectionElementType(returnType);
+
         return new GetterSignature
         {
             Name = method.Identifier.Text,
-            ReturnType = method.ReturnType.ToString(),
-            HasParameters = method.ParameterList.Parameters.Count > 0,
-            ParameterCount = method.ParameterList.Parameters.Count
+            ReturnType = returnType,
+            HasParameters = paramTypes.Count > 0,
+            ParameterCount = paramTypes.Count,
+            ParameterTypes = paramTypes,
+            CollectionElementType = elementType,
+            HasOutOrRefParams = hasOutOrRefParams
         };
+    }
+
+    /// <summary>
+    /// Extract the element type from collection return types like ReadOnlyList&lt;T&gt;, List&lt;T&gt;, IEnumerable&lt;T&gt;.
+    /// </summary>
+    private static string? ExtractCollectionElementType(string returnType)
+    {
+        var match = Regex.Match(returnType, @"(?:ReadOnlyList|List|IEnumerable|IReadOnlyList)<(\w+)>");
+        return match.Success ? match.Groups[1].Value : null;
     }
 
     private ParameterInfo ParseParameter(ParameterSyntax param)

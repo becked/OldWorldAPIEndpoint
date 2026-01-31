@@ -29,9 +29,14 @@ Enable the mod in Old World's Mod Manager.
 
 ### Data Available
 - **Game**: Turn number, year, current player
-- **Players**: Nation, team, cities, units, legitimacy, resource stockpiles, per-turn rates
-- **Cities**: ~80 fields including population, production, yields, improvements, religion
-- **Characters**: ~75 fields including traits, ratings, family, jobs, military, spouses, children, opinions, relationships
+- **Players**: 211 fields including nation, team, cities, units, legitimacy, resource stockpiles, per-turn rates, tech progress, improvement counts
+- **Cities**: 172 fields including population, production, yields, improvements, religion, specialists
+- **Characters**: 208 fields including:
+  - Core stats: `ratings` object with RATING_COURAGE, RATING_WISDOM, RATING_CHARISMA, RATING_DISCIPLINE
+  - `traits` array with all character traits (e.g., TRAIT_WARRIOR, TRAIT_BOLD)
+  - Family, jobs, military, spouses, children, opinions, relationships
+- **Units**: 168 fields including type, promotions, combat stats, effect units
+- **Tiles**: 121 fields including terrain, height, vegetation, improvements, resources
 - **Character Events**: Births, deaths, marriages, leader changes, heir changes (detected via state diffing)
 - **Diplomacy**: Team-to-team and tribe-to-team relationships, alliances, war state
 - **Tribes**: Barbarians, minor civs with their units, settlements, alliances
@@ -180,14 +185,36 @@ watch -n 2 'curl -s localhost:9877/state | jq "{turn, year, players: [.players[]
 ./test-headless.sh test/data/APITestSave.zip 2
 ```
 
+### Code Generation
+
+Entity data builders and command executors are auto-generated from the game source using a Roslyn-based parser. When the game updates:
+
+```bash
+# Regenerate from game source
+cd tools/OldWorldCodeGen && dotnet run -- --output "../../Source"
+
+# Build and test
+./deploy.sh
+./test-headless.sh test/data/APITestSave.zip 2
+```
+
+The generator automatically detects getter patterns:
+- **Simple getters**: `getAge()` → `"age": 42`
+- **Enum-indexed**: `getRating(RatingType)` → `"ratings": {"RATING_COURAGE": 7, ...}`
+- **Collections**: `getTraits()` → `"traits": ["TRAIT_WARRIOR", ...]`
+
 ### Project Structure
 ```
 Source/
-  APIEndpoint.cs       # Mod entry point, data builders
-  TcpBroadcastServer.cs # TCP server (push)
-  HttpRestServer.cs     # HTTP server (pull)
+  APIEndpoint.cs              # Mod entry point
+  DataBuilders.Generated.cs   # Auto-generated entity builders (880+ properties)
+  CommandExecutor.Generated.cs # Auto-generated command handlers
+  TcpBroadcastServer.cs       # TCP server (push)
+  HttpRestServer.cs           # HTTP server (pull)
+tools/
+  OldWorldCodeGen/            # Roslyn-based code generator
 docs/
-  roadmap.md           # Completed and planned features
+  roadmap.md                  # Completed and planned features
   api-design-principles.md
 ```
 

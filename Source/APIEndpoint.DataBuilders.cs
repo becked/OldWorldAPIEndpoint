@@ -15,42 +15,25 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Build list of player objects for JSON serialization.
+        /// Delegates to auto-generated null-safe code.
         /// </summary>
         public static List<object> BuildPlayersObject(Game game)
         {
             Player[] players = game.getPlayers();
             Infos infos = game.infos();
-            int yieldCount = (int)infos.yieldsNum();
-
             var playerList = new List<object>();
 
-            for (int i = 0; i < players.Length; i++)
+            foreach (var player in players)
             {
-                var player = players[i];
                 if (player == null) continue;
-
-                var stockpiles = new Dictionary<string, int>();
-                var rates = new Dictionary<string, int>();
-                for (int y = 0; y < yieldCount; y++)
+                try
                 {
-                    var yieldType = (YieldType)y;
-                    string yieldName = infos.yield(yieldType).mzType;
-                    stockpiles[yieldName] = player.getYieldStockpileWhole(yieldType);
-                    rates[yieldName] = player.calculateYieldAfterUnits(yieldType, false) / 10;
+                    playerList.Add(DataBuilders.BuildPlayerObjectGenerated(player, game, infos));
                 }
-
-                playerList.Add(new
+                catch (Exception ex)
                 {
-                    index = i,
-                    team = (int)player.getTeam(),
-                    nation = infos.nation(player.getNation()).mzType,
-                    leaderId = player.hasFounder() ? (int?)player.getFounderID() : null,
-                    cities = player.getNumCities(),
-                    units = player.getNumUnits(),
-                    legitimacy = player.getLegitimacy(),
-                    stockpiles = stockpiles,
-                    rates = rates
-                });
+                    Debug.LogError($"[APIEndpoint] Error building player: {ex.Message}");
+                }
             }
 
             return playerList;

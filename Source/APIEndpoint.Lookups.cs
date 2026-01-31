@@ -34,6 +34,7 @@ namespace OldWorldAPIEndpoint
 
         /// <summary>
         /// Get a specific player by index.
+        /// Delegates to auto-generated null-safe code.
         /// </summary>
         public static object GetPlayerByIndex(Game game, int index)
         {
@@ -41,32 +42,7 @@ namespace OldWorldAPIEndpoint
             if (index < 0 || index >= players.Length || players[index] == null)
                 return null;
 
-            var player = players[index];
-            Infos infos = game.infos();
-            int yieldCount = (int)infos.yieldsNum();
-
-            var stockpiles = new Dictionary<string, int>();
-            var rates = new Dictionary<string, int>();
-            for (int y = 0; y < yieldCount; y++)
-            {
-                var yieldType = (YieldType)y;
-                string yieldName = infos.yield(yieldType).mzType;
-                stockpiles[yieldName] = player.getYieldStockpileWhole(yieldType);
-                rates[yieldName] = player.calculateYieldAfterUnits(yieldType, false) / 10;
-            }
-
-            return new
-            {
-                index = index,
-                team = (int)player.getTeam(),
-                nation = infos.nation(player.getNation()).mzType,
-                leaderId = player.hasFounder() ? (int?)player.getFounderID() : null,
-                cities = player.getNumCities(),
-                units = player.getNumUnits(),
-                legitimacy = player.getLegitimacy(),
-                stockpiles = stockpiles,
-                rates = rates
-            };
+            return DataBuilders.BuildPlayerObjectGenerated(players[index], game, game.infos());
         }
 
         /// <summary>

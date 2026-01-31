@@ -123,6 +123,24 @@ public class DataBuilderGenerator
         sb.AppendLine("            catch { /* Skip properties that throw */ }");
         sb.AppendLine("        }");
         sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a boolean property only if true (omit false values to reduce payload).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfTrue(Dictionary<string, object> data, string key, Func<bool> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { if (getValue()) data[key] = true; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add an int property only if not -1 (omit sentinel values to reduce payload).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotNegativeOne(Dictionary<string, object> data, string key, Func<int> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != -1) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
 
         foreach (var (entityName, getters) in entityGetters.OrderBy(kv => kv.Key))
         {
@@ -181,11 +199,27 @@ public class DataBuilderGenerator
         sb.AppendLine("            var data = new Dictionary<string, object>();");
         sb.AppendLine();
 
-        // Emit simple getters (existing behavior)
+        // Emit simple getters with type-appropriate helpers
         foreach (var getter in simpleGetters)
         {
-            var accessor = GenerateGetterAccessor(getter, entityName);
-            sb.AppendLine($"            TryAdd(data, \"{getter.PropertyName}\", () => {accessor});");
+            var baseType = getter.ReturnType.TrimEnd('?');
+
+            if (baseType == "bool" || baseType == "Boolean")
+            {
+                // Boolean: only include if true
+                sb.AppendLine($"            TryAddIfTrue(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+            }
+            else if (baseType == "int" || baseType == "Int32")
+            {
+                // Int: skip -1 sentinel values
+                sb.AppendLine($"            TryAddIfNotNegativeOne(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+            }
+            else
+            {
+                // All other types: use standard TryAdd
+                var accessor = GenerateGetterAccessor(getter, entityName);
+                sb.AppendLine($"            TryAdd(data, \"{getter.PropertyName}\", () => {accessor});");
+            }
         }
 
         // Emit enum-indexed getters
@@ -266,12 +300,14 @@ public class DataBuilderGenerator
     /// <summary>
     /// Emit code for an enum-indexed getter (e.g., getRating(RatingType) → int).
     /// Generates a dictionary mapping enum type strings to values.
+    /// Filters out -1 (sentinel) and false values.
     /// </summary>
     private void EmitEnumIndexedGetter(StringBuilder sb, GetterSignature getter, string entityVar)
     {
         var enumType = getter.ParameterTypes[0];
         var enumInfo = _typeAnalyzer.GetEnumTypeInfo(enumType)!;
         var propertyName = getter.PropertyName + "s"; // rating → ratings
+        var baseReturnType = getter.ReturnType.TrimEnd('?');
 
         sb.AppendLine($"            // {getter.Name}({enumType}) → Dictionary");
         sb.AppendLine($"            try");
@@ -283,11 +319,25 @@ public class DataBuilderGenerator
         sb.AppendLine($"                    var key = infos.{enumInfo.InfosMethod}(enumVal)?.mzType;");
         sb.AppendLine($"                    if (key != null)");
         sb.AppendLine($"                    {{");
-        sb.AppendLine($"                        try {{ {propertyName}[key] = {entityVar}.{getter.Name}(enumVal); }}");
+
+        // Add filtering based on return type
+        if (baseReturnType == "int" || baseReturnType == "Int32")
+        {
+            sb.AppendLine($"                        try {{ var v = {entityVar}.{getter.Name}(enumVal); if (v != -1) {propertyName}[key] = v; }}");
+        }
+        else if (baseReturnType == "bool" || baseReturnType == "Boolean")
+        {
+            sb.AppendLine($"                        try {{ if ({entityVar}.{getter.Name}(enumVal)) {propertyName}[key] = true; }}");
+        }
+        else
+        {
+            sb.AppendLine($"                        try {{ {propertyName}[key] = {entityVar}.{getter.Name}(enumVal); }}");
+        }
+
         sb.AppendLine($"                        catch {{ }}");
         sb.AppendLine($"                    }}");
         sb.AppendLine($"                }}");
-        sb.AppendLine($"                data[\"{propertyName}\"] = {propertyName};");
+        sb.AppendLine($"                if ({propertyName}.Count > 0) data[\"{propertyName}\"] = {propertyName};");
         sb.AppendLine($"            }}");
         sb.AppendLine($"            catch {{ }}");
         sb.AppendLine();

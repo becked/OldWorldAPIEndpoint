@@ -4,7 +4,7 @@
 ## [3.1.0] - 2025-01-31
 
 ### Changed
-- **Zero values filtered from enum-indexed dictionaries** - Dictionary fields now omit entries with zero values, reducing JSON payload size by ~55% (4MB → 1.8MB per turn). Zero values are semantically equivalent to "not present" for counts, modifiers, and rates.
+- **Zero values filtered from enum-indexed dictionaries** - Dictionary fields now omit entries with zero values, reducing JSON payload size by ~55% (4MB -> 1.8MB per turn). Zero values are semantically equivalent to "not present" for counts, modifiers, and rates.
 
   Filtered fields by entity:
   - **Player** (27 fields): counts (improvement, religion, unit, tech progress), family rates/controls, yield totals/upkeep, mission cooldowns, and more

@@ -73,6 +73,16 @@ public class DataBuilderGenerator
     };
 
     /// <summary>
+    /// Enum-indexed getters that should filter out zero values (not just -1).
+    /// These are count fields that are noisy when zero.
+    /// </summary>
+    private static readonly HashSet<string> ZeroFilteredGetters = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "getActiveImprovementClassCount",
+        "getActiveImprovementCount",
+    };
+
+    /// <summary>
     /// Check if an enum type has an Infos lookup method and is suitable for expansion.
     /// </summary>
     private bool IsEnumWithInfosLookup(string typeName)
@@ -323,7 +333,9 @@ public class DataBuilderGenerator
         // Add filtering based on return type
         if (baseReturnType == "int" || baseReturnType == "Int32")
         {
-            sb.AppendLine($"                        try {{ var v = {entityVar}.{getter.Name}(enumVal); if (v != -1) {propertyName}[key] = v; }}");
+            // Some getters should filter zeros (counts that are noisy when 0)
+            var filterCondition = ZeroFilteredGetters.Contains(getter.Name) ? "v > 0" : "v != -1";
+            sb.AppendLine($"                        try {{ var v = {entityVar}.{getter.Name}(enumVal); if ({filterCondition}) {propertyName}[key] = v; }}");
         }
         else if (baseReturnType == "bool" || baseReturnType == "Boolean")
         {

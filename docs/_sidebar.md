@@ -20,5 +20,6 @@
   - [Config](schemas/config.md)
 
 - **Design**
+  - [Architecture Overview](architecture.md)
   - [API Principles](api-design-principles.md)
   - [Technical Overview](technical-overview.md)

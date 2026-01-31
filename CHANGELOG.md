@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [3.1.0] - 2025-01-31
+
+### Changed
+- **Zero values filtered from enum-indexed dictionaries** - Dictionary fields now omit entries with zero values, reducing JSON payload size by ~55% (4MB → 1.8MB per turn). Zero values are semantically equivalent to "not present" for counts, modifiers, and rates.
+
+  Filtered fields by entity:
+  - **Player** (27 fields): counts (improvement, religion, unit, tech progress), family rates/controls, yield totals/upkeep, mission cooldowns, and more
+  - **Character** (11 fields): job/council opinions, nation/tribe ethnicity, yield rates (courtier, leader, spouse, successor), cognomen thresholds
+  - **City** (16 fields): unit/improvement costs and modifiers, yield progress/overflow, production counts, governor costs
+  - **Unit** (2 fields): effectUnitCounts, harvestYieldModifiers
+  - **Tile** (1 field): improvementCosts
+
+- **Boolean fields already filtered** - Fields returning `false` are omitted (implemented in 3.0.3)
+- **Sentinel values already filtered** - Integer fields returning `-1` are omitted (implemented in 3.0.3)
+
+
 ## [3.0.3] - 2025-01-30
 
 ### Fixed

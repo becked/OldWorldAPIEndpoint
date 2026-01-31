@@ -49,6 +49,9 @@
 [h1]Documentation[/h1]
 [url=https://becked.github.io/OldWorldAPIEndpoint]API Documentation[/url]
 
+[h1]Under Active Development[/h1]
+This mod is under active development and the API may change. If you're building an integration please reach out to me on the Old World Discord for coordination.
+
 [h1]Source Code[/h1]
 [url=https://github.com/becked/OldWorldAPIEndpoint]GitHub Repository[/url]"
 	"changenote"		"Initial Steam Workshop release"

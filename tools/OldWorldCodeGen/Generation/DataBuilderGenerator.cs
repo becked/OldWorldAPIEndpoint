@@ -35,6 +35,10 @@ public class DataBuilderGenerator
     /// </summary>
     private GetterPattern ClassifyGetter(GetterSignature getter)
     {
+        // Skip explicitly blocked getters
+        if (SkippedGetters.Contains(getter.Name))
+            return GetterPattern.Unsupported;
+
         // Skip methods with out/ref parameters - we can't auto-generate these
         if (getter.HasOutOrRefParams)
             return GetterPattern.Unsupported;
@@ -70,6 +74,15 @@ public class DataBuilderGenerator
         "TextType",          // Localization keys
         "MemoryType",        // Character memories
         "AchievementType",   // Steam achievements
+    };
+
+    /// <summary>
+    /// Getters to skip entirely - these produce noise that isn't useful to API consumers.
+    /// </summary>
+    private static readonly HashSet<string> SkippedGetters = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "isImprovementBorderSpread",
+        "isSpecialistCostCitizen",
     };
 
     /// <summary>
@@ -153,6 +166,26 @@ public class DataBuilderGenerator
     };
 
     /// <summary>
+    /// Entities that should filter out zero values for all numeric properties.
+    /// </summary>
+    private static readonly HashSet<string> ZeroFilteredEntities = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Tile",
+    };
+
+    /// <summary>
+    /// Getters that should preserve zero values even for ZeroFilteredEntities.
+    /// These are identity/positional fields where 0 is a valid meaningful value.
+    /// </summary>
+    private static readonly HashSet<string> ZeroPreservedGetters = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "getX",
+        "getY",
+        "getID",
+        "getIndex",
+    };
+
+    /// <summary>
     /// Check if an enum type has an Infos lookup method and is suitable for expansion.
     /// </summary>
     private bool IsEnumWithInfosLookup(string typeName)
@@ -221,6 +254,60 @@ public class DataBuilderGenerator
         sb.AppendLine("            catch { }");
         sb.AppendLine("        }");
         sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a property only if not null.");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotNull(Dictionary<string, object> data, string key, Func<object> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != null) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a property only if not null and not \"NONE\" (for enum string values).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotNullOrNone(Dictionary<string, object> data, string key, Func<object> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != null && v.ToString() != \"NONE\") data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a string property only if not null or empty.");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotNullOrEmpty(Dictionary<string, object> data, string key, Func<string> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (!string.IsNullOrEmpty(v)) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add an int property only if not zero and not -1 (for zero-filtered entities).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotZeroOrNegativeOne(Dictionary<string, object> data, string key, Func<int> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != 0 && v != -1) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a float property only if not zero (for zero-filtered entities).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotZeroFloat(Dictionary<string, object> data, string key, Func<float> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != 0f) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine("        /// Add a double property only if not zero (for zero-filtered entities).");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine("        private static void TryAddIfNotZeroDouble(Dictionary<string, object> data, string key, Func<double> getValue)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try { var v = getValue(); if (v != 0d) data[key] = v; }");
+        sb.AppendLine("            catch { }");
+        sb.AppendLine("        }");
+        sb.AppendLine();
 
         foreach (var (entityName, getters) in entityGetters.OrderBy(kv => kv.Key))
         {
@@ -280,6 +367,8 @@ public class DataBuilderGenerator
         sb.AppendLine();
 
         // Emit simple getters with type-appropriate helpers
+        var isZeroFilteredEntity = ZeroFilteredEntities.Contains(entityName);
+
         foreach (var getter in simpleGetters)
         {
             var baseType = getter.ReturnType.TrimEnd('?');
@@ -291,14 +380,56 @@ public class DataBuilderGenerator
             }
             else if (baseType == "int" || baseType == "Int32")
             {
-                // Int: skip -1 sentinel values
-                sb.AppendLine($"            TryAddIfNotNegativeOne(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                // Int: use zero+sentinel filter for certain entities, otherwise skip -1 sentinel values
+                if (isZeroFilteredEntity && !ZeroPreservedGetters.Contains(getter.Name))
+                {
+                    sb.AppendLine($"            TryAddIfNotZeroOrNegativeOne(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+                else
+                {
+                    sb.AppendLine($"            TryAddIfNotNegativeOne(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+            }
+            else if (baseType == "float" || baseType == "Single")
+            {
+                // Float: use zero filter for certain entities
+                if (isZeroFilteredEntity)
+                {
+                    sb.AppendLine($"            TryAddIfNotZeroFloat(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+                else
+                {
+                    sb.AppendLine($"            TryAddIfNotNull(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+            }
+            else if (baseType == "double" || baseType == "Double")
+            {
+                // Double: use zero filter for certain entities
+                if (isZeroFilteredEntity)
+                {
+                    sb.AppendLine($"            TryAddIfNotZeroDouble(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+                else
+                {
+                    sb.AppendLine($"            TryAddIfNotNull(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+                }
+            }
+            else if (baseType == "string" || baseType == "String")
+            {
+                // String: filter nulls and empty strings
+                sb.AppendLine($"            TryAddIfNotNullOrEmpty(data, \"{getter.PropertyName}\", () => entity.{getter.Name}());");
+            }
+            else if (IsEnumType(getter.ReturnType))
+            {
+                // Enum: filter nulls and "NONE" values
+                var accessor = GenerateGetterAccessor(getter, entityName);
+                sb.AppendLine($"            TryAddIfNotNullOrNone(data, \"{getter.PropertyName}\", () => {accessor});");
             }
             else
             {
-                // All other types: use standard TryAdd
+                // All other types: filter nulls
                 var accessor = GenerateGetterAccessor(getter, entityName);
-                sb.AppendLine($"            TryAdd(data, \"{getter.PropertyName}\", () => {accessor});");
+                sb.AppendLine($"            TryAddIfNotNull(data, \"{getter.PropertyName}\", () => {accessor});");
             }
         }
 
@@ -397,7 +528,7 @@ public class DataBuilderGenerator
         sb.AppendLine($"                {{");
         sb.AppendLine($"                    var enumVal = ({enumType})i;");
         sb.AppendLine($"                    var key = infos.{enumInfo.InfosMethod}(enumVal)?.mzType;");
-        sb.AppendLine($"                    if (key != null)");
+        sb.AppendLine($"                    if (key != null && key != \"NONE\")");
         sb.AppendLine($"                    {{");
 
         // Add filtering based on return type
@@ -442,7 +573,7 @@ public class DataBuilderGenerator
         sb.AppendLine($"                foreach (var item in {entityVar}.{getter.Name}())");
         sb.AppendLine($"                {{");
         sb.AppendLine($"                    var name = infos.{enumInfo.InfosMethod}(item)?.mzType;");
-        sb.AppendLine($"                    if (name != null) {propertyName}.Add(name);");
+        sb.AppendLine($"                    if (name != null && name != \"NONE\") {propertyName}.Add(name);");
         sb.AppendLine($"                }}");
         sb.AppendLine($"                data[\"{propertyName}\"] = {propertyName};");
         sb.AppendLine($"            }}");

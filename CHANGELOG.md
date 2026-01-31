@@ -1,6 +1,23 @@
 # Changelog
 
 
+## [3.2.0] - 2025-01-31
+
+### Changed
+- **Tile payload dramatically reduced** - Tiles now omit empty/default values, reducing per-tile size by ~70%:
+  - Removed `isImprovementBorderSpreads` and `isSpecialistCostCitizens` dictionaries (not useful for API consumers)
+  - Filtered `"NONE"` enum string values (e.g., `owner`, `team`, `citySite`)
+  - Filtered `null` values (e.g., `improvement`, `resource`, `vegetation`)
+  - Filtered empty strings (e.g., `customMapElementName`, `mapElementName`)
+  - Filtered `0` and `-1` integer values (except `id`, `x`, `y`, `index`)
+  - Filtered `0.0` float/double values
+
+- **All entities now filter noise values**:
+  - String fields omit `null` and empty strings
+  - Enum fields omit `null` and `"NONE"` values
+  - Other fields omit `null` values
+
+
 ## [3.1.0] - 2025-01-31
 
 ### Changed

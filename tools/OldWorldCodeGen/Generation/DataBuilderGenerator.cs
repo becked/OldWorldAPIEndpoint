@@ -60,10 +60,27 @@ public class DataBuilderGenerator
     }
 
     /// <summary>
-    /// Check if an enum type has an Infos lookup method (needed for pattern matching).
+    /// Enum types that are too large to auto-expand into dictionaries.
+    /// These have thousands of values and would bloat the JSON output.
+    /// </summary>
+    private static readonly HashSet<string> BlockedEnumTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "EventStoryType",    // 5000+ event stories
+        "BonusType",         // 1000+ bonus types
+        "TextType",          // Localization keys
+        "MemoryType",        // Character memories
+        "AchievementType",   // Steam achievements
+    };
+
+    /// <summary>
+    /// Check if an enum type has an Infos lookup method and is suitable for expansion.
     /// </summary>
     private bool IsEnumWithInfosLookup(string typeName)
     {
+        // Skip blocked large enum types
+        if (BlockedEnumTypes.Contains(typeName))
+            return false;
+
         var info = _typeAnalyzer.GetEnumTypeInfo(typeName);
         return info != null;
     }

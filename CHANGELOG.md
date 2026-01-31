@@ -3,6 +3,9 @@
 
 ## [3.0.3] - 2025-01-30
 
+### Fixed
+- **Blocked large enum types from expansion** - EventStoryType (5000+ values), BonusType, MemoryType, etc. no longer generate massive dictionaries. Reduces JSON output by ~91% (77MB → 6.9MB per turn).
+
 ### Added
 - **Character `ratings` object** - All four core stats now exposed automatically:
   - `RATING_COURAGE`, `RATING_WISDOM`, `RATING_CHARISMA`, `RATING_DISCIPLINE`

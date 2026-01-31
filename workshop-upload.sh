@@ -89,8 +89,9 @@ PUBLISHED_ID="$STEAM_WORKSHOP_ID"
 echo ""
 echo "=== Generating upload VDF ==="
 
-# Escape quotes in changenote (but keep actual newlines - Steam needs them)
-ESCAPED_CHANGENOTE=$(printf '%s' "$CHANGENOTE" | sed 's/"/\\"/g')
+# Sanitize changenote for VDF format:
+# - Replace double quotes with single quotes (escaped quotes break VDF parser)
+ESCAPED_CHANGENOTE=$(printf '%s' "$CHANGENOTE" | sed "s/\"/'/g")
 
 # Build VDF by processing line by line, inserting changenote with actual newlines
 {

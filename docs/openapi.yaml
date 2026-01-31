@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-31T18:03:09.5612600Z
+# Generated at: 2026-01-31T19:32:48.0769650Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -623,14 +623,36 @@ paths:
         '503':
           $ref: '#/components/responses/GameNotAvailable'
 
-  /events/characters:
+  /turn-summary:
+    get:
+      tags:
+        - Events
+      summary: Get all turn summary data
+      description: |
+        Returns all character, unit, city, and wonder events for the current turn.
+      operationId: getTurn-summary
+      responses:
+        '200':
+          description: TurnSummary data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TurnSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /turn-summary/characters:
     get:
       tags:
         - Events
       summary: Get character events
       description: |
-        Returns events for characters this turn.
-      operationId: getEventsCharacters
+        Returns character events for the current turn.
+      operationId: getTurn-summaryCharacters
       responses:
         '200':
           description: array data
@@ -647,14 +669,45 @@ paths:
         '503':
           $ref: '#/components/responses/GameNotAvailable'
 
-  /events/units:
+  /turn-summary/character/{id}:
+    get:
+      tags:
+        - Events
+      summary: Get events for specific character
+      description: |
+        Returns events involving a specific character this turn.
+      operationId: getTurn-summaryCharacter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CharacterEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /turn-summary/units:
     get:
       tags:
         - Events
       summary: Get unit events
       description: |
-        Returns events for units this turn.
-      operationId: getEventsUnits
+        Returns unit events for the current turn.
+      operationId: getTurn-summaryUnits
       responses:
         '200':
           description: array data
@@ -671,14 +724,45 @@ paths:
         '503':
           $ref: '#/components/responses/GameNotAvailable'
 
-  /events/cities:
+  /turn-summary/unit/{id}:
+    get:
+      tags:
+        - Events
+      summary: Get events for specific unit
+      description: |
+        Returns events involving a specific unit this turn.
+      operationId: getTurn-summaryUnit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unit ID
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /turn-summary/cities:
     get:
       tags:
         - Events
       summary: Get city events
       description: |
-        Returns events for cities this turn.
-      operationId: getEventsCities
+        Returns city events for the current turn.
+      operationId: getTurn-summaryCities
       responses:
         '200':
           description: array data
@@ -688,6 +772,61 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CityEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /turn-summary/city/{id}:
+    get:
+      tags:
+        - Events
+      summary: Get events for specific city
+      description: |
+        Returns events involving a specific city this turn.
+      operationId: getTurn-summaryCity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: City ID
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/GameNotAvailable'
+
+  /turn-summary/wonders:
+    get:
+      tags:
+        - Events
+      summary: Get wonder completion events
+      description: |
+        Returns wonder completion events for the current turn.
+      operationId: getTurn-summaryWonders
+      responses:
+        '200':
+          description: array data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WonderEvent'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1031,7 +1170,9 @@ components:
           type: integer
           format: int32
         explorerEffectUnits:
-          type: string
+          type: array
+          items:
+            type: string
         family:
           type: string
         familyClass:
@@ -1049,7 +1190,9 @@ components:
         genderOpposite:
           type: string
         generalEffectUnits:
-          type: string
+          type: array
+          items:
+            type: string
         hasArchetype:
           type: boolean
         hasBirthCity:
@@ -1333,7 +1476,9 @@ components:
         playerOpinionOfCharacterReligion:
           type: string
         randomTraitDelay:
-          type: string
+          type: array
+          items:
+            type: string
         ratingAttackModifierTotal:
           type: integer
           format: int32
@@ -1367,7 +1512,9 @@ components:
         traitNickname:
           type: string
         traitProbDelay:
-          type: string
+          type: array
+          items:
+            type: string
         traitTitle:
           type: string
         tribe:
@@ -1388,6 +1535,136 @@ components:
         xp:
           type: integer
           format: int32
+        changeJobExtraOpinions:
+          type: object
+          description: Values keyed by JobType
+          additionalProperties:
+            type: integer
+            format: int32
+        cognomenMinValues:
+          type: object
+          description: Values keyed by CognomenType
+          additionalProperties:
+            type: integer
+            format: int32
+        familyOpinionCouncils:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: integer
+            format: int32
+        hasCouncilPrereqs:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: boolean
+        hasRelationshipTypes:
+          type: object
+          description: Values keyed by RelationshipType
+          additionalProperties:
+            type: boolean
+        hasTraitLockedReligions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        hasTraitReligionOpinions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        hasTraitReplacess:
+          type: object
+          description: Values keyed by TraitType
+          additionalProperties:
+            type: boolean
+        isJobs:
+          type: object
+          description: Values keyed by JobType
+          additionalProperties:
+            type: boolean
+        isReligionAgents:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isTraits:
+          type: object
+          description: Values keyed by TraitType
+          additionalProperties:
+            type: boolean
+        jobOpinions:
+          type: object
+          description: Values keyed by JobType
+          additionalProperties:
+            type: integer
+            format: int32
+        makeCouncilExtraOpinions:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: integer
+            format: int32
+        nationEthnicitys:
+          type: object
+          description: Values keyed by NationType
+          additionalProperties:
+            type: integer
+            format: int32
+        ratings:
+          type: object
+          description: Values keyed by RatingType
+          additionalProperties:
+            type: integer
+            format: int32
+        ratingYieldRateAgentTotals:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        traitTurns:
+          type: object
+          description: Values keyed by TraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        traitTurnLengths:
+          type: object
+          description: Values keyed by TraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        tribeEthnicitys:
+          type: object
+          description: Values keyed by TribeType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldRateCourtiers:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldRateLeaders:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldRateLeaderSpouses:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldRateSuccessors:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
         childrenIds:
           type: array
           description: IDs of character's children (computed from getChildren())
@@ -1420,7 +1697,9 @@ components:
       description: City entity data
       properties:
         activeEffectCity:
-          type: string
+          type: array
+          items:
+            type: string
         activeImprovementClassCountAll:
           type: integer
           format: int32
@@ -1720,7 +1999,10 @@ components:
         team:
           type: string
         territoryTiles:
-          type: string
+          type: array
+          items:
+            type: integer
+            format: int32
         tileID:
           type: integer
           format: int32
@@ -1738,6 +2020,272 @@ components:
         urbanTiles:
           type: integer
           format: int32
+        activeImprovementClassCounts:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        activeImprovementCounts:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        assimilateYieldModifiers:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        baseYieldNets:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        buildUnitLevelss:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        buildUnitXPs:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        damageYieldModifiers:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        excessOverflows:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        happinessLevelYieldModifiers:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        hasProjects:
+          type: object
+          description: Values keyed by ProjectType
+          additionalProperties:
+            type: boolean
+        improvementClassCostModifiers:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementClassCounts:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementClassDevelopChanges:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementClassModifiers:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementCounts:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementModifiers:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementRiverModifiers:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        isBannedReligionSpreads:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isLuxurys:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: boolean
+        isNoImprovementClassMaxUnlocks:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: boolean
+        isReligions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isReligionHolyCitys:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isReligionSpreadEligibles:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isSpecialistNoPrereqs:
+          type: object
+          description: Values keyed by SpecialistType
+          additionalProperties:
+            type: boolean
+        isUnitSpawnPossibles:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isYieldBuildCurrents:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        luxuryTradeLengths:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        luxuryTurns:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        makeGovernorCosts:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        militaryUnitFamilyCounts:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        nextTurnOverflows:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        projectCounts:
+          type: object
+          description: Values keyed by ProjectType
+          additionalProperties:
+            type: integer
+            format: int32
+        specialistCostModifiers:
+          type: object
+          description: Values keyed by SpecialistType
+          additionalProperties:
+            type: integer
+            format: int32
+        stateReligionUnitTraitTrainModifiers:
+          type: object
+          description: Values keyed by UnitTraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        territoryTileCounts:
+          type: object
+          description: Values keyed by TerrainType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitCostModifiers:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitProductionCounts:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitTrainModifiers:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitTraitCostModifiers:
+          type: object
+          description: Values keyed by UnitTraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitTraitTrainModifiers:
+          type: object
+          description: Values keyed by UnitTraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldLevels:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldOverflows:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldProgresss:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldThresholds:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldThresholdWholes:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldTurnsLefts:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
         buildQueue:
           type: array
           description: Build queue items
@@ -1798,7 +2346,10 @@ components:
           type: integer
           format: int32
         cities:
-          type: string
+          type: array
+          items:
+            type: integer
+            format: int32
         consumptionModifier:
           type: integer
           format: int32
@@ -1822,7 +2373,9 @@ components:
         dynasty:
           type: string
         families:
-          type: string
+          type: array
+          items:
+            type: string
         familySupremacy:
           type: string
         firstPopup:
@@ -2006,7 +2559,10 @@ components:
           type: integer
           format: int32
         pingTiles:
-          type: string
+          type: array
+          items:
+            type: integer
+            format: int32
         player:
           type: string
         playerEmail:
@@ -2043,7 +2599,10 @@ components:
           type: integer
           format: int32
         succession:
-          type: string
+          type: array
+          items:
+            type: integer
+            format: int32
         successionCount:
           type: integer
           format: int32
@@ -2074,7 +2633,9 @@ components:
           type: integer
           format: int32
         turnSummary:
-          type: string
+          type: array
+          items:
+            type: string
         turnTimeNeeded:
           type: integer
           format: int32
@@ -2093,6 +2654,479 @@ components:
         yieldUpkeepModifier:
           type: integer
           format: int32
+        activeImprovementClassCounts:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        activeImprovementCounts:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        adoptReligionCosts:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: integer
+            format: int32
+        ambitionDecisionss:
+          type: object
+          description: Values keyed by GoalType
+          additionalProperties:
+            type: integer
+            format: int32
+        councilCharacters:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: integer
+            format: int32
+        effectCityRebelProbs:
+          type: object
+          description: Values keyed by EffectCityType
+          additionalProperties:
+            type: integer
+            format: int32
+        effectPlayerCounts:
+          type: object
+          description: Values keyed by EffectPlayerType
+          additionalProperties:
+            type: integer
+            format: int32
+        extraLuxuryCounts:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        familyControls:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        familyHeadIDs:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        familyOpinionRates:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        familySeatCityIDs:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        familyTurnsNoLeaders:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: integer
+            format: int32
+        giftYieldQuantitys:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        goalStartedCounts:
+          type: object
+          description: Values keyed by GoalType
+          additionalProperties:
+            type: integer
+            format: int32
+        hasActiveCharacters:
+          type: object
+          description: Values keyed by CharacterType
+          additionalProperties:
+            type: boolean
+        hasCouncilCharacters:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: boolean
+        hasFamilyHeads:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: boolean
+        hasFamilyOpinions:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: boolean
+        hasFamilySeatCitys:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: boolean
+        hasHeightClaimeds:
+          type: object
+          description: Values keyed by HeightType
+          additionalProperties:
+            type: boolean
+        hasReligions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        hasReligionOpinionHistorys:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        hasTerrainClaimeds:
+          type: object
+          description: Values keyed by TerrainType
+          additionalProperties:
+            type: boolean
+        hasTraitCharacters:
+          type: object
+          description: Values keyed by TraitType
+          additionalProperties:
+            type: boolean
+        hasVegetationClaimeds:
+          type: object
+          description: Values keyed by VegetationType
+          additionalProperties:
+            type: boolean
+        improvementClassCounts:
+          type: object
+          description: Values keyed by ImprovementClassType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementCounts:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        improvementLawsRequireds:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: integer
+            format: int32
+        isActiveLaws:
+          type: object
+          description: Values keyed by LawType
+          additionalProperties:
+            type: boolean
+        isBuyTileUnlocks:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        isCityYieldBuildCurrents:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        isConnectedForeignUnlocks:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        isCouncilUnlocks:
+          type: object
+          description: Values keyed by CouncilType
+          additionalProperties:
+            type: boolean
+        isFamilyReligions:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: boolean
+        isFamilyStarteds:
+          type: object
+          description: Values keyed by FamilyType
+          additionalProperties:
+            type: boolean
+        isHideUnitUnlocks:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isImprovementNotValids:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: boolean
+        isImprovementUnlockeds:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: boolean
+        isLatestUpgrades:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isMinTreatyTurnss:
+          type: object
+          description: Values keyed by TribeType
+          additionalProperties:
+            type: boolean
+        isNationImprovements:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: boolean
+        isNoFamilyRestrictionJobUnlocks:
+          type: object
+          description: Values keyed by JobType
+          additionalProperties:
+            type: boolean
+        isNoSellPenaltyYieldUnlocks:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        isProjectNotValids:
+          type: object
+          description: Values keyed by ProjectType
+          additionalProperties:
+            type: boolean
+        isSpreadBordersUnlocks:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: boolean
+        isTechAcquireds:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechAnyDecks:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechAvailables:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechHides:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechLockeds:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechNotValids:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechPasseds:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechPassedCurrents:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechTargets:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isTechTrasheds:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: boolean
+        isUnitNotValids:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isUnitObsoletes:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isUnitUnlockeds:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isWaterUnitUnlocks:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        isWorldOrOurPaganReligions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        jobOpinionRates:
+          type: object
+          description: Values keyed by JobType
+          additionalProperties:
+            type: integer
+            format: int32
+        livingCourtiersYields:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        livingRoyalsYields:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        luxuryCounts:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        missionCooldownTurnsLefts:
+          type: object
+          description: Values keyed by MissionType
+          additionalProperties:
+            type: integer
+            format: int32
+        missionStartedTurns:
+          type: object
+          description: Values keyed by MissionType
+          additionalProperties:
+            type: integer
+            format: int32
+        projectsProduceds:
+          type: object
+          description: Values keyed by ProjectType
+          additionalProperties:
+            type: integer
+            format: int32
+        questsFaileds:
+          type: object
+          description: Values keyed by GoalType
+          additionalProperties:
+            type: integer
+            format: int32
+        religionCounts:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: integer
+            format: int32
+        religionOpinionRates:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: integer
+            format: int32
+        resourceRevealeds:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        startLawCosts:
+          type: object
+          description: Values keyed by LawType
+          additionalProperties:
+            type: integer
+            format: int32
+        techCosts:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: integer
+            format: int32
+        techCostWholes:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: integer
+            format: int32
+        techProgresss:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: integer
+            format: int32
+        techTurnDiscovereds:
+          type: object
+          description: Values keyed by TechType
+          additionalProperties:
+            type: integer
+            format: int32
+        theologyEstablishedCounts:
+          type: object
+          description: Values keyed by TheologyType
+          additionalProperties:
+            type: integer
+            format: int32
+        tradeOutpostYieldTotals:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitsProduceds:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitsProducedTurns:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        unitTraitConsumptionModifiers:
+          type: object
+          description: Values keyed by UnitTraitType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldStockpiles:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldStockpileWholes:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldTotals:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        yieldUpkeepNets:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
         index:
           type: integer
           description: Player index (0-based)
@@ -2368,6 +3402,37 @@ components:
         y:
           type: integer
           format: int32
+        hasOrBuildingSpecialists:
+          type: object
+          description: Values keyed by SpecialistType
+          additionalProperties:
+            type: boolean
+        improvementCosts:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: integer
+            format: int32
+        isImprovementBorderSpreads:
+          type: object
+          description: Values keyed by ImprovementType
+          additionalProperties:
+            type: boolean
+        isReligions:
+          type: object
+          description: Values keyed by ReligionType
+          additionalProperties:
+            type: boolean
+        isResourceValids:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: boolean
+        isSpecialistCostCitizens:
+          type: object
+          description: Values keyed by SpecialistType
+          additionalProperties:
+            type: boolean
 
     Unit:
       type: object
@@ -2403,7 +3468,9 @@ components:
           type: integer
           format: int32
         effectUnits:
-          type: string
+          type: array
+          items:
+            type: string
         endRoutEffect:
           type: string
         explorerID:
@@ -2643,7 +3710,9 @@ components:
           type: integer
           format: int32
         modVariables:
-          type: string
+          type: array
+          items:
+            type: string
         name:
           type: string
         nameType:
@@ -2654,7 +3723,9 @@ components:
           type: integer
           format: int32
         offensiveUnits:
-          type: string
+          type: array
+          items:
+            type: string
         originalPlayer:
           type: string
         originalTribe:
@@ -2724,6 +3795,80 @@ components:
         xpThreshold:
           type: integer
           format: int32
+        effectUnitCounts:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        effectUnitTurnRemainings:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: integer
+            format: int32
+        harvestYieldModifiers:
+          type: object
+          description: Values keyed by ResourceType
+          additionalProperties:
+            type: integer
+            format: int32
+        hasBuyTileYields:
+          type: object
+          description: Values keyed by YieldType
+          additionalProperties:
+            type: boolean
+        hasEffectUnits:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: boolean
+        hasIgnoreHeightCosts:
+          type: object
+          description: Values keyed by HeightType
+          additionalProperties:
+            type: boolean
+        hasIgnoreVegetationCosts:
+          type: object
+          description: Values keyed by VegetationType
+          additionalProperties:
+            type: boolean
+        hasIgnoreVegetationDefenses:
+          type: object
+          description: Values keyed by VegetationType
+          additionalProperties:
+            type: boolean
+        hasPromotions:
+          type: object
+          description: Values keyed by PromotionType
+          additionalProperties:
+            type: boolean
+        isExplorerEffectUnits:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: boolean
+        isGeneralEffectUnits:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: boolean
+        isImmuneEffectUnits:
+          type: object
+          description: Values keyed by EffectUnitType
+          additionalProperties:
+            type: boolean
+        isUnitZocs:
+          type: object
+          description: Values keyed by UnitType
+          additionalProperties:
+            type: boolean
+        tradeOutpostCosts:
+          type: object
+          description: Values keyed by TribeType
+          additionalProperties:
+            type: integer
+            format: int32
         promotions:
           type: array
           description: List of unit promotions
@@ -2968,6 +4113,34 @@ components:
         pagination:
           type: object
 
+    TurnSummary:
+      type: object
+      description: All events detected for the current turn
+      properties:
+        turn:
+          type: integer
+          description: Current game turn
+        characters:
+          type: array
+          description: Character events this turn
+          items:
+            $ref: '#/components/schemas/CharacterEvent'
+        units:
+          type: array
+          description: Unit events this turn
+          items:
+            $ref: '#/components/schemas/UnitEvent'
+        cities:
+          type: array
+          description: City events this turn
+          items:
+            $ref: '#/components/schemas/CityEvent'
+        wonders:
+          type: array
+          description: Wonder completion events this turn
+          items:
+            $ref: '#/components/schemas/WonderEvent'
+
     CharacterEvent:
       type: object
       description: Character-related event
@@ -3068,6 +4241,31 @@ components:
           $ref: '#/components/schemas/Location'
         lastLocation:
           $ref: '#/components/schemas/Location'
+
+    WonderEvent:
+      type: object
+      description: Wonder completion event
+      properties:
+        eventType:
+          type: string
+          description: Type of event
+          enum:
+            - wonderCompleted
+        wonder:
+          type: string
+          description: Wonder improvement type (e.g., IMPROVEMENT_PYRAMIDS)
+        cityId:
+          type: integer
+          nullable: true
+          description: ID of the city containing the wonder
+        playerId:
+          type: integer
+          nullable: true
+          description: Player who completed the wonder (if player-owned)
+        tribeType:
+          type: string
+          nullable: true
+          description: Tribe type if completed by a tribe
 
     Religion:
       type: object

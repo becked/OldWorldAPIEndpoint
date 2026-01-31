@@ -212,6 +212,23 @@ if [ $HTTP_READY -eq 1 ]; then
     fi
 
     echo ""
+    echo "  Testing turn-summary endpoints:"
+    test_endpoint "/turn-summary" "Turn summary (all)"
+    test_endpoint "/turn-summary/characters" "Character events"
+    test_endpoint "/turn-summary/units" "Unit events"
+    test_endpoint "/turn-summary/cities" "City events"
+    test_endpoint "/turn-summary/wonders" "Wonder events"
+    if [ -n "$CHAR_ID" ]; then
+        test_endpoint "/turn-summary/character/$CHAR_ID" "Character $CHAR_ID events"
+    fi
+    if [ -n "$UNIT_ID" ]; then
+        test_endpoint "/turn-summary/unit/$UNIT_ID" "Unit $UNIT_ID events"
+    fi
+    if [ -n "$CITY_ID" ]; then
+        test_endpoint "/turn-summary/city/$CITY_ID" "City $CITY_ID events"
+    fi
+
+    echo ""
     echo "  Testing error cases:"
     echo -n "  Invalid city ID... "
     HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$HTTP_PORT/city/999999" 2>/dev/null)
@@ -223,6 +240,22 @@ if [ $HTTP_READY -eq 1 ]; then
 
     echo -n "  Unknown endpoint... "
     HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$HTTP_PORT/nonexistent" 2>/dev/null)
+    if [ "$HTTP_STATUS" -eq 404 ]; then
+        echo -e "${GREEN}OK${NC} (404 as expected)"
+    else
+        echo -e "${RED}FAIL${NC} (got $HTTP_STATUS, expected 404)"
+    fi
+
+    echo -n "  Old event endpoint removed... "
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$HTTP_PORT/character-events" 2>/dev/null)
+    if [ "$HTTP_STATUS" -eq 404 ]; then
+        echo -e "${GREEN}OK${NC} (404 as expected)"
+    else
+        echo -e "${RED}FAIL${NC} (got $HTTP_STATUS, expected 404)"
+    fi
+
+    echo -n "  Invalid turn-summary resource... "
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$HTTP_PORT/turn-summary/invalid" 2>/dev/null)
     if [ "$HTTP_STATUS" -eq 404 ]; then
         echo -e "${GREEN}OK${NC} (404 as expected)"
     else

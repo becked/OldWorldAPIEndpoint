@@ -379,6 +379,34 @@ composite_schemas:
       numTiles:
         type: integer
 
+  TurnSummary:
+    type: object
+    description: All events detected for the current turn
+    properties:
+      turn:
+        type: integer
+        description: Current game turn
+      characters:
+        type: array
+        description: Character events this turn
+        items:
+          $ref: "#/components/schemas/CharacterEvent"
+      units:
+        type: array
+        description: Unit events this turn
+        items:
+          $ref: "#/components/schemas/UnitEvent"
+      cities:
+        type: array
+        description: City events this turn
+        items:
+          $ref: "#/components/schemas/CityEvent"
+      wonders:
+        type: array
+        description: Wonder completion events this turn
+        items:
+          $ref: "#/components/schemas/WonderEvent"
+
 # Event schemas
 event_schemas:
   CharacterEvent:
@@ -472,6 +500,30 @@ event_schemas:
         description: Whether city was tribal
       location:
         $ref: "#/components/schemas/Location"
+
+  WonderEvent:
+    type: object
+    description: Wonder completion event
+    properties:
+      eventType:
+        type: string
+        description: Type of event
+        enum: [wonderCompleted]
+      wonder:
+        type: string
+        description: Wonder improvement type (e.g., IMPROVEMENT_PYRAMIDS)
+      cityId:
+        type: integer
+        nullable: true
+        description: ID of the city containing the wonder
+      playerId:
+        type: integer
+        nullable: true
+        description: Player who completed the wonder (if player-owned)
+      tribeType:
+        type: string
+        nullable: true
+        description: Tribe type if completed by a tribe
 
 # Diplomacy schemas
 diplomacy_schemas:
@@ -999,33 +1051,92 @@ endpoints:
         type: integer
         description: Y coordinate
 
-  # Events
-  - path: /events/characters
+  # Turn Summary (Events)
+  - path: /turn-summary
     method: get
-    operationId: getCharacterEvents
+    operationId: getTurnSummary
+    summary: Get all turn summary data
+    description: Returns all character, unit, city, and wonder events for the current turn.
+    tags: [Events]
+    response: TurnSummary
+
+  - path: /turn-summary/characters
+    method: get
+    operationId: getTurnSummaryCharacters
     summary: Get character events
-    description: Returns events for characters this turn.
+    description: Returns character events for the current turn.
     tags: [Events]
     response: array
     items: CharacterEvent
 
-  - path: /events/units
+  - path: /turn-summary/character/{id}
     method: get
-    operationId: getUnitEvents
+    operationId: getTurnSummaryCharacter
+    summary: Get events for specific character
+    description: Returns events involving a specific character this turn.
+    tags: [Events]
+    response: array
+    items: CharacterEvent
+    params:
+      - name: id
+        in: path
+        type: integer
+        description: Character ID
+
+  - path: /turn-summary/units
+    method: get
+    operationId: getTurnSummaryUnits
     summary: Get unit events
-    description: Returns events for units this turn.
+    description: Returns unit events for the current turn.
     tags: [Events]
     response: array
     items: UnitEvent
 
-  - path: /events/cities
+  - path: /turn-summary/unit/{id}
     method: get
-    operationId: getCityEvents
+    operationId: getTurnSummaryUnit
+    summary: Get events for specific unit
+    description: Returns events involving a specific unit this turn.
+    tags: [Events]
+    response: array
+    items: UnitEvent
+    params:
+      - name: id
+        in: path
+        type: integer
+        description: Unit ID
+
+  - path: /turn-summary/cities
+    method: get
+    operationId: getTurnSummaryCities
     summary: Get city events
-    description: Returns events for cities this turn.
+    description: Returns city events for the current turn.
     tags: [Events]
     response: array
     items: CityEvent
+
+  - path: /turn-summary/city/{id}
+    method: get
+    operationId: getTurnSummaryCity
+    summary: Get events for specific city
+    description: Returns events involving a specific city this turn.
+    tags: [Events]
+    response: array
+    items: CityEvent
+    params:
+      - name: id
+        in: path
+        type: integer
+        description: City ID
+
+  - path: /turn-summary/wonders
+    method: get
+    operationId: getTurnSummaryWonders
+    summary: Get wonder completion events
+    description: Returns wonder completion events for the current turn.
+    tags: [Events]
+    response: array
+    items: WonderEvent
 
   # Tribes
   - path: /tribes

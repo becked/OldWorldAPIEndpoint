@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -292,7 +293,7 @@ namespace OldWorldAPIEndpoint
 
             if (segments.Length == 0)
             {
-                SendErrorResponse(context.Response, "GET: /state, /players, /cities, /characters, /tribes, /team-diplomacy. POST: /command, /commands", 404);
+                SendErrorResponse(context.Response, "GET: /state, /players, /cities, /characters, /units, /turn-summary. POST: /command, /commands", 404);
                 return;
             }
 
@@ -392,16 +393,8 @@ namespace OldWorldAPIEndpoint
                         SendErrorResponse(context.Response, "Invalid character ID. Use /character/{id}", 400);
                     break;
 
-                case "character-events":
-                    HandleCharacterEventsRequest(context);
-                    break;
-
-                case "unit-events":
-                    HandleUnitEventsRequest(context);
-                    break;
-
-                case "city-events":
-                    HandleCityEventsRequest(context);
+                case "turn-summary":
+                    RouteTurnSummaryRequest(context, game, segments);
                     break;
 
                 case "tribes":
@@ -637,6 +630,75 @@ namespace OldWorldAPIEndpoint
                 SendErrorResponse(context.Response, $"Character not found: {charId}", 404);
         }
 
+        #region Turn Summary Handlers
+
+        private void RouteTurnSummaryRequest(HttpListenerContext context, Game game, string[] segments)
+        {
+            if (segments.Length == 1)
+            {
+                // GET /turn-summary - all events
+                HandleTurnSummaryRequest(context, game);
+            }
+            else if (segments.Length == 2)
+            {
+                // GET /turn-summary/{resource}
+                switch (segments[1])
+                {
+                    case "characters":
+                        HandleCharacterEventsRequest(context);
+                        break;
+                    case "units":
+                        HandleUnitEventsRequest(context);
+                        break;
+                    case "cities":
+                        HandleCityEventsRequest(context);
+                        break;
+                    case "wonders":
+                        HandleWonderEventsRequest(context);
+                        break;
+                    default:
+                        SendErrorResponse(context.Response, $"Unknown turn-summary resource: {segments[1]}", 404);
+                        break;
+                }
+            }
+            else if (segments.Length == 3 && int.TryParse(segments[2], out int entityId))
+            {
+                // GET /turn-summary/{entity}/{id}
+                switch (segments[1])
+                {
+                    case "character":
+                        HandleCharacterEventsByIdRequest(context, entityId);
+                        break;
+                    case "unit":
+                        HandleUnitEventsByIdRequest(context, entityId);
+                        break;
+                    case "city":
+                        HandleCityEventsByIdRequest(context, entityId);
+                        break;
+                    default:
+                        SendErrorResponse(context.Response, $"Unknown turn-summary entity: {segments[1]}", 404);
+                        break;
+                }
+            }
+            else
+            {
+                SendErrorResponse(context.Response, "Invalid turn-summary path", 400);
+            }
+        }
+
+        private void HandleTurnSummaryRequest(HttpListenerContext context, Game game)
+        {
+            var summary = new
+            {
+                turn = game?.getTurn() ?? 0,
+                characters = APIEndpoint.GetLastCharacterEvents(),
+                units = APIEndpoint.GetLastUnitEvents(),
+                cities = APIEndpoint.GetLastCityEvents(),
+                wonders = APIEndpoint.GetLastWonderEvents()
+            };
+            SendJsonResponse(context.Response, summary);
+        }
+
         private void HandleCharacterEventsRequest(HttpListenerContext context)
         {
             var events = APIEndpoint.GetLastCharacterEvents();
@@ -654,6 +716,99 @@ namespace OldWorldAPIEndpoint
             var events = APIEndpoint.GetLastCityEvents();
             SendJsonResponse(context.Response, events);
         }
+
+        private void HandleWonderEventsRequest(HttpListenerContext context)
+        {
+            var events = APIEndpoint.GetLastWonderEvents();
+            SendJsonResponse(context.Response, events);
+        }
+
+        private void HandleCharacterEventsByIdRequest(HttpListenerContext context, int charId)
+        {
+            var events = APIEndpoint.GetLastCharacterEvents()
+                .Where(e => MatchesCharacterId(e, charId))
+                .ToList();
+            SendJsonResponse(context.Response, events);
+        }
+
+        private void HandleUnitEventsByIdRequest(HttpListenerContext context, int unitId)
+        {
+            var events = APIEndpoint.GetLastUnitEvents()
+                .Where(e => MatchesUnitId(e, unitId))
+                .ToList();
+            SendJsonResponse(context.Response, events);
+        }
+
+        private void HandleCityEventsByIdRequest(HttpListenerContext context, int cityId)
+        {
+            var events = APIEndpoint.GetLastCityEvents()
+                .Where(e => MatchesCityId(e, cityId))
+                .ToList();
+            SendJsonResponse(context.Response, events);
+        }
+
+        /// <summary>
+        /// Check if an event object matches a character ID.
+        /// Handles various event types that may have character references in different fields.
+        /// </summary>
+        private static bool MatchesCharacterId(object evt, int id)
+        {
+            if (evt == null) return false;
+            var type = evt.GetType();
+
+            // Check common character ID fields
+            foreach (var propName in new[] { "characterId", "character1Id", "character2Id", "newLeaderId", "oldLeaderId", "newHeirId", "oldHeirId" })
+            {
+                var prop = type.GetProperty(propName);
+                if (prop != null && TryGetIntValue(prop.GetValue(evt), out int value) && value == id)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Check if an event object matches a unit ID.
+        /// </summary>
+        private static bool MatchesUnitId(object evt, int id)
+        {
+            if (evt == null) return false;
+            var prop = evt.GetType().GetProperty("unitId");
+            return prop != null && TryGetIntValue(prop.GetValue(evt), out int value) && value == id;
+        }
+
+        /// <summary>
+        /// Check if an event object matches a city ID.
+        /// </summary>
+        private static bool MatchesCityId(object evt, int id)
+        {
+            if (evt == null) return false;
+            var prop = evt.GetType().GetProperty("cityId");
+            return prop != null && TryGetIntValue(prop.GetValue(evt), out int value) && value == id;
+        }
+
+        /// <summary>
+        /// Try to get an int value from an object, handling nullable ints.
+        /// </summary>
+        private static bool TryGetIntValue(object obj, out int value)
+        {
+            value = 0;
+            if (obj == null) return false;
+            if (obj is int i)
+            {
+                value = i;
+                return true;
+            }
+            // Handle boxed Nullable<int>
+            var type = obj.GetType();
+            if (type == typeof(int) || (Nullable.GetUnderlyingType(type) == typeof(int)))
+            {
+                value = (int)obj;
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
 
         private void HandleTribesRequest(HttpListenerContext context, Game game)
         {

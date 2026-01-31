@@ -403,13 +403,31 @@ public class OpenApiGenerator
         // Get exclusions for this entity
         var exclusions = annotations.EntityExclusions.TryGetValue(entityName, out var excl) ? excl : new List<string>();
 
-        // Generate properties from parsed getters
+        // Generate properties from parsed getters (no parameters or collection types)
         foreach (var getter in getters.Where(g => !g.HasParameters).OrderBy(g => g.PropertyName))
         {
             if (exclusions.Contains(getter.PropertyName) || exclusions.Contains(getter.Name))
                 continue;
 
             GenerateGetterProperty(sb, getter);
+        }
+
+        // Generate enum-indexed properties (single enum parameter, supported value type)
+        var enumIndexedGetters = getters
+            .Where(g => g.ParameterCount == 1 &&
+                        g.ParameterTypes.Count > 0 &&
+                        IsEnumWithInfosLookup(g.ParameterTypes[0]) &&
+                        IsSupportedValueType(g.ReturnType))
+            .OrderBy(g => g.PropertyName);
+
+        foreach (var getter in enumIndexedGetters)
+        {
+            // Check exclusions for both the pluralized property name and the method name
+            var pluralizedName = getter.PropertyName + "s";
+            if (exclusions.Contains(pluralizedName) || exclusions.Contains(getter.Name))
+                continue;
+
+            GenerateEnumIndexedProperty(sb, getter);
         }
 
         // Add computed properties from annotations
@@ -425,6 +443,31 @@ public class OpenApiGenerator
     private void GenerateGetterProperty(StringBuilder sb, GetterSignature getter)
     {
         var propName = getter.PropertyName;
+
+        // Handle collection types first (uses CollectionElementType from parser)
+        if (getter.CollectionElementType != null)
+        {
+            sb.AppendLine($"        {propName}:");
+            sb.AppendLine("          type: array");
+            sb.AppendLine("          items:");
+
+            var elementType = getter.CollectionElementType;
+            if (elementType.EndsWith("Type", StringComparison.Ordinal))
+            {
+                // Enum element types become strings
+                sb.AppendLine("            type: string");
+            }
+            else
+            {
+                var (itemType, itemFormat, _) = MapReturnTypeToOpenApi(elementType);
+                sb.AppendLine($"            type: {itemType}");
+                if (!string.IsNullOrEmpty(itemFormat))
+                    sb.AppendLine($"            format: {itemFormat}");
+            }
+            return;
+        }
+
+        // Simple type handling
         var (openApiType, format, nullable) = MapReturnTypeToOpenApi(getter.ReturnType);
 
         sb.AppendLine($"        {propName}:");
@@ -459,6 +502,54 @@ public class OpenApiGenerator
             _ => ("string", null, nullable) // Default to string for unknown types
         };
     }
+
+    #region Enum-Indexed Property Generation
+
+    // Enum types that have too many values or are not useful for API documentation
+    private static readonly HashSet<string> BlockedEnumTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "EventStoryType", "BonusType", "TextType", "MemoryType", "AchievementType"
+    };
+
+    /// <summary>
+    /// Check if an enum type has an Infos lookup (meaning we can enumerate its values).
+    /// </summary>
+    private bool IsEnumWithInfosLookup(string typeName)
+    {
+        if (BlockedEnumTypes.Contains(typeName))
+            return false;
+        return _typeAnalyzer.GetEnumTypeInfo(typeName) != null;
+    }
+
+    /// <summary>
+    /// Check if a return type is a supported value type for enum-indexed properties.
+    /// </summary>
+    private static bool IsSupportedValueType(string returnType)
+    {
+        var baseType = returnType.TrimEnd('?').ToLowerInvariant();
+        return baseType is "int" or "int32" or "long" or "int64" or "bool" or "boolean" or "string";
+    }
+
+    /// <summary>
+    /// Generate an enum-indexed property (e.g., ratings: { RATING_COURAGE: 7, ... }).
+    /// </summary>
+    private void GenerateEnumIndexedProperty(StringBuilder sb, GetterSignature getter)
+    {
+        // Pluralize property name: rating → ratings
+        var propName = getter.PropertyName + "s";
+        var enumType = getter.ParameterTypes[0];
+        var (valueType, valueFormat, _) = MapReturnTypeToOpenApi(getter.ReturnType);
+
+        sb.AppendLine($"        {propName}:");
+        sb.AppendLine("          type: object");
+        sb.AppendLine($"          description: Values keyed by {enumType}");
+        sb.AppendLine("          additionalProperties:");
+        sb.AppendLine($"            type: {valueType}");
+        if (!string.IsNullOrEmpty(valueFormat))
+            sb.AppendLine($"            format: {valueFormat}");
+    }
+
+    #endregion
 
     private void GenerateSchemaFromDefinition(StringBuilder sb, string schemaName, SchemaDefinition schemaDef)
     {

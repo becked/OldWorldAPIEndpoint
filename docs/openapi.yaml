@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-31T19:32:48.0769650Z
+# Generated at: 2026-01-31T19:49:04.8028540Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -1673,9 +1673,6 @@ components:
         opinions:
           type: object
           description: Character opinions towards players keyed by player index
-        ratings:
-          type: object
-          description: Character ratings keyed by rating type (e.g., RATING_COURAGE)
         relationships:
           type: array
           description: Character relationships (computed from getRelationshipList())

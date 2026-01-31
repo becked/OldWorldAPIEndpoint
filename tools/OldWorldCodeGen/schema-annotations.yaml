@@ -70,18 +70,13 @@ entity_additions:
       description: Number of tiles in city territory
 
   # Character computed fields (arrays/objects built via loops in hand-written code)
-  # Properties already available from parsed getters are NOT listed here
+  # Note: ratings is auto-generated from enum-indexed getter detection
   Character:
     traits:
       type: array
       description: List of character traits (computed from getTraits())
       items:
         type: string
-    ratings:
-      type: object
-      description: Character ratings keyed by rating type (e.g., RATING_COURAGE)
-      additionalProperties:
-        type: integer
     relationships:
       type: array
       description: Character relationships (computed from getRelationshipList())

@@ -1,6 +1,16 @@
 # Changelog
 
 
+## [3.3.1] - 2026-02-18
+
+### Changed
+- **Regenerated for Old World 2026-02-18 update** (game build 1.0.82189)
+  - Character: added `youngestLivingChildAge`
+  - Unit: added `anchoredTurns`, `hasHealKill`, `isRoadBuilder`, `unlimberedTurns`
+  - Unit: removed `getCooldownMove` (DISEMBARKED_COOLDOWN global removed upstream)
+- **bump-version.sh** now auto-detects game build version and updates `modbuild` in ModInfo.xml
+
+
 ## [3.3.0] - 2025-01-31
 
 ### Added

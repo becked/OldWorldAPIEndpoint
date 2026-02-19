@@ -23,7 +23,7 @@ info:
     ## Connection
 
     The HTTP REST server runs on port 9877 when the mod is active and a game is loaded.
-  version: "3.3.0"
+  version: "3.3.1"
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

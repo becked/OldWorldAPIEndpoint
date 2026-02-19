@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **CRITICAL: Never commit or push without explicit user direction.** Always wait for the user to explicitly ask for a commit or push before running git commit or git push commands.
 
+## Scope Rules
+
+**Only do what is explicitly requested.** Do not make additional "helpful" changes beyond the task at hand. Examples:
+- If asked to create a file, don't also add it to navigation/indexes/sidebars
+- If asked to fix a bug, don't also refactor surrounding code
+- If asked to add a feature, don't also update documentation unless asked
+
+When in doubt, do less and ask.
+
 ## Build & Deploy
 
 ```bash

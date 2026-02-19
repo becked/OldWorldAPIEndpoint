@@ -96,6 +96,34 @@ if [ -f "$OPENAPI" ]; then
     echo "Updated $OPENAPI: $CURRENT -> $NEW_VERSION"
 fi
 
+# Update modbuild from game installation version
+if [ -f ".env" ]; then
+    source ".env"
+fi
+if [ -n "$OLDWORLD_PATH" ]; then
+    GAME_BUILD=""
+    PLIST="$OLDWORLD_PATH/OldWorld.app/Contents/Info.plist"
+    if [ -f "$PLIST" ]; then
+        # macOS: extract version from app bundle (e.g., "1.0.82189 (2026-02-18)" -> "1.0.82189")
+        GAME_BUILD=$(defaults read "$PLIST" CFBundleShortVersionString 2>/dev/null | awk '{print $1}')
+    fi
+    if [ -n "$GAME_BUILD" ]; then
+        OLD_BUILD=$(sed -n 's/.*<modbuild>\([^<]*\)<\/modbuild>.*/\1/p' "$MODINFO")
+        if [ "$OLD_BUILD" != "$GAME_BUILD" ]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' "s|<modbuild>$OLD_BUILD</modbuild>|<modbuild>$GAME_BUILD</modbuild>|" "$MODINFO"
+            else
+                sed -i "s|<modbuild>$OLD_BUILD</modbuild>|<modbuild>$GAME_BUILD</modbuild>|" "$MODINFO"
+            fi
+            echo "Updated modbuild: $OLD_BUILD -> $GAME_BUILD"
+        else
+            echo "modbuild already current: $GAME_BUILD"
+        fi
+    else
+        echo "Warning: Could not detect game build version"
+    fi
+fi
+
 echo ""
 echo "Updated $MODINFO: $CURRENT -> $NEW_VERSION"
 

@@ -1,5 +1,5 @@
 # Auto-generated from Old World game source
-# Generated at: 2026-01-31T21:39:29.8027210Z
+# Generated at: 2026-02-19T01:51:30.3556600Z
 # Do not edit manually - regenerate with: dotnet run --project tools/OldWorldCodeGen
 
 openapi: "3.0.3"
@@ -1551,6 +1551,9 @@ components:
         wasReligionHead:
           type: string
         xp:
+          type: integer
+          format: int32
+        youngestLivingChildAge:
           type: integer
           format: int32
         changeJobExtraOpinions:
@@ -3456,6 +3459,9 @@ components:
         agentNetworkCost:
           type: integer
           format: int32
+        anchoredTurns:
+          type: integer
+          format: int32
         caravanMissionTarget:
           type: string
         civilianCycleSubgroup:
@@ -3570,6 +3576,8 @@ components:
           type: integer
           format: int32
         hasHarvest:
+          type: boolean
+        hasHealKill:
           type: boolean
         hasHealNeutral:
           type: boolean
@@ -3690,6 +3698,8 @@ components:
           type: boolean
         isRemoveVegatation:
           type: boolean
+        isRoadBuilder:
+          type: boolean
         isScout:
           type: boolean
         isSentry:
@@ -3802,6 +3812,9 @@ components:
           type: string
         unitCycleGroup:
           type: string
+        unlimberedTurns:
+          type: integer
+          format: int32
         workerAnimationType:
           type: string
         xp:

@@ -284,6 +284,10 @@
       "minimum": 0,
       "description": "Number of children"
     },
+    "youngestLivingChildAge": {
+      "type": "integer",
+      "description": "Age of youngest living child (-1 if none)"
+    },
     "wasReligionHead": {
       "type": ["string", "null"],
       "description": "Former religion head position"

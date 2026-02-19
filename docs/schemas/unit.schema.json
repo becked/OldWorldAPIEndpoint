@@ -57,6 +57,10 @@
       "type": "integer",
       "description": "Steps taken this turn"
     },
+    "anchoredTurns": {
+      "type": "integer",
+      "description": "Turns unit has been anchored"
+    },
     "cooldownTurns": {
       "type": "integer",
       "description": "Turns until cooldown expires"
@@ -64,6 +68,10 @@
     "fortifyTurns": {
       "type": "integer",
       "description": "Turns fortified"
+    },
+    "unlimberedTurns": {
+      "type": "integer",
+      "description": "Turns unit has been unlimbered"
     },
     "createTurn": {
       "type": "integer",
@@ -84,6 +92,14 @@
     "isSentry": {
       "type": "boolean",
       "description": "Whether unit is on sentry"
+    },
+    "isRoadBuilder": {
+      "type": "boolean",
+      "description": "Whether unit can build roads"
+    },
+    "hasHealKill": {
+      "type": "boolean",
+      "description": "Whether unit heals on kill"
     },
     "isPass": {
       "type": "boolean",

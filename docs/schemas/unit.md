@@ -27,13 +27,17 @@ Units represent military and civilian units in the game.
 | `xp` | integer | Experience points |
 | `level` | integer | Unit level |
 | `turnSteps` | integer | Steps taken this turn |
+| `anchoredTurns` | integer | Turns unit has been anchored |
 | `cooldownTurns` | integer | Turns until cooldown expires |
 | `fortifyTurns` | integer | Turns fortified |
+| `unlimberedTurns` | integer | Turns unit has been unlimbered |
 | `createTurn` | integer | Turn unit was created |
 | `generalId` | integer? | Attached general character ID |
 | `hasGeneral` | boolean | Whether unit has a general |
 | `isSleep` | boolean | Whether unit is sleeping |
 | `isSentry` | boolean | Whether unit is on sentry |
+| `isRoadBuilder` | boolean | Whether unit can build roads |
+| `hasHealKill` | boolean | Whether unit heals on kill |
 | `isPass` | boolean | Whether unit has passed |
 | `family` | string? | Family type if unit has family |
 | `hasFamily` | boolean | Whether unit has family |

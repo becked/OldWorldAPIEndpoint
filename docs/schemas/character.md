@@ -141,6 +141,7 @@ Rating types: `RATING_COURAGE`, `RATING_DISCIPLINE`, `RATING_CHARISMA`, `RATING_
 | `spousesAlive` | integer | Living spouses |
 | `childrenIds` | array | Children character IDs |
 | `numChildren` | integer | Total children |
+| `youngestLivingChildAge` | integer | Age of youngest living child (-1 if none) |
 | `title` | string \| null | Title (e.g., `TITLE_AUGUSTUS`) |
 | `cognomen` | string \| null | Cognomen (e.g., `COGNOMEN_GREAT`) |
 | `nickname` | string \| null | Nickname text |
